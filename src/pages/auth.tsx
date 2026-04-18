@@ -250,14 +250,38 @@ export default function AuthPage() {
           )}
 
           {mode === "success" && (
-            <motion.div key="success" initial={{ scale: 0.9, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} className="text-center space-y-6">
+            <motion.div key="success" initial={{ scale: 0.9, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} className="text-center space-y-5">
               <div className="w-20 h-20 mx-auto bg-green-500/20 rounded-full flex items-center justify-center border border-green-500/50">
                 <ShieldCheck className="w-10 h-10 text-green-400" />
               </div>
-              <h2 className="text-2xl font-display text-glow text-green-400">{t("auth.accountForged")}</h2>
-              <p className="text-muted-foreground">{t("auth.writeSerial")}</p>
-              <div className="p-6 bg-background/60 rounded-xl border border-primary/50 text-4xl font-mono font-bold tracking-[0.2em] text-primary shadow-[0_0_20px_hsl(var(--primary)/0.2)]">{newSerial}</div>
-              <Button onClick={() => navigate("/hub")} className="w-full h-12 bg-primary text-primary-foreground font-bold mt-4">{t("enterHub")}</Button>
+              <h2 className="text-2xl font-display text-glow text-green-400">تم إنشاء حسابك بنجاح!</h2>
+              <div className="bg-yellow-500/10 border border-yellow-500/40 rounded-xl p-4 text-right space-y-2">
+                <div className="flex items-start gap-2">
+                  <AlertTriangle className="w-5 h-5 text-yellow-400 flex-shrink-0 mt-0.5" />
+                  <div className="text-sm text-yellow-200">
+                    <strong className="block mb-1">⚠️ مهم جداً — احفظ رقمك التسلسلي الآن</strong>
+                    <span className="text-yellow-300/80">هذا الرقم هو مفتاح دخولك الوحيد للموقع. انسخه أو نزّله واحتفظ به في مكان آمن. لن تتمكن من استرجاعه لاحقاً.</span>
+                  </div>
+                </div>
+              </div>
+              <div className="p-6 bg-background/60 rounded-xl border-2 border-primary/50 text-4xl font-mono font-bold tracking-[0.2em] text-primary shadow-[0_0_20px_hsl(var(--primary)/0.2)] select-all">{newSerial}</div>
+              <div className="grid grid-cols-2 gap-3">
+                <Button type="button" onClick={handleCopySerial} variant="outline" className="h-12 gap-2 border-primary/50 hover:bg-primary/10">
+                  {copied ? <Check className="w-4 h-4 text-green-400" /> : <Copy className="w-4 h-4" />}
+                  {copied ? "تم النسخ" : "نسخ"}
+                </Button>
+                <Button type="button" onClick={handleDownloadSerial} variant="outline" className="h-12 gap-2 border-primary/50 hover:bg-primary/10">
+                  <Download className="w-4 h-4" />
+                  تنزيل
+                </Button>
+              </div>
+              <label className="flex items-center gap-3 p-3 bg-background/40 rounded-lg border border-border cursor-pointer hover:bg-background/60 transition">
+                <input type="checkbox" checked={savedConfirmed} onChange={(e) => setSavedConfirmed(e.target.checked)} className="w-5 h-5 accent-primary" />
+                <span className="text-sm text-right flex-1">نعم، لقد حفظت رقمي التسلسلي في مكان آمن</span>
+              </label>
+              <Button onClick={() => navigate("/hub")} disabled={!savedConfirmed} className="w-full h-12 bg-primary text-primary-foreground font-bold disabled:opacity-50 disabled:cursor-not-allowed">
+                {savedConfirmed ? "دخول المنصة" : "احفظ الرقم أولاً للمتابعة"}
+              </Button>
             </motion.div>
           )}
         </AnimatePresence>
