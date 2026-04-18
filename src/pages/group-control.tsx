@@ -142,7 +142,7 @@ export default function GroupControlPage() {
       title: t("gc.approvedTitle") || "تم قبول طلبك",
       body: `${t("gc.approvedBody") || "تم قبولك في مجموعة"}: ${group?.name}`,
       type: "success",
-      related_id: groupId || null,
+      related_id: groupId ?? null,
     });
     toast({ title: t("cp.requestApproved") });
     refreshRequests();
