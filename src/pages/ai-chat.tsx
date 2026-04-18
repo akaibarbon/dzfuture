@@ -32,21 +32,18 @@ export default function AiChatPage() {
     setMessages((prev) => [...prev, userMsg]);
     setInput("");
     setIsLoading(true);
-    let assistantSoFar = "";
-    const upsert = (chunk: string) => {
-      assistantSoFar += chunk;
-      setMessages((prev) => {
-        const last = prev[prev.length - 1];
-        if (last?.role === "assistant") return prev.map((m, i) => (i === prev.length - 1 ? { ...m, content: assistantSoFar } : m));
-        return [...prev, { role: "assistant", content: assistantSoFar }];
-      });
-    };
-    await streamChat({
-      messages: [...messages, userMsg],
-      onDelta: upsert,
-      onDone: () => setIsLoading(false),
-      onError: (msg) => { toast({ title: t("ai.error"), description: msg, variant: "destructive" }); setIsLoading(false); },
-    });
+    try {
+      const result = await chatStream({ data: { messages: [...messages, userMsg] } });
+      if ("error" in result && result.error) {
+        toast({ title: t("ai.error"), description: result.error, variant: "destructive" });
+      } else {
+        setMessages((prev) => [...prev, { role: "assistant", content: (result as any).content || "" }]);
+      }
+    } catch (e: any) {
+      toast({ title: t("ai.error"), description: e?.message || "Error", variant: "destructive" });
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (
