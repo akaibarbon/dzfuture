@@ -18,7 +18,7 @@ export const Route = createRootRoute({
 
 function RootShell({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="ar" dir="rtl">
+    <html lang="ar" dir="rtl" className="dark">
       <head>
         <HeadContent />
         <script dangerouslySetInnerHTML={{ __html: `try{var s=localStorage.getItem('uno-dark-mode');if(!s||JSON.parse(s)?.state?.isDark!==false){document.documentElement.classList.add('dark');}}catch(e){document.documentElement.classList.add('dark');}` }} />
