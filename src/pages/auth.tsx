@@ -5,7 +5,7 @@ import { useAuth } from "@/hooks/use-auth";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Loader2, ShieldCheck, Mail, User, KeyRound } from "lucide-react";
+import { Loader2, ShieldCheck, Mail, User, KeyRound, Copy, Download, Check, AlertTriangle } from "lucide-react";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
 import { lovable } from "@/integrations/lovable/index";
@@ -62,6 +62,33 @@ export default function AuthPage() {
   const [regData, setRegData] = useState({ fullName: "", email: "", password: "", role: "student" });
   const [newSerial, setNewSerial] = useState("");
   const [checkingSession, setCheckingSession] = useState(true);
+  const [copied, setCopied] = useState(false);
+  const [savedConfirmed, setSavedConfirmed] = useState(false);
+
+  const handleCopySerial = async () => {
+    try {
+      await navigator.clipboard.writeText(newSerial);
+      setCopied(true);
+      toast({ title: "✓ تم النسخ", description: "تم نسخ الرقم التسلسلي للحافظة" });
+      setTimeout(() => setCopied(false), 2000);
+    } catch {
+      toast({ title: "تعذر النسخ", description: "انسخه يدوياً من الشاشة", variant: "destructive" });
+    }
+  };
+
+  const handleDownloadSerial = () => {
+    const content = `Future DZ — رقمك التسلسلي\n\nالرقم التسلسلي: ${newSerial}\n\nاحتفظ بهذا الرقم في مكان آمن. ستحتاجه لتسجيل الدخول.\n\nتاريخ الإنشاء: ${new Date().toLocaleString("ar-DZ")}`;
+    const blob = new Blob([content], { type: "text/plain;charset=utf-8" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `FutureDZ-Serial-${newSerial}.txt`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+    toast({ title: "✓ تم التنزيل", description: "احتفظ بالملف في مكان آمن" });
+  };
 
   useEffect(() => {
     let mounted = true;
