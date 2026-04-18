@@ -13,6 +13,7 @@ import AgendaPage from "./pages/agenda";
 import ProgrammePage from "./pages/programme";
 import GroupsPage from "./pages/groups";
 import GroupChatPage from "./pages/group-chat";
+import GroupControlPage from "./pages/group-control";
 import AiChatPage from "./pages/ai-chat";
 import AnnouncementsPage from "./pages/announcements";
 import StudyHelpsPage from "./pages/study-helps";

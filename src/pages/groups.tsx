@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardHeader, CardTitle, CardContent, CardFooter } from "@/components/ui/card";
@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Lock, Unlock, Users, Plus, BadgeCheck } from "lucide-react";
+import { Lock, Unlock, Users, Plus, BadgeCheck, Search, Hash } from "lucide-react";
 import { useAuth } from "@/hooks/use-auth";
 import { useToast } from "@/hooks/use-toast";
 import { useTranslation } from "react-i18next";
@@ -19,6 +19,26 @@ interface Group {
   created_by: string | null;
   is_verified: boolean;
   created_at: string;
+  serial_number?: string | null;
+  background_url?: string | null;
+  description?: string | null;
+}
+
+const PASSWORD_CACHE_KEY = "group_pwd_cache_v1";
+
+function getCachedGroups(): Set<string> {
+  try {
+    const raw = sessionStorage.getItem(PASSWORD_CACHE_KEY);
+    return new Set<string>(raw ? JSON.parse(raw) : []);
+  } catch {
+    return new Set();
+  }
+}
+
+function cacheGroupAccess(id: string) {
+  const set = getCachedGroups();
+  set.add(id);
+  sessionStorage.setItem(PASSWORD_CACHE_KEY, JSON.stringify([...set]));
 }
 
 export default function GroupsPage() {
@@ -28,7 +48,8 @@ export default function GroupsPage() {
   const { t } = useTranslation();
 
   const [groups, setGroups] = useState<Group[]>([]);
-  const [newGroup, setNewGroup] = useState({ name: "", isPrivate: false, password: "" });
+  const [search, setSearch] = useState("");
+  const [newGroup, setNewGroup] = useState({ name: "", isPrivate: false, password: "", description: "" });
   const [joinPassword, setJoinPassword] = useState("");
   const [selectedGroup, setSelectedGroup] = useState<Group | null>(null);
   const [open, setOpen] = useState(false);
@@ -47,6 +68,16 @@ export default function GroupsPage() {
     return () => { supabase.removeChannel(channel); };
   }, []);
 
+  const filteredGroups = useMemo(() => {
+    if (!search.trim()) return groups;
+    const q = search.trim().toLowerCase();
+    return groups.filter(
+      (g) =>
+        g.name.toLowerCase().includes(q) ||
+        (g.serial_number || "").toLowerCase().includes(q)
+    );
+  }, [groups, search]);
+
   const handleCreate = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!newGroup.name.trim()) return;
@@ -54,19 +85,20 @@ export default function GroupsPage() {
       name: newGroup.name,
       is_private: newGroup.isPrivate,
       password: newGroup.isPrivate ? newGroup.password : null,
+      description: newGroup.description || null,
       created_by: user?.id || null,
     });
     if (error) {
       toast({ title: t("ai.error"), description: error.message, variant: "destructive" });
     } else {
-      setNewGroup({ name: "", isPrivate: false, password: "" });
+      setNewGroup({ name: "", isPrivate: false, password: "", description: "" });
       setOpen(false);
       toast({ title: t("grp.forged"), description: t("grp.forgedDesc") });
     }
   };
 
   const handleJoin = (group: Group) => {
-    if (!group.is_private) {
+    if (!group.is_private || group.created_by === user?.id || getCachedGroups().has(group.id)) {
       navigate(`/group/${group.id}`);
       return;
     }
@@ -76,6 +108,7 @@ export default function GroupsPage() {
   const submitJoinPassword = () => {
     if (!selectedGroup) return;
     if (joinPassword === selectedGroup.password) {
+      cacheGroupAccess(selectedGroup.id);
       navigate(`/group/${selectedGroup.id}`);
       setSelectedGroup(null);
       setJoinPassword("");
@@ -86,7 +119,7 @@ export default function GroupsPage() {
 
   return (
     <div className="space-y-8">
-      <div className="flex justify-between items-center">
+      <div className="flex flex-col md:flex-row md:justify-between md:items-center gap-4">
         <div>
           <h1 className="text-4xl font-display font-bold text-glow mb-2">{t("grp.title")}</h1>
           <p className="text-muted-foreground">{t("grp.subtitle")}</p>
@@ -106,6 +139,10 @@ export default function GroupsPage() {
                 <Label>{t("grp.name")}</Label>
                 <Input required value={newGroup.name} onChange={(e) => setNewGroup({...newGroup, name: e.target.value})} className="bg-background/40" />
               </div>
+              <div className="space-y-2">
+                <Label>{t("grp.descLabel") || "وصف (اختياري)"}</Label>
+                <Input value={newGroup.description} onChange={(e) => setNewGroup({...newGroup, description: e.target.value})} className="bg-background/40" />
+              </div>
               <div className="flex items-center gap-2">
                 <input type="checkbox" id="private" checked={newGroup.isPrivate} onChange={(e) => setNewGroup({...newGroup, isPrivate: e.target.checked})} className="accent-primary w-4 h-4" />
                 <Label htmlFor="private">{t("grp.private")}</Label>
@@ -122,30 +159,59 @@ export default function GroupsPage() {
         </Dialog>
       </div>
 
+      {/* Search bar */}
+      <div className="relative max-w-xl">
+        <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+        <Input
+          value={search}
+          onChange={(e) => setSearch(e.target.value)}
+          placeholder={t("grp.searchPlaceholder") || "ابحث بالاسم أو الرقم التسلسلي..."}
+          className="pl-10 bg-background/40 border-border h-11"
+        />
+      </div>
+
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {groups.map((g) => (
-          <Card key={g.id} className="glass-panel hover:border-primary/40 transition-colors flex flex-col">
-            <CardHeader>
-              <CardTitle className="flex justify-between items-start font-display">
-                <span className="text-xl line-clamp-1 flex items-center gap-2">
-                  {g.name}
-                  {g.is_verified && <BadgeCheck className="w-4 h-4 text-primary" />}
-                </span>
-                {g.is_private ? <Lock className="w-5 h-5 text-destructive" /> : <Unlock className="w-5 h-5 text-green-500" />}
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="flex-1">
-              <p className="text-sm text-muted-foreground flex items-center gap-2">
-                <Users className="w-4 h-4" /> {t("grp.guild")}
-              </p>
-            </CardContent>
-            <CardFooter>
-              <Button onClick={() => handleJoin(g)} variant={g.is_private ? "outline" : "default"} className={`w-full ${!g.is_private && 'bg-primary/20 text-primary hover:bg-primary/30 border-none'}`}>
-                {g.is_private ? t("grp.requestEntry") : t("grp.enterChamber")}
-              </Button>
-            </CardFooter>
-          </Card>
-        ))}
+        {filteredGroups.length === 0 && (
+          <p className="text-muted-foreground col-span-full text-center py-8">
+            {t("grp.noResults") || "لا توجد نتائج."}
+          </p>
+        )}
+        {filteredGroups.map((g) => {
+          const isOwner = g.created_by === user?.id;
+          return (
+            <Card key={g.id} className="glass-panel hover:border-primary/40 transition-colors flex flex-col overflow-hidden">
+              {g.background_url && (
+                <div className="h-20 w-full bg-cover bg-center" style={{ backgroundImage: `url(${g.background_url})` }} />
+              )}
+              <CardHeader>
+                <CardTitle className="flex justify-between items-start font-display">
+                  <span className="text-xl line-clamp-1 flex items-center gap-2">
+                    {g.name}
+                    {g.is_verified && <BadgeCheck className="w-4 h-4 text-primary" />}
+                  </span>
+                  {g.is_private ? <Lock className="w-5 h-5 text-destructive" /> : <Unlock className="w-5 h-5 text-green-500" />}
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="flex-1 space-y-2">
+                {g.description && <p className="text-xs text-muted-foreground line-clamp-2">{g.description}</p>}
+                <p className="text-sm text-muted-foreground flex items-center gap-2">
+                  <Users className="w-4 h-4" /> {t("grp.guild")}
+                  {isOwner && <span className="text-[10px] bg-primary/20 text-primary px-2 py-0.5 rounded-full">{t("grp.owner") || "مالك"}</span>}
+                </p>
+                {g.serial_number && (
+                  <p className="text-[11px] text-muted-foreground/80 font-mono flex items-center gap-1">
+                    <Hash className="w-3 h-3" />{g.serial_number}
+                  </p>
+                )}
+              </CardContent>
+              <CardFooter>
+                <Button onClick={() => handleJoin(g)} variant={g.is_private && !isOwner ? "outline" : "default"} className={`w-full ${(!g.is_private || isOwner) && 'bg-primary/20 text-primary hover:bg-primary/30 border-none'}`}>
+                  {g.is_private && !isOwner && !getCachedGroups().has(g.id) ? t("grp.requestEntry") : t("grp.enterChamber")}
+                </Button>
+              </CardFooter>
+            </Card>
+          );
+        })}
       </div>
 
       <Dialog open={!!selectedGroup} onOpenChange={(v) => !v && setSelectedGroup(null)}>
