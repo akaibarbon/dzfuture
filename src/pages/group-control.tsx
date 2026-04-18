@@ -131,6 +131,7 @@ export default function GroupControlPage() {
   }, [groupId, user?.id]);
 
   const refreshRequests = async () => {
+    if (!groupId) return;
     const { data } = await supabase.from("group_join_requests").select("*").eq("group_id", groupId).order("created_at", { ascending: false });
     setRequests((data || []) as JoinRequest[]);
   };
@@ -155,27 +156,28 @@ export default function GroupControlPage() {
       title: t("gc.rejectedTitle") || "تم رفض طلبك",
       body: `${t("gc.rejectedBody") || "تم رفض طلب الانضمام إلى"}: ${group?.name}`,
       type: "warning",
-      related_id: groupId || null,
+      related_id: groupId ?? null,
     });
     toast({ title: t("cp.requestRejected") });
     refreshRequests();
   };
 
   const handleKickMember = async (userId: string, name: string) => {
-    // Set their join request to rejected (effectively kicks)
+    if (!groupId) return;
     await supabase.from("group_join_requests").delete().eq("group_id", groupId).eq("user_id", userId);
     await supabase.from("notifications").insert({
       user_id: userId,
       title: t("gc.kickedTitle") || "تم إخراجك",
       body: `${t("gc.kickedBody") || "تم إخراجك من مجموعة"}: ${group?.name}`,
       type: "warning",
-      related_id: groupId || null,
+      related_id: groupId,
     });
     toast({ title: `${t("gc.kicked") || "تم الإخراج"}: ${name}` });
     setMembers((m) => m.filter((x) => x.user_id !== userId));
   };
 
   const handleSaveSettings = async () => {
+    if (!groupId) return;
     setSavingSettings(true);
     const { error } = await supabase
       .from("groups")
@@ -217,7 +219,7 @@ export default function GroupControlPage() {
 
   const handleAddAnnouncement = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!annTitle.trim()) return;
+    if (!annTitle.trim() || !groupId) return;
     const { error } = await supabase.from("group_announcements").insert({
       group_id: groupId,
       title: annTitle,
@@ -241,11 +243,13 @@ export default function GroupControlPage() {
   };
 
   const handleClearMessages = async () => {
+    if (!groupId) return;
     await supabase.from("messages").delete().eq("group_id", groupId);
     toast({ title: t("gc.messagesCleared") || "تم مسح الرسائل" });
   };
 
   const handleDeleteGroup = async () => {
+    if (!groupId) return;
     await supabase.from("groups").delete().eq("id", groupId);
     toast({ title: t("gc.groupDeleted") || "تم حذف المجموعة" });
     navigate("/groups");
