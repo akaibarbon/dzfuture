@@ -1,0 +1,27 @@
+{
+  "name": "Future DZ — منصة الطلاب الجزائريين",
+  "short_name": "Future DZ",
+  "description": "منصة الطلاب الجزائريين — مجموعات، جداول، مساعد ذكي وأكثر",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#0a0a1a",
+  "theme_color": "#4f46e5",
+  "lang": "ar",
+  "dir": "rtl",
+  "icons": [
+    {
+      "src": "/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ]
+}
