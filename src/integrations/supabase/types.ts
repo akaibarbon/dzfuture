@@ -106,6 +106,41 @@ export type Database = {
         }
         Relationships: []
       }
+      group_announcements: {
+        Row: {
+          body: string
+          created_at: string
+          created_by: string | null
+          group_id: string
+          id: string
+          title: string
+        }
+        Insert: {
+          body?: string
+          created_at?: string
+          created_by?: string | null
+          group_id: string
+          id?: string
+          title: string
+        }
+        Update: {
+          body?: string
+          created_at?: string
+          created_by?: string | null
+          group_id?: string
+          id?: string
+          title?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "group_announcements_group_id_fkey"
+            columns: ["group_id"]
+            isOneToOne: false
+            referencedRelation: "groups"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       group_join_requests: {
         Row: {
           class: string
@@ -152,31 +187,40 @@ export type Database = {
       }
       groups: {
         Row: {
+          background_url: string | null
           created_at: string
           created_by: string | null
+          description: string | null
           id: string
           is_private: boolean
           is_verified: boolean
           name: string
           password: string | null
+          serial_number: string | null
         }
         Insert: {
+          background_url?: string | null
           created_at?: string
           created_by?: string | null
+          description?: string | null
           id?: string
           is_private?: boolean
           is_verified?: boolean
           name: string
           password?: string | null
+          serial_number?: string | null
         }
         Update: {
+          background_url?: string | null
           created_at?: string
           created_by?: string | null
+          description?: string | null
           id?: string
           is_private?: boolean
           is_verified?: boolean
           name?: string
           password?: string | null
+          serial_number?: string | null
         }
         Relationships: []
       }
@@ -184,6 +228,8 @@ export type Database = {
         Row: {
           content: string
           created_at: string
+          deleted: boolean
+          edited_at: string | null
           file_url: string | null
           group_id: string
           id: string
@@ -193,6 +239,8 @@ export type Database = {
         Insert: {
           content: string
           created_at?: string
+          deleted?: boolean
+          edited_at?: string | null
           file_url?: string | null
           group_id: string
           id?: string
@@ -202,6 +250,8 @@ export type Database = {
         Update: {
           content?: string
           created_at?: string
+          deleted?: boolean
+          edited_at?: string | null
           file_url?: string | null
           group_id?: string
           id?: string
@@ -310,7 +360,10 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      is_group_owner: {
+        Args: { _group_id: string; _user_id: string }
+        Returns: boolean
+      }
     }
     Enums: {
       [_ in never]: never
