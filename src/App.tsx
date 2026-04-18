@@ -47,6 +47,7 @@ function AppRoutes() {
       <Route path="/announcements" element={<ProtectedRoute><AnnouncementsPage /></ProtectedRoute>} />
       <Route path="/groups" element={<ProtectedRoute><GroupsPage /></ProtectedRoute>} />
       <Route path="/group/:id" element={<ProtectedRoute><GroupChatPage /></ProtectedRoute>} />
+      <Route path="/group/:id/control" element={<ProtectedRoute><GroupControlPage /></ProtectedRoute>} />
       <Route path="/ai-chat" element={<ProtectedRoute><AiChatPage /></ProtectedRoute>} />
       <Route path="/study-helps" element={<ProtectedRoute><StudyHelpsPage /></ProtectedRoute>} />
       <Route path="/account" element={<ProtectedRoute><AccountPage /></ProtectedRoute>} />
