@@ -14,7 +14,297 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      announcements: {
+        Row: {
+          created_at: string
+          date: string
+          description: string
+          id: string
+          title: string
+        }
+        Insert: {
+          created_at?: string
+          date: string
+          description: string
+          id?: string
+          title: string
+        }
+        Update: {
+          created_at?: string
+          date?: string
+          description?: string
+          id?: string
+          title?: string
+        }
+        Relationships: []
+      }
+      daily_schedules: {
+        Row: {
+          created_at: string
+          day_index: number
+          end_time: string
+          group_id: string | null
+          id: string
+          start_time: string
+          subject: string
+          user_id: string | null
+        }
+        Insert: {
+          created_at?: string
+          day_index?: number
+          end_time: string
+          group_id?: string | null
+          id?: string
+          start_time: string
+          subject: string
+          user_id?: string | null
+        }
+        Update: {
+          created_at?: string
+          day_index?: number
+          end_time?: string
+          group_id?: string | null
+          id?: string
+          start_time?: string
+          subject?: string
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "daily_schedules_group_id_fkey"
+            columns: ["group_id"]
+            isOneToOne: false
+            referencedRelation: "groups"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      direct_messages: {
+        Row: {
+          content: string
+          created_at: string
+          id: string
+          read: boolean
+          receiver_id: string
+          sender_id: string
+        }
+        Insert: {
+          content: string
+          created_at?: string
+          id?: string
+          read?: boolean
+          receiver_id: string
+          sender_id: string
+        }
+        Update: {
+          content?: string
+          created_at?: string
+          id?: string
+          read?: boolean
+          receiver_id?: string
+          sender_id?: string
+        }
+        Relationships: []
+      }
+      group_join_requests: {
+        Row: {
+          class: string
+          created_at: string
+          date_of_birth: string
+          full_name: string
+          group_id: string
+          id: string
+          status: string
+          surname: string
+          user_id: string
+        }
+        Insert: {
+          class: string
+          created_at?: string
+          date_of_birth: string
+          full_name: string
+          group_id: string
+          id?: string
+          status?: string
+          surname: string
+          user_id: string
+        }
+        Update: {
+          class?: string
+          created_at?: string
+          date_of_birth?: string
+          full_name?: string
+          group_id?: string
+          id?: string
+          status?: string
+          surname?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "group_join_requests_group_id_fkey"
+            columns: ["group_id"]
+            isOneToOne: false
+            referencedRelation: "groups"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      groups: {
+        Row: {
+          created_at: string
+          created_by: string | null
+          id: string
+          is_private: boolean
+          is_verified: boolean
+          name: string
+          password: string | null
+        }
+        Insert: {
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          is_private?: boolean
+          is_verified?: boolean
+          name: string
+          password?: string | null
+        }
+        Update: {
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          is_private?: boolean
+          is_verified?: boolean
+          name?: string
+          password?: string | null
+        }
+        Relationships: []
+      }
+      messages: {
+        Row: {
+          content: string
+          created_at: string
+          file_url: string | null
+          group_id: string
+          id: string
+          sender_id: string | null
+          sender_name: string
+        }
+        Insert: {
+          content: string
+          created_at?: string
+          file_url?: string | null
+          group_id: string
+          id?: string
+          sender_id?: string | null
+          sender_name: string
+        }
+        Update: {
+          content?: string
+          created_at?: string
+          file_url?: string | null
+          group_id?: string
+          id?: string
+          sender_id?: string | null
+          sender_name?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "messages_group_id_fkey"
+            columns: ["group_id"]
+            isOneToOne: false
+            referencedRelation: "groups"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      notifications: {
+        Row: {
+          body: string
+          created_at: string
+          id: string
+          read: boolean
+          related_id: string | null
+          title: string
+          type: string
+          user_id: string
+        }
+        Insert: {
+          body?: string
+          created_at?: string
+          id?: string
+          read?: boolean
+          related_id?: string | null
+          title: string
+          type?: string
+          user_id: string
+        }
+        Update: {
+          body?: string
+          created_at?: string
+          id?: string
+          read?: boolean
+          related_id?: string | null
+          title?: string
+          type?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      profiles: {
+        Row: {
+          created_at: string
+          email: string
+          full_name: string
+          id: string
+          nickname: string | null
+          photo_url: string | null
+          role: string
+          serial_number: string
+          user_id: string | null
+        }
+        Insert: {
+          created_at?: string
+          email: string
+          full_name: string
+          id?: string
+          nickname?: string | null
+          photo_url?: string | null
+          role?: string
+          serial_number: string
+          user_id?: string | null
+        }
+        Update: {
+          created_at?: string
+          email?: string
+          full_name?: string
+          id?: string
+          nickname?: string | null
+          photo_url?: string | null
+          role?: string
+          serial_number?: string
+          user_id?: string | null
+        }
+        Relationships: []
+      }
+      site_visits: {
+        Row: {
+          id: string
+          visited_at: string
+          visitor_hash: string | null
+        }
+        Insert: {
+          id?: string
+          visited_at?: string
+          visitor_hash?: string | null
+        }
+        Update: {
+          id?: string
+          visited_at?: string
+          visitor_hash?: string | null
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
