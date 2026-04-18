@@ -1,0 +1,240 @@
+import { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
+import { motion, AnimatePresence } from "framer-motion";
+import { useAuth } from "@/hooks/use-auth";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Loader2, ShieldCheck, Mail, User, KeyRound } from "lucide-react";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { useToast } from "@/hooks/use-toast";
+import { lovable } from "@/integrations/lovable/index";
+import { supabase } from "@/integrations/supabase/client";
+import { useTranslation } from "react-i18next";
+import logoImg from "@/assets/logo.png";
+
+function generateSerial() {
+  const letters = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+  return letters[Math.floor(Math.random() * 26)] + letters[Math.floor(Math.random() * 26)] + Math.floor(10 + Math.random() * 90).toString();
+}
+
+function generateAvatarUrl(seed: string) {
+  return `https://api.dicebear.com/7.x/bottts-neutral/svg?seed=${encodeURIComponent(seed)}&backgroundColor=1a1a2e`;
+}
+
+async function ensureProfile(user: any, setUser: any, setNewSerial: any, setMode: any, navigate: any, isOAuth = false) {
+  const { data: profile } = await supabase.from("profiles").select("*").eq("user_id", user.id).maybeSingle();
+  if (profile) {
+    setUser({ id: user.id, fullName: profile.full_name, email: profile.email, role: profile.role, serialNumber: profile.serial_number, photoUrl: profile.photo_url || undefined, nickname: profile.nickname || undefined });
+    navigate("/hub");
+  } else {
+    const serialNum = generateSerial();
+    const fullName = user.user_metadata?.full_name || user.email?.split("@")[0] || "User";
+    const photoUrl = user.user_metadata?.avatar_url || generateAvatarUrl(user.email || serialNum);
+    const { error } = await supabase.from("profiles").insert({ user_id: user.id, full_name: fullName, email: user.email || "", role: "student", serial_number: serialNum, photo_url: photoUrl });
+    if (!error) {
+      setUser({ id: user.id, fullName, email: user.email || "", role: "student", serialNumber: serialNum, photoUrl });
+      if (isOAuth) {
+        // OAuth users go directly to hub
+        navigate("/hub");
+      } else {
+        setNewSerial(serialNum);
+        setMode("success");
+      }
+    } else {
+      const { data: retryProfile } = await supabase.from("profiles").select("*").eq("user_id", user.id).maybeSingle();
+      if (retryProfile) {
+        setUser({ id: user.id, fullName: retryProfile.full_name, email: retryProfile.email, role: retryProfile.role, serialNumber: retryProfile.serial_number, photoUrl: retryProfile.photo_url || undefined, nickname: retryProfile.nickname || undefined });
+        navigate("/hub");
+      }
+    }
+  }
+}
+
+export default function AuthPage() {
+  const navigate = useNavigate();
+  const { toast } = useToast();
+  const { t } = useTranslation();
+  const { setUser } = useAuth();
+  const [mode, setMode] = useState<"login" | "register" | "success">("login");
+  const [loading, setLoading] = useState(false);
+  const [serial, setSerial] = useState("");
+  const [regData, setRegData] = useState({ fullName: "", email: "", password: "", role: "student" });
+  const [newSerial, setNewSerial] = useState("");
+  const [checkingSession, setCheckingSession] = useState(true);
+
+  useEffect(() => {
+    let mounted = true;
+    // Subscribe FIRST so we don't miss events
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+      if (!mounted) return;
+      if ((event === "SIGNED_IN" || event === "TOKEN_REFRESHED" || event === "INITIAL_SESSION") && session?.user) {
+        const isOAuth = session.user.app_metadata?.provider === "google" || !!session.user.user_metadata?.avatar_url;
+        setTimeout(() => { ensureProfile(session.user, setUser, setNewSerial, setMode, navigate, isOAuth); }, 0);
+      }
+      if (event === "INITIAL_SESSION" && !session) {
+        if (mounted) setCheckingSession(false);
+      }
+    });
+    // getSession to trigger INITIAL_SESSION
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      if (session?.user && mounted) {
+        ensureProfile(session.user, setUser, setNewSerial, setMode, navigate, true);
+      }
+      if (mounted) setCheckingSession(false);
+    });
+    return () => { mounted = false; subscription.unsubscribe(); };
+  }, []);
+
+  const handleLogin = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!serial.trim()) return;
+    setLoading(true);
+    const { data: profile } = await supabase.from("profiles").select("*").eq("serial_number", serial.toUpperCase()).maybeSingle();
+    if (profile) {
+      // Try signing in with serial as password
+      const { data: authData, error: authError } = await supabase.auth.signInWithPassword({ email: profile.email, password: serial.toUpperCase() });
+      if (authError) {
+        // If password login fails (e.g. Google user), check if there's an existing session
+        const { data: { session } } = await supabase.auth.getSession();
+        if (session?.user) {
+          setUser({ id: session.user.id, fullName: profile.full_name, email: profile.email, role: profile.role, serialNumber: profile.serial_number, photoUrl: profile.photo_url || undefined, nickname: profile.nickname || undefined });
+          navigate("/hub");
+        } else {
+          toast({ title: t("auth.googleOnly"), description: t("auth.googleOnlyDesc"), variant: "destructive" });
+        }
+      } else {
+        setUser({ id: authData.user.id, fullName: profile.full_name, email: profile.email, role: profile.role, serialNumber: profile.serial_number, photoUrl: profile.photo_url || undefined, nickname: profile.nickname || undefined });
+        navigate("/hub");
+      }
+    } else {
+      toast({ title: t("auth.notFound"), description: t("auth.notFoundDesc"), variant: "destructive" });
+    }
+    setLoading(false);
+  };
+
+  const handleGoogleSignIn = async () => {
+    setLoading(true);
+    const result = await lovable.auth.signInWithOAuth("google", { redirect_uri: window.location.origin + "/auth", extraParams: { prompt: "select_account" } });
+    if (result.error) { toast({ title: t("auth.googleFailed"), description: result.error.message, variant: "destructive" }); setLoading(false); }
+    if (result.redirected) return;
+    // If tokens returned directly (no redirect), session is already set
+    setLoading(false);
+  };
+
+  const handleRegister = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!regData.email || !regData.fullName || !regData.password) return;
+    setLoading(true);
+    const serialNum = generateSerial();
+    const { data: authData, error: authError } = await supabase.auth.signUp({ email: regData.email, password: regData.password });
+    if (authError) { toast({ title: t("auth.regFailed"), description: authError.message, variant: "destructive" }); setLoading(false); return; }
+    if (authData.user) {
+      const { error: signInError } = await supabase.auth.signInWithPassword({ email: regData.email, password: regData.password });
+      if (signInError) { toast({ title: t("auth.signInFailed"), description: signInError.message, variant: "destructive" }); setLoading(false); return; }
+      const { error: profileError } = await supabase.from("profiles").insert({ user_id: authData.user.id, full_name: regData.fullName, email: regData.email, role: regData.role, serial_number: serialNum, photo_url: generateAvatarUrl(regData.fullName) });
+      if (profileError) { toast({ title: t("auth.profileError"), description: profileError.message, variant: "destructive" }); setLoading(false); return; }
+      setUser({ id: authData.user.id, fullName: regData.fullName, email: regData.email, role: regData.role, serialNumber: serialNum, photoUrl: generateAvatarUrl(regData.fullName) });
+      setNewSerial(serialNum);
+      setMode("success");
+    }
+    setLoading(false);
+  };
+
+  if (checkingSession) return <div className="min-h-screen flex items-center justify-center bg-background"><Loader2 className="w-8 h-8 animate-spin text-primary" /></div>;
+
+  return (
+    <div className="min-h-screen flex items-center justify-center bg-background relative overflow-hidden p-4">
+      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[800px] bg-primary/10 rounded-full blur-[120px] pointer-events-none" />
+      <motion.div initial={{ scale: 0.9, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} className="w-full max-w-md glass-panel p-8 rounded-3xl relative z-10">
+        <div className="text-center mb-8">
+          <img src={logoImg} alt="Future DZ" className="w-20 h-20 mx-auto mb-4 drop-shadow-[0_0_20px_hsl(var(--primary)/0.5)]" />
+          <h1 className="text-3xl font-display font-bold text-glow">{t("auth.title")}</h1>
+          <p className="text-muted-foreground mt-2 font-medium">{t("auth.subtitle")}</p>
+        </div>
+
+        <AnimatePresence mode="wait">
+          {mode === "login" && (
+            <motion.form key="login" initial={{ x: -20, opacity: 0 }} animate={{ x: 0, opacity: 1 }} exit={{ x: 20, opacity: 0 }} onSubmit={handleLogin} className="space-y-6">
+              <div className="space-y-2">
+                <Label>{t("auth.serialLabel")}</Label>
+                <div className="relative">
+                  <KeyRound className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
+                  <Input value={serial} onChange={(e) => setSerial(e.target.value)} placeholder={t("auth.serialPlaceholder")} className="pl-10 h-12 bg-background/40 border-border uppercase" />
+                </div>
+              </div>
+              <Button type="submit" disabled={loading} className="w-full h-12 text-lg font-bold bg-primary hover:bg-primary/90 text-primary-foreground shadow-[0_0_15px_hsl(var(--primary)/0.3)]">
+                {loading ? <Loader2 className="animate-spin" /> : t("enterHub")}
+              </Button>
+              <div className="relative my-4">
+                <div className="absolute inset-0 flex items-center"><span className="w-full border-t border-border" /></div>
+                <div className="relative flex justify-center text-xs uppercase"><span className="bg-card px-2 text-muted-foreground">{t("or")}</span></div>
+              </div>
+              <Button type="button" variant="outline" onClick={handleGoogleSignIn} disabled={loading} className="w-full h-12 gap-3 text-base font-medium border-border hover:bg-secondary/50">
+                <svg className="w-5 h-5" viewBox="0 0 24 24"><path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92a5.06 5.06 0 01-2.2 3.32v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.1z" fill="#4285F4"/><path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/><path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" fill="#FBBC05"/><path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"/></svg>
+                {t("googleSignIn")}
+              </Button>
+              <p className="text-center text-sm text-muted-foreground mt-4">
+                {t("dontHaveAccount")} <button type="button" onClick={() => setMode("register")} className="text-primary hover:underline font-semibold">{t("Register")}</button>
+              </p>
+            </motion.form>
+          )}
+
+          {mode === "register" && (
+            <motion.form key="register" initial={{ x: 20, opacity: 0 }} animate={{ x: 0, opacity: 1 }} exit={{ x: -20, opacity: 0 }} onSubmit={handleRegister} className="space-y-4">
+              <div className="space-y-2">
+                <Label>{t("auth.fullName")}</Label>
+                <div className="relative">
+                  <User className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
+                  <Input required value={regData.fullName} onChange={(e) => setRegData({ ...regData, fullName: e.target.value })} placeholder={t("auth.namePlaceholder")} className="pl-10 h-12 bg-background/40" />
+                </div>
+              </div>
+              <div className="space-y-2">
+                <Label>{t("auth.email")}</Label>
+                <div className="relative">
+                  <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
+                  <Input required type="email" value={regData.email} onChange={(e) => setRegData({ ...regData, email: e.target.value })} placeholder={t("auth.emailPlaceholder")} className="pl-10 h-12 bg-background/40" />
+                </div>
+              </div>
+              <div className="space-y-2">
+                <Label>{t("auth.password")}</Label>
+                <div className="relative">
+                  <KeyRound className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
+                  <Input required type="password" minLength={6} value={regData.password} onChange={(e) => setRegData({ ...regData, password: e.target.value })} placeholder={t("auth.passwordPlaceholder")} className="pl-10 h-12 bg-background/40" />
+                </div>
+              </div>
+              <div className="space-y-2">
+                <Label>{t("auth.role")}</Label>
+                <Select value={regData.role} onValueChange={(v) => setRegData({ ...regData, role: v })}>
+                  <SelectTrigger className="h-12 bg-background/40"><SelectValue /></SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="student">{t("auth.student")}</SelectItem>
+                    <SelectItem value="tutor">{t("auth.tutor")}</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              <Button type="submit" disabled={loading} className="w-full h-12 mt-6 bg-primary text-primary-foreground font-bold">
+                {loading ? <Loader2 className="animate-spin" /> : t("Register")}
+              </Button>
+              <p className="text-center text-sm text-muted-foreground mt-4">
+                {t("alreadyLegendary")} <button type="button" onClick={() => setMode("login")} className="text-primary hover:underline">{t("Login")}</button>
+              </p>
+            </motion.form>
+          )}
+
+          {mode === "success" && (
+            <motion.div key="success" initial={{ scale: 0.9, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} className="text-center space-y-6">
+              <div className="w-20 h-20 mx-auto bg-green-500/20 rounded-full flex items-center justify-center border border-green-500/50">
+                <ShieldCheck className="w-10 h-10 text-green-400" />
+              </div>
+              <h2 className="text-2xl font-display text-glow text-green-400">{t("auth.accountForged")}</h2>
+              <p className="text-muted-foreground">{t("auth.writeSerial")}</p>
+              <div className="p-6 bg-background/60 rounded-xl border border-primary/50 text-4xl font-mono font-bold tracking-[0.2em] text-primary shadow-[0_0_20px_hsl(var(--primary)/0.2)]">{newSerial}</div>
+              <Button onClick={() => navigate("/hub")} className="w-full h-12 bg-primary text-primary-foreground font-bold mt-4">{t("enterHub")}</Button>
+            </motion.div>
+          )}
+        </AnimatePresence>
+      </motion.div>
+    </div>
+  );
+}
