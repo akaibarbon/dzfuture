@@ -4,11 +4,12 @@ import { lazy, Suspense } from "react";
 
 const LegacyApp = lazy(() => import("@/App"));
 
-export const Route = createFileRoute("/")({
-  component: IndexRoute,
+export const Route = createFileRoute("/$")({
+  ssr: false,
+  component: LegacyAppRoute,
 });
 
-function IndexRoute() {
+function LegacyAppRoute() {
   return (
     <ClientOnly fallback={<div className="min-h-screen bg-background" />}>
       <Suspense fallback={<div className="min-h-screen bg-background flex items-center justify-center text-foreground">Loading…</div>}>
