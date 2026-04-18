@@ -35,7 +35,7 @@ export function NotificationsBell() {
     fetchNotifications();
     if (!user?.id) return;
     const channel = supabase
-      .channel("user-notifications")
+      .channel(`user-notifications-${user.id}-${Math.random().toString(36).slice(2, 8)}`)
       .on("postgres_changes", {
         event: "INSERT",
         schema: "public",
