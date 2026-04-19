@@ -11,6 +11,8 @@ import { useToast } from "@/hooks/use-toast";
 import { lovable } from "@/integrations/lovable/index";
 import { supabase } from "@/integrations/supabase/client";
 import { useTranslation } from "react-i18next";
+import { LevelPicker } from "@/components/level-picker";
+import { getLevelMeta } from "@/lib/levels";
 import logoImg from "@/assets/logo.png";
 
 function generateSerial() {
@@ -59,7 +61,7 @@ export default function AuthPage() {
   const [mode, setMode] = useState<"login" | "register" | "success">("login");
   const [loading, setLoading] = useState(false);
   const [serial, setSerial] = useState("");
-  const [regData, setRegData] = useState({ fullName: "", email: "", password: "", role: "student" });
+  const [regData, setRegData] = useState({ fullName: "", email: "", password: "", role: "student", level: "", branch: "" });
   const [newSerial, setNewSerial] = useState("");
   const [checkingSession, setCheckingSession] = useState(true);
   const [copied, setCopied] = useState(false);
@@ -151,7 +153,12 @@ export default function AuthPage() {
 
   const handleRegister = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!regData.email || !regData.fullName || !regData.password) return;
+    if (!regData.email || !regData.fullName || !regData.password || !regData.level) return;
+    const meta = getLevelMeta(regData.level);
+    if (meta?.branchRequired && !regData.branch) {
+      toast({ title: "اختر الشعبة", description: "هذا المستوى يتطلب اختيار الشعبة.", variant: "destructive" });
+      return;
+    }
     setLoading(true);
     const serialNum = generateSerial();
     const { data: authData, error: authError } = await supabase.auth.signUp({ email: regData.email, password: regData.password });
@@ -159,9 +166,13 @@ export default function AuthPage() {
     if (authData.user) {
       const { error: signInError } = await supabase.auth.signInWithPassword({ email: regData.email, password: regData.password });
       if (signInError) { toast({ title: t("auth.signInFailed"), description: signInError.message, variant: "destructive" }); setLoading(false); return; }
-      const { error: profileError } = await supabase.from("profiles").insert({ user_id: authData.user.id, full_name: regData.fullName, email: regData.email, role: regData.role, serial_number: serialNum, photo_url: generateAvatarUrl(regData.fullName) });
+      const { error: profileError } = await supabase.from("profiles").insert({
+        user_id: authData.user.id, full_name: regData.fullName, email: regData.email, role: regData.role,
+        serial_number: serialNum, photo_url: generateAvatarUrl(regData.fullName),
+        level: regData.level, branch: meta?.branchRequired ? regData.branch : null,
+      });
       if (profileError) { toast({ title: t("auth.profileError"), description: profileError.message, variant: "destructive" }); setLoading(false); return; }
-      setUser({ id: authData.user.id, fullName: regData.fullName, email: regData.email, role: regData.role, serialNumber: serialNum, photoUrl: generateAvatarUrl(regData.fullName) });
+      setUser({ id: authData.user.id, fullName: regData.fullName, email: regData.email, role: regData.role, serialNumber: serialNum, photoUrl: generateAvatarUrl(regData.fullName), level: regData.level, branch: meta?.branchRequired ? regData.branch : null });
       setNewSerial(serialNum);
       setMode("success");
     }
@@ -239,6 +250,14 @@ export default function AuthPage() {
                     <SelectItem value="tutor">{t("auth.tutor")}</SelectItem>
                   </SelectContent>
                 </Select>
+              </div>
+              <div className="space-y-2">
+                <LevelPicker
+                  level={regData.level || null}
+                  branch={regData.branch || null}
+                  onLevelChange={(v) => setRegData({ ...regData, level: v, branch: "" })}
+                  onBranchChange={(v) => setRegData({ ...regData, branch: v })}
+                />
               </div>
               <Button type="submit" disabled={loading} className="w-full h-12 mt-6 bg-primary text-primary-foreground font-bold">
                 {loading ? <Loader2 className="animate-spin" /> : t("Register")}
