@@ -85,6 +85,7 @@ export type Database = {
           date: string
           description: string
           id: string
+          level: string | null
           title: string
         }
         Insert: {
@@ -92,6 +93,7 @@ export type Database = {
           date: string
           description: string
           id?: string
+          level?: string | null
           title: string
         }
         Update: {
@@ -99,6 +101,7 @@ export type Database = {
           date?: string
           description?: string
           id?: string
+          level?: string | null
           title?: string
         }
         Relationships: []
@@ -168,6 +171,27 @@ export type Database = {
           read?: boolean
           receiver_id?: string
           sender_id?: string
+        }
+        Relationships: []
+      }
+      favorite_tutors: {
+        Row: {
+          created_at: string
+          id: string
+          student_id: string
+          tutor_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          student_id: string
+          tutor_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          student_id?: string
+          tutor_id?: string
         }
         Relationships: []
       }
@@ -259,6 +283,7 @@ export type Database = {
           id: string
           is_private: boolean
           is_verified: boolean
+          level: string | null
           name: string
           password: string | null
           serial_number: string | null
@@ -271,6 +296,7 @@ export type Database = {
           id?: string
           is_private?: boolean
           is_verified?: boolean
+          level?: string | null
           name: string
           password?: string | null
           serial_number?: string | null
@@ -283,9 +309,55 @@ export type Database = {
           id?: string
           is_private?: boolean
           is_verified?: boolean
+          level?: string | null
           name?: string
           password?: string | null
           serial_number?: string | null
+        }
+        Relationships: []
+      }
+      lessons: {
+        Row: {
+          branch: string | null
+          created_at: string
+          description: string | null
+          file_type: string | null
+          file_url: string | null
+          id: string
+          level: string
+          subject: string
+          title: string
+          tutor_id: string
+          tutor_name: string
+          updated_at: string
+        }
+        Insert: {
+          branch?: string | null
+          created_at?: string
+          description?: string | null
+          file_type?: string | null
+          file_url?: string | null
+          id?: string
+          level: string
+          subject: string
+          title: string
+          tutor_id: string
+          tutor_name: string
+          updated_at?: string
+        }
+        Update: {
+          branch?: string | null
+          created_at?: string
+          description?: string | null
+          file_type?: string | null
+          file_url?: string | null
+          id?: string
+          level?: string
+          subject?: string
+          title?: string
+          tutor_id?: string
+          tutor_name?: string
+          updated_at?: string
         }
         Relationships: []
       }
@@ -368,10 +440,12 @@ export type Database = {
       }
       profiles: {
         Row: {
+          branch: string | null
           created_at: string
           email: string
           full_name: string
           id: string
+          level: string | null
           nickname: string | null
           photo_url: string | null
           role: string
@@ -379,10 +453,12 @@ export type Database = {
           user_id: string | null
         }
         Insert: {
+          branch?: string | null
           created_at?: string
           email: string
           full_name: string
           id?: string
+          level?: string | null
           nickname?: string | null
           photo_url?: string | null
           role?: string
@@ -390,10 +466,12 @@ export type Database = {
           user_id?: string | null
         }
         Update: {
+          branch?: string | null
           created_at?: string
           email?: string
           full_name?: string
           id?: string
+          level?: string | null
           nickname?: string | null
           photo_url?: string | null
           role?: string

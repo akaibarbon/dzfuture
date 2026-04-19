@@ -1,11 +1,11 @@
-// Edge function: Lovable AI Gateway proxy with file (image/PDF/TXT) support
+// Edge function: Lovable AI Gateway proxy with multimodal + tool-style support
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
 
 const SYSTEM_PROMPT =
-  "أنت مساعد ذكي للطلاب الجزائريين على منصة Future DZ. جاوب بالعربية بشكل واضح، مفيد، وموجز. عند تحليل صور أو ملفات (PDF, TXT)، اشرح المحتوى وحلّ التمارين أو لخّصها حسب الطلب.";
+  "أنت مساعد ذكي للطلاب الجزائريين على منصة Future DZ. جاوب بالعربية الفصحى بشكل واضح، مفيد، وموجز. عند تحليل صور أو ملفات (PDF, TXT)، اشرح المحتوى وحلّ التمارين أو لخّصها حسب الطلب.";
 
 type IncomingMsg = {
   role: "user" | "assistant" | "system";
@@ -28,7 +28,6 @@ function buildMessages(messages: IncomingMsg[]) {
           ],
         };
       }
-      // PDF / TXT / DOCX → reference URL in text (model will fetch context from filename + user instruction)
       return {
         role: "user",
         content: `${m.content || "حلّل هذا الملف."}\n\nرابط الملف: ${m.file_url}`,
@@ -36,6 +35,37 @@ function buildMessages(messages: IncomingMsg[]) {
     }
     return { role: m.role, content: m.content };
   });
+}
+
+function promptForType(type: string, p: any): string {
+  const lang = p?.language === "fr" ? "بالفرنسية" : p?.language === "en" ? "بالإنجليزية" : "بالعربية";
+  switch (type) {
+    case "summarize":
+      return `لخّص النص التالي ${lang} بشكل واضح وموجز:\n\n${p?.text || ""}`;
+    case "explain":
+      return `اشرح المفهوم التالي ${lang} للطالب الجزائري بطريقة بسيطة:\n\n${p?.topic || ""}`;
+    case "quiz":
+      return `أنشئ 5 أسئلة اختيار من متعدد ${lang} حول الموضوع: ${p?.topic || ""}`;
+    case "translate":
+      return `ترجم النص التالي إلى ${p?.target || "العربية"}:\n\n${p?.text || ""}`;
+    case "summarize-subject":
+      return `لخّص المادة "${p?.subject || ""}" ${lang} مع التركيز على المواضيع: ${p?.topics || ""}. قدّم ملخصاً منظماً بالعناوين الرئيسية والنقاط المهمة.`;
+    case "generate-exam":
+      return `أنشئ امتحاناً تجريبياً ${lang} في مادة ${p?.subject || ""} بمستوى صعوبة ${p?.difficulty || "متوسط"}. عدد الأسئلة: ${p?.count || 10}. المستوى الدراسي: ${p?.level || "ثانوي"}. قدّم الأسئلة مرقمة مع الإجابات في النهاية.`;
+    case "suggest-tasks": {
+      const subjects = p?.subjects || "";
+      const existing = p?.existingTasks || "";
+      return `أنت مخطط دراسي ذكي. اقترح 3 إلى 5 مهام دراسية واقعية لطالب جزائري. المواد المتاحة: ${subjects}. مهام الطالب الحالية (لا تكررها): ${existing}.\n\nأرجع JSON فقط بهذا الشكل (بدون أي شرح خارجه):\n[{"title":"...","date":"YYYY-MM-DD","time":"HH:MM","type":"exam|homework|revision|meeting|other"}]`;
+    }
+    case "moderate":
+      return `قيّم الرسالة التالية. هل تحتوي على إهانات أو محتوى ضار أو غير لائق؟\n\nالرسالة: "${p?.message || ""}"\n\nأرجع JSON فقط: {"safe": true|false, "reason": "السبب باختصار إن لم تكن آمنة، أو فارغ"}`;
+    case "group-bot":
+      return `أنت بوت ذكي في مجموعة دراسة جزائرية اسمها "${p?.groupName || "المجموعة"}". أجب على السؤال التالي بشكل واضح وموجز ومفيد بالعربية:\n\n${p?.question || ""}`;
+    case "knowledge-radar":
+      return `أنت مدرّس خبير ومُشخّص ثغرات معرفية للطلاب الجزائريين. حلّل إجابة الطالب التالية في مادة ${p?.subject || ""} بمستوى ${p?.level || ""}.\n\nالسؤال:\n${p?.question || ""}\n\nإجابة الطالب:\n${p?.studentAnswer || ""}\n\nأرجع JSON فقط بهذا الشكل (بدون أي شرح خارجه):\n{\n  "mainError": "وصف موجز للخطأ المباشر في الإجابة",\n  "rootCause": "السبب الجذري الحقيقي للثغرة المعرفية",\n  "rootLevel": "السنة أو المستوى الذي يعود إليه السبب الجذري (مثلاً: السنة 4 متوسط)",\n  "capsule": "كبسولة مراجعة سريعة بصياغة Markdown تعالج السبب الجذري",\n  "correctedSolution": "الحل الصحيح خطوة بخطوة بصياغة Markdown"\n}`;
+    default:
+      return p?.prompt || "";
+  }
 }
 
 Deno.serve(async (req: Request) => {
@@ -54,16 +84,9 @@ Deno.serve(async (req: Request) => {
     let chatMessages: any[] = [];
 
     if (type) {
-      // Tool-style single-turn invocation
-      const prompts: Record<string, string> = {
-        summarize: `لخّص النص التالي بشكل واضح وموجز:\n\n${payload?.text || ""}`,
-        explain: `اشرح المفهوم التالي للطالب الجزائري بطريقة بسيطة:\n\n${payload?.topic || ""}`,
-        quiz: `أنشئ 5 أسئلة اختيار من متعدد حول الموضوع: ${payload?.topic || ""}`,
-        translate: `ترجم النص التالي إلى ${payload?.target || "العربية"}:\n\n${payload?.text || ""}`,
-      };
-      const prompt = prompts[type] || payload?.prompt || "";
+      const prompt = promptForType(type, payload || {});
       if (!prompt) {
-        return new Response(JSON.stringify({ error: "نوع غير معروف" }), {
+        return new Response(JSON.stringify({ error: `طلب غير معروف: ${type}` }), {
           status: 400,
           headers: { ...corsHeaders, "Content-Type": "application/json" },
         });

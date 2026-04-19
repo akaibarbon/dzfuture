@@ -6,10 +6,12 @@ import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Lock, Unlock, Users, Plus, BadgeCheck, Search, Hash } from "lucide-react";
+import { Lock, Unlock, Users, Plus, BadgeCheck, Search, Hash, GraduationCap } from "lucide-react";
 import { useAuth } from "@/hooks/use-auth";
 import { useToast } from "@/hooks/use-toast";
 import { useTranslation } from "react-i18next";
+import { LEVELS, levelLabel, getLevelMeta } from "@/lib/levels";
+import { Select, SelectContent, SelectGroup, SelectItem, SelectLabel, SelectTrigger, SelectValue } from "@/components/ui/select";
 
 interface Group {
   id: string;
@@ -22,6 +24,7 @@ interface Group {
   serial_number?: string | null;
   background_url?: string | null;
   description?: string | null;
+  level?: string | null;
 }
 
 const PASSWORD_CACHE_KEY = "group_pwd_cache_v1";
@@ -49,7 +52,8 @@ export default function GroupsPage() {
 
   const [groups, setGroups] = useState<Group[]>([]);
   const [search, setSearch] = useState("");
-  const [newGroup, setNewGroup] = useState({ name: "", isPrivate: false, password: "", description: "" });
+  const [newGroup, setNewGroup] = useState({ name: "", isPrivate: false, password: "", description: "", level: "" });
+  const [levelFilter, setLevelFilter] = useState<string>(user?.level || "__mine__");
   const [joinPassword, setJoinPassword] = useState("");
   const [selectedGroup, setSelectedGroup] = useState<Group | null>(null);
   const [open, setOpen] = useState(false);
@@ -69,14 +73,23 @@ export default function GroupsPage() {
   }, []);
 
   const filteredGroups = useMemo(() => {
-    if (!search.trim()) return groups;
-    const q = search.trim().toLowerCase();
-    return groups.filter(
-      (g) =>
-        g.name.toLowerCase().includes(q) ||
-        (g.serial_number || "").toLowerCase().includes(q)
-    );
-  }, [groups, search]);
+    let list = groups;
+    // Level filter: "__all__" = all, "__mine__" = user's level + groups with no level, else specific level
+    if (levelFilter === "__mine__" && user?.level) {
+      list = list.filter((g) => !g.level || g.level === user.level);
+    } else if (levelFilter !== "__all__" && levelFilter !== "__mine__") {
+      list = list.filter((g) => g.level === levelFilter);
+    }
+    if (search.trim()) {
+      const q = search.trim().toLowerCase();
+      list = list.filter(
+        (g) =>
+          g.name.toLowerCase().includes(q) ||
+          (g.serial_number || "").toLowerCase().includes(q)
+      );
+    }
+    return list;
+  }, [groups, search, levelFilter, user?.level]);
 
   const handleCreate = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -86,12 +99,13 @@ export default function GroupsPage() {
       is_private: newGroup.isPrivate,
       password: newGroup.isPrivate ? newGroup.password : null,
       description: newGroup.description || null,
+      level: newGroup.level || null,
       created_by: user?.id || null,
     });
     if (error) {
       toast({ title: t("ai.error"), description: error.message, variant: "destructive" });
     } else {
-      setNewGroup({ name: "", isPrivate: false, password: "", description: "" });
+      setNewGroup({ name: "", isPrivate: false, password: "", description: "", level: "" });
       setOpen(false);
       toast({ title: t("grp.forged"), description: t("grp.forgedDesc") });
     }
@@ -153,21 +167,41 @@ export default function GroupsPage() {
                   <Input required type="password" value={newGroup.password} onChange={(e) => setNewGroup({...newGroup, password: e.target.value})} className="bg-background/40" />
                 </div>
               )}
+              <div className="space-y-2">
+                <Label>المستوى المستهدف (اختياري)</Label>
+                <Select value={newGroup.level || "__any__"} onValueChange={(v) => setNewGroup({ ...newGroup, level: v === "__any__" ? "" : v })}>
+                  <SelectTrigger className="bg-background/40"><SelectValue /></SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="__any__">كل المستويات</SelectItem>
+                    {LEVELS.map((l) => <SelectItem key={l.value} value={l.value}>{l.icon} {l.label}</SelectItem>)}
+                  </SelectContent>
+                </Select>
+              </div>
               <Button type="submit" className="w-full bg-primary font-bold">{t("grp.create")}</Button>
             </form>
           </DialogContent>
         </Dialog>
       </div>
 
-      {/* Search bar */}
-      <div className="relative max-w-xl">
-        <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-        <Input
-          value={search}
-          onChange={(e) => setSearch(e.target.value)}
-          placeholder={t("grp.searchPlaceholder") || "ابحث بالاسم أو الرقم التسلسلي..."}
-          className="pl-10 bg-background/40 border-border h-11"
-        />
+      {/* Search + level filter */}
+      <div className="flex flex-col md:flex-row gap-3 max-w-3xl">
+        <div className="relative flex-1">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+          <Input
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            placeholder={t("grp.searchPlaceholder") || "ابحث بالاسم أو الرقم التسلسلي..."}
+            className="pl-10 bg-background/40 border-border h-11"
+          />
+        </div>
+        <Select value={levelFilter} onValueChange={setLevelFilter}>
+          <SelectTrigger className="bg-background/40 h-11 md:w-64"><GraduationCap className="w-4 h-4 mr-2" /><SelectValue /></SelectTrigger>
+          <SelectContent>
+            {user?.level && <SelectItem value="__mine__">مستواي ({levelLabel(user.level, user.branch)})</SelectItem>}
+            <SelectItem value="__all__">كل المستويات</SelectItem>
+            {LEVELS.map((l) => <SelectItem key={l.value} value={l.value}>{l.icon} {l.label}</SelectItem>)}
+          </SelectContent>
+        </Select>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -198,6 +232,11 @@ export default function GroupsPage() {
                   <Users className="w-4 h-4" /> {t("grp.guild")}
                   {isOwner && <span className="text-[10px] bg-primary/20 text-primary px-2 py-0.5 rounded-full">{t("grp.owner") || "مالك"}</span>}
                 </p>
+                {g.level && (
+                  <p className="text-[11px] flex items-center gap-1" style={{ color: `hsl(${getLevelMeta(g.level)?.color || "var(--primary)"})` }}>
+                    <GraduationCap className="w-3 h-3" />{levelLabel(g.level)}
+                  </p>
+                )}
                 {g.serial_number && (
                   <p className="text-[11px] text-muted-foreground/80 font-mono flex items-center gap-1">
                     <Hash className="w-3 h-3" />{g.serial_number}

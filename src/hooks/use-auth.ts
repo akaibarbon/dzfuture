@@ -9,6 +9,8 @@ export interface User {
   serialNumber?: string;
   photoUrl?: string;
   nickname?: string;
+  level?: string | null;
+  branch?: string | null;
 }
 
 interface AuthState {
