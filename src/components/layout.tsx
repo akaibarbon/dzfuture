@@ -13,6 +13,8 @@ import {
 import { useState } from "react";
 import logoImg from "@/assets/logo.png";
 import { NotificationsBell } from "@/components/notifications-bell";
+import { LevelGate } from "@/components/level-gate";
+import { BookOpenCheck } from "lucide-react";
 
 export function Layout({ children }: { children: ReactNode }) {
   const { t, i18n } = useTranslation();
@@ -70,6 +72,7 @@ export function Layout({ children }: { children: ReactNode }) {
     { href: "/groups", label: t("Groups"), icon: Users },
     { href: "/messages", label: t("Messages"), icon: MessageSquare },
     { href: "/ai-chat", label: t("AIChat"), icon: Bot },
+    { href: "/lessons", label: "الدروس", icon: BookOpenCheck },
     { href: "/programme", label: t("Programme"), icon: BookOpen },
     { href: "/gpa-calculator", label: t("GPACalculator"), icon: Calculator },
     { href: "/knowledge-radar", label: t("KnowledgeRadar"), icon: Target },
@@ -163,6 +166,7 @@ export function Layout({ children }: { children: ReactNode }) {
           <div className="max-w-6xl mx-auto">{children}</div>
         </main>
       </div>
+      <LevelGate />
     </div>
   );
 }
