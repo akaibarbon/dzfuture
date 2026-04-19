@@ -167,21 +167,41 @@ export default function GroupsPage() {
                   <Input required type="password" value={newGroup.password} onChange={(e) => setNewGroup({...newGroup, password: e.target.value})} className="bg-background/40" />
                 </div>
               )}
+              <div className="space-y-2">
+                <Label>المستوى المستهدف (اختياري)</Label>
+                <Select value={newGroup.level || "__any__"} onValueChange={(v) => setNewGroup({ ...newGroup, level: v === "__any__" ? "" : v })}>
+                  <SelectTrigger className="bg-background/40"><SelectValue /></SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="__any__">كل المستويات</SelectItem>
+                    {LEVELS.map((l) => <SelectItem key={l.value} value={l.value}>{l.icon} {l.label}</SelectItem>)}
+                  </SelectContent>
+                </Select>
+              </div>
               <Button type="submit" className="w-full bg-primary font-bold">{t("grp.create")}</Button>
             </form>
           </DialogContent>
         </Dialog>
       </div>
 
-      {/* Search bar */}
-      <div className="relative max-w-xl">
-        <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-        <Input
-          value={search}
-          onChange={(e) => setSearch(e.target.value)}
-          placeholder={t("grp.searchPlaceholder") || "ابحث بالاسم أو الرقم التسلسلي..."}
-          className="pl-10 bg-background/40 border-border h-11"
-        />
+      {/* Search + level filter */}
+      <div className="flex flex-col md:flex-row gap-3 max-w-3xl">
+        <div className="relative flex-1">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+          <Input
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            placeholder={t("grp.searchPlaceholder") || "ابحث بالاسم أو الرقم التسلسلي..."}
+            className="pl-10 bg-background/40 border-border h-11"
+          />
+        </div>
+        <Select value={levelFilter} onValueChange={setLevelFilter}>
+          <SelectTrigger className="bg-background/40 h-11 md:w-64"><GraduationCap className="w-4 h-4 mr-2" /><SelectValue /></SelectTrigger>
+          <SelectContent>
+            {user?.level && <SelectItem value="__mine__">مستواي ({levelLabel(user.level, user.branch)})</SelectItem>}
+            <SelectItem value="__all__">كل المستويات</SelectItem>
+            {LEVELS.map((l) => <SelectItem key={l.value} value={l.value}>{l.icon} {l.label}</SelectItem>)}
+          </SelectContent>
+        </Select>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -212,6 +232,11 @@ export default function GroupsPage() {
                   <Users className="w-4 h-4" /> {t("grp.guild")}
                   {isOwner && <span className="text-[10px] bg-primary/20 text-primary px-2 py-0.5 rounded-full">{t("grp.owner") || "مالك"}</span>}
                 </p>
+                {g.level && (
+                  <p className="text-[11px] flex items-center gap-1" style={{ color: `hsl(${getLevelMeta(g.level)?.color || "var(--primary)"})` }}>
+                    <GraduationCap className="w-3 h-3" />{levelLabel(g.level)}
+                  </p>
+                )}
                 {g.serial_number && (
                   <p className="text-[11px] text-muted-foreground/80 font-mono flex items-center gap-1">
                     <Hash className="w-3 h-3" />{g.serial_number}
