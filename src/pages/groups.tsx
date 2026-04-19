@@ -6,10 +6,12 @@ import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Lock, Unlock, Users, Plus, BadgeCheck, Search, Hash } from "lucide-react";
+import { Lock, Unlock, Users, Plus, BadgeCheck, Search, Hash, GraduationCap } from "lucide-react";
 import { useAuth } from "@/hooks/use-auth";
 import { useToast } from "@/hooks/use-toast";
 import { useTranslation } from "react-i18next";
+import { LEVELS, levelLabel, getLevelMeta } from "@/lib/levels";
+import { Select, SelectContent, SelectGroup, SelectItem, SelectLabel, SelectTrigger, SelectValue } from "@/components/ui/select";
 
 interface Group {
   id: string;
@@ -22,6 +24,7 @@ interface Group {
   serial_number?: string | null;
   background_url?: string | null;
   description?: string | null;
+  level?: string | null;
 }
 
 const PASSWORD_CACHE_KEY = "group_pwd_cache_v1";
@@ -49,7 +52,8 @@ export default function GroupsPage() {
 
   const [groups, setGroups] = useState<Group[]>([]);
   const [search, setSearch] = useState("");
-  const [newGroup, setNewGroup] = useState({ name: "", isPrivate: false, password: "", description: "" });
+  const [newGroup, setNewGroup] = useState({ name: "", isPrivate: false, password: "", description: "", level: "" });
+  const [levelFilter, setLevelFilter] = useState<string>(user?.level || "__mine__");
   const [joinPassword, setJoinPassword] = useState("");
   const [selectedGroup, setSelectedGroup] = useState<Group | null>(null);
   const [open, setOpen] = useState(false);
@@ -69,14 +73,23 @@ export default function GroupsPage() {
   }, []);
 
   const filteredGroups = useMemo(() => {
-    if (!search.trim()) return groups;
-    const q = search.trim().toLowerCase();
-    return groups.filter(
-      (g) =>
-        g.name.toLowerCase().includes(q) ||
-        (g.serial_number || "").toLowerCase().includes(q)
-    );
-  }, [groups, search]);
+    let list = groups;
+    // Level filter: "__all__" = all, "__mine__" = user's level + groups with no level, else specific level
+    if (levelFilter === "__mine__" && user?.level) {
+      list = list.filter((g) => !g.level || g.level === user.level);
+    } else if (levelFilter !== "__all__" && levelFilter !== "__mine__") {
+      list = list.filter((g) => g.level === levelFilter);
+    }
+    if (search.trim()) {
+      const q = search.trim().toLowerCase();
+      list = list.filter(
+        (g) =>
+          g.name.toLowerCase().includes(q) ||
+          (g.serial_number || "").toLowerCase().includes(q)
+      );
+    }
+    return list;
+  }, [groups, search, levelFilter, user?.level]);
 
   const handleCreate = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -86,12 +99,13 @@ export default function GroupsPage() {
       is_private: newGroup.isPrivate,
       password: newGroup.isPrivate ? newGroup.password : null,
       description: newGroup.description || null,
+      level: newGroup.level || null,
       created_by: user?.id || null,
     });
     if (error) {
       toast({ title: t("ai.error"), description: error.message, variant: "destructive" });
     } else {
-      setNewGroup({ name: "", isPrivate: false, password: "", description: "" });
+      setNewGroup({ name: "", isPrivate: false, password: "", description: "", level: "" });
       setOpen(false);
       toast({ title: t("grp.forged"), description: t("grp.forgedDesc") });
     }
