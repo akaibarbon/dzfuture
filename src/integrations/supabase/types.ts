@@ -445,12 +445,15 @@ export type Database = {
           email: string
           full_name: string
           id: string
+          last_active_date: string | null
           level: string | null
           nickname: string | null
           photo_url: string | null
           role: string
           serial_number: string
+          streak_days: number
           user_id: string | null
+          xp: number
         }
         Insert: {
           branch?: string | null
@@ -458,12 +461,15 @@ export type Database = {
           email: string
           full_name: string
           id?: string
+          last_active_date?: string | null
           level?: string | null
           nickname?: string | null
           photo_url?: string | null
           role?: string
           serial_number: string
+          streak_days?: number
           user_id?: string | null
+          xp?: number
         }
         Update: {
           branch?: string | null
@@ -471,12 +477,15 @@ export type Database = {
           email?: string
           full_name?: string
           id?: string
+          last_active_date?: string | null
           level?: string | null
           nickname?: string | null
           photo_url?: string | null
           role?: string
           serial_number?: string
+          streak_days?: number
           user_id?: string | null
+          xp?: number
         }
         Relationships: []
       }
@@ -495,6 +504,51 @@ export type Database = {
           id?: string
           visited_at?: string
           visitor_hash?: string | null
+        }
+        Relationships: []
+      }
+      user_badges: {
+        Row: {
+          badge_key: string
+          earned_at: string
+          id: string
+          user_id: string
+        }
+        Insert: {
+          badge_key: string
+          earned_at?: string
+          id?: string
+          user_id: string
+        }
+        Update: {
+          badge_key?: string
+          earned_at?: string
+          id?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      xp_events: {
+        Row: {
+          amount: number
+          created_at: string
+          id: string
+          reason: string
+          user_id: string
+        }
+        Insert: {
+          amount: number
+          created_at?: string
+          id?: string
+          reason: string
+          user_id: string
+        }
+        Update: {
+          amount?: number
+          created_at?: string
+          id?: string
+          reason?: string
+          user_id?: string
         }
         Relationships: []
       }
