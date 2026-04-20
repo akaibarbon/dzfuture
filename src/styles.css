@@ -155,3 +155,47 @@
 ::-webkit-scrollbar-track { background: hsl(var(--background)); }
 ::-webkit-scrollbar-thumb { background: hsl(var(--border)); border-radius: 4px; }
 ::-webkit-scrollbar-thumb:hover { background: hsl(var(--primary) / 0.5); }
+
+/* ===== Accessibility & Ultra-Light modes ===== */
+html.ultra-light *, html.ultra-light *::before, html.ultra-light *::after {
+  background-image: none !important;
+  backdrop-filter: none !important;
+  box-shadow: none !important;
+  text-shadow: none !important;
+}
+html.ultra-light img, html.ultra-light video { image-rendering: auto; }
+html.ultra-light .blur-\[120px\], html.ultra-light [class*="blur-"] { filter: none !important; }
+
+html.reduced-motion *, html.reduced-motion *::before, html.reduced-motion *::after {
+  animation-duration: 0.001ms !important;
+  animation-iteration-count: 1 !important;
+  transition-duration: 0.001ms !important;
+  scroll-behavior: auto !important;
+}
+
+html.high-contrast {
+  --background: 0 0% 0%;
+  --foreground: 0 0% 100%;
+  --card: 0 0% 5%;
+  --card-foreground: 0 0% 100%;
+  --border: 0 0% 50%;
+  --muted: 0 0% 15%;
+  --muted-foreground: 0 0% 90%;
+  --primary: 50 100% 60%;
+  --primary-foreground: 0 0% 0%;
+}
+html.high-contrast * { border-color: hsl(0 0% 50%) !important; }
+html.high-contrast a, html.high-contrast button { text-decoration: underline; }
+
+html.dyslexia-font, html.dyslexia-font * {
+  font-family: 'Comic Sans MS', 'OpenDyslexic', cursive !important;
+  letter-spacing: 0.05em;
+  word-spacing: 0.15em;
+  line-height: 1.7;
+}
+
+/* Focus ring for keyboard navigation */
+*:focus-visible {
+  outline: 3px solid hsl(var(--primary)) !important;
+  outline-offset: 2px;
+}

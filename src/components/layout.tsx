@@ -15,6 +15,10 @@ import logoImg from "@/assets/logo.png";
 import { NotificationsBell } from "@/components/notifications-bell";
 import { LevelGate } from "@/components/level-gate";
 import { BookOpenCheck } from "lucide-react";
+import { VoiceAssistant } from "@/components/voice-assistant";
+import { AccessibilityPanel } from "@/components/accessibility-panel";
+import { useAppSettings, applyAppSettings } from "@/hooks/use-app-settings";
+import { updateStreak, awardBadge } from "@/lib/gamification";
 
 export function Layout({ children }: { children: ReactNode }) {
   const { t, i18n } = useTranslation();
@@ -24,6 +28,11 @@ export function Layout({ children }: { children: ReactNode }) {
   const { isDark, toggle: toggleDark } = useDarkMode();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
+  // Apply accessibility settings on mount
+  useEffect(() => {
+    applyAppSettings(useAppSettings.getState());
+  }, []);
+
   useEffect(() => {
     const trackVisit = async () => {
       const visitorHash = localStorage.getItem("uno-visitor-id") || crypto.randomUUID();
@@ -31,7 +40,12 @@ export function Layout({ children }: { children: ReactNode }) {
       await supabase.from("site_visits").insert({ visitor_hash: visitorHash });
     };
     trackVisit();
-  }, []);
+    // Update daily streak + first_login badge
+    if (user?.id) {
+      updateStreak(user.id);
+      awardBadge(user.id, "first_login");
+    }
+  }, [user?.id]);
 
   useEffect(() => {
     if (currentTheme) {
@@ -167,6 +181,8 @@ export function Layout({ children }: { children: ReactNode }) {
         </main>
       </div>
       <LevelGate />
+      <VoiceAssistant />
+      <AccessibilityPanel />
     </div>
   );
 }

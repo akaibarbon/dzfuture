@@ -25,30 +25,43 @@ function generateAvatarUrl(seed: string) {
 }
 
 async function ensureProfile(user: any, setUser: any, setNewSerial: any, setMode: any, navigate: any, isOAuth = false) {
-  const { data: profile } = await supabase.from("profiles").select("*").eq("user_id", user.id).maybeSingle();
+  // 1) Try by user_id (existing linked account)
+  let { data: profile } = await supabase.from("profiles").select("*").eq("user_id", user.id).maybeSingle();
+
+  // 2) If OAuth and no profile by user_id, try linking by email (account merge)
+  if (!profile && isOAuth && user.email) {
+    const { data: byEmail } = await supabase.from("profiles").select("*").eq("email", user.email).maybeSingle();
+    if (byEmail) {
+      // Link this auth user to the existing profile
+      await supabase.from("profiles").update({ user_id: user.id }).eq("id", byEmail.id);
+      profile = { ...byEmail, user_id: user.id };
+    }
+  }
+
   if (profile) {
-    setUser({ id: user.id, fullName: profile.full_name, email: profile.email, role: profile.role, serialNumber: profile.serial_number, photoUrl: profile.photo_url || undefined, nickname: profile.nickname || undefined });
+    setUser({ id: user.id, fullName: profile.full_name, email: profile.email, role: profile.role, serialNumber: profile.serial_number, photoUrl: profile.photo_url || undefined, nickname: profile.nickname || undefined, level: profile.level, branch: profile.branch });
     navigate("/hub");
-  } else {
-    const serialNum = generateSerial();
-    const fullName = user.user_metadata?.full_name || user.email?.split("@")[0] || "User";
-    const photoUrl = user.user_metadata?.avatar_url || generateAvatarUrl(user.email || serialNum);
-    const { error } = await supabase.from("profiles").insert({ user_id: user.id, full_name: fullName, email: user.email || "", role: "student", serial_number: serialNum, photo_url: photoUrl });
-    if (!error) {
-      setUser({ id: user.id, fullName, email: user.email || "", role: "student", serialNumber: serialNum, photoUrl });
-      if (isOAuth) {
-        // OAuth users go directly to hub
-        navigate("/hub");
-      } else {
-        setNewSerial(serialNum);
-        setMode("success");
-      }
+    return;
+  }
+
+  // 3) Brand new — create profile
+  const serialNum = generateSerial();
+  const fullName = user.user_metadata?.full_name || user.email?.split("@")[0] || "User";
+  const photoUrl = user.user_metadata?.avatar_url || generateAvatarUrl(user.email || serialNum);
+  const { error } = await supabase.from("profiles").insert({ user_id: user.id, full_name: fullName, email: user.email || "", role: "student", serial_number: serialNum, photo_url: photoUrl });
+  if (!error) {
+    setUser({ id: user.id, fullName, email: user.email || "", role: "student", serialNumber: serialNum, photoUrl });
+    if (isOAuth) {
+      navigate("/hub");
     } else {
-      const { data: retryProfile } = await supabase.from("profiles").select("*").eq("user_id", user.id).maybeSingle();
-      if (retryProfile) {
-        setUser({ id: user.id, fullName: retryProfile.full_name, email: retryProfile.email, role: retryProfile.role, serialNumber: retryProfile.serial_number, photoUrl: retryProfile.photo_url || undefined, nickname: retryProfile.nickname || undefined });
-        navigate("/hub");
-      }
+      setNewSerial(serialNum);
+      setMode("success");
+    }
+  } else {
+    const { data: retryProfile } = await supabase.from("profiles").select("*").eq("user_id", user.id).maybeSingle();
+    if (retryProfile) {
+      setUser({ id: user.id, fullName: retryProfile.full_name, email: retryProfile.email, role: retryProfile.role, serialNumber: retryProfile.serial_number, photoUrl: retryProfile.photo_url || undefined, nickname: retryProfile.nickname || undefined });
+      navigate("/hub");
     }
   }
 }
@@ -160,8 +173,25 @@ export default function AuthPage() {
       return;
     }
     setLoading(true);
+
+    // Check if email already exists (linked via Google previously)
+    const { data: existingProfile } = await supabase.from("profiles").select("user_id, serial_number").eq("email", regData.email).maybeSingle();
+    if (existingProfile) {
+      toast({
+        title: "هذا الإيميل مسجّل مسبقاً",
+        description: "ادخل عبر Google بنفس الإيميل أو استخدم رقمك التسلسلي.",
+        variant: "destructive",
+      });
+      setLoading(false);
+      return;
+    }
+
     const serialNum = generateSerial();
-    const { data: authData, error: authError } = await supabase.auth.signUp({ email: regData.email, password: regData.password });
+    const { data: authData, error: authError } = await supabase.auth.signUp({
+      email: regData.email,
+      password: regData.password,
+      options: { emailRedirectTo: window.location.origin + "/auth" },
+    });
     if (authError) { toast({ title: t("auth.regFailed"), description: authError.message, variant: "destructive" }); setLoading(false); return; }
     if (authData.user) {
       const { error: signInError } = await supabase.auth.signInWithPassword({ email: regData.email, password: regData.password });

@@ -6,6 +6,7 @@ import { BrainCircuit, BookMarked, Users, Globe2, Sparkles, CalendarDays, BookOp
 import { supabase } from "@/integrations/supabase/client";
 import { Link } from "react-router-dom";
 import { useTranslation } from "react-i18next";
+import { XPDisplay } from "@/components/xp-display";
 
 export default function HubPage() {
   const { user } = useAuth();
@@ -49,6 +50,8 @@ export default function HubPage() {
           <span className="text-lg font-bold font-mono text-primary">{visits}</span>
         </div>
       </div>
+
+      <XPDisplay />
 
       <motion.div variants={container} initial="hidden" animate="show" className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 md:gap-4">
         {cards.map((card) => (
