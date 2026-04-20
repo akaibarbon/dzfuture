@@ -15,6 +15,10 @@ import logoImg from "@/assets/logo.png";
 import { NotificationsBell } from "@/components/notifications-bell";
 import { LevelGate } from "@/components/level-gate";
 import { BookOpenCheck } from "lucide-react";
+import { VoiceAssistant } from "@/components/voice-assistant";
+import { AccessibilityPanel } from "@/components/accessibility-panel";
+import { useAppSettings, applyAppSettings } from "@/hooks/use-app-settings";
+import { updateStreak, awardBadge } from "@/lib/gamification";
 
 export function Layout({ children }: { children: ReactNode }) {
   const { t, i18n } = useTranslation();
