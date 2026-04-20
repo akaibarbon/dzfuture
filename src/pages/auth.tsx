@@ -160,8 +160,25 @@ export default function AuthPage() {
       return;
     }
     setLoading(true);
+
+    // Check if email already exists (linked via Google previously)
+    const { data: existingProfile } = await supabase.from("profiles").select("user_id, serial_number").eq("email", regData.email).maybeSingle();
+    if (existingProfile) {
+      toast({
+        title: "هذا الإيميل مسجّل مسبقاً",
+        description: "ادخل عبر Google بنفس الإيميل أو استخدم رقمك التسلسلي.",
+        variant: "destructive",
+      });
+      setLoading(false);
+      return;
+    }
+
     const serialNum = generateSerial();
-    const { data: authData, error: authError } = await supabase.auth.signUp({ email: regData.email, password: regData.password });
+    const { data: authData, error: authError } = await supabase.auth.signUp({
+      email: regData.email,
+      password: regData.password,
+      options: { emailRedirectTo: window.location.origin + "/auth" },
+    });
     if (authError) { toast({ title: t("auth.regFailed"), description: authError.message, variant: "destructive" }); setLoading(false); return; }
     if (authData.user) {
       const { error: signInError } = await supabase.auth.signInWithPassword({ email: regData.email, password: regData.password });
