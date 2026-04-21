@@ -39,7 +39,7 @@ async function ensureProfile(user: any, setUser: any, setNewSerial: any, setMode
   }
 
   if (profile) {
-    setUser({ id: user.id, fullName: profile.full_name, email: profile.email, role: profile.role, serialNumber: profile.serial_number, photoUrl: profile.photo_url || undefined, nickname: profile.nickname || undefined, level: profile.level, branch: profile.branch });
+    setUser({ id: user.id, fullName: profile.full_name, email: profile.email, role: profile.role, serialNumber: profile.serial_number, photoUrl: profile.photo_url || undefined, nickname: profile.nickname || undefined, level: profile.level, branch: profile.branch, approved: (profile as any).approved ?? true });
     navigate("/hub");
     return;
   }
