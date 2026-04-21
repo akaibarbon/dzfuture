@@ -250,14 +250,19 @@ export default function ControlPanelPage() {
               <p className="text-muted-foreground text-sm mb-4">{t("cp.vbadgeDesc")}</p>
               <div className="space-y-3">
                 {groups.map((g) => (
-                  <div key={g.id} className="flex items-center justify-between p-3 rounded-xl bg-secondary/30 border border-border">
-                    <div className="flex items-center gap-2">
-                      <span className="font-bold">{g.name}</span>
-                      {g.is_verified && <BadgeCheck className="w-4 h-4 text-primary" />}
+                  <div key={g.id} className="flex items-center justify-between p-3 rounded-xl bg-secondary/30 border border-border gap-2">
+                    <div className="flex items-center gap-2 min-w-0">
+                      <span className="font-bold truncate">{g.name}</span>
+                      {g.is_verified && <BadgeCheck className="w-4 h-4 text-primary flex-shrink-0" />}
                     </div>
-                    <Button size="sm" variant={g.is_verified ? "default" : "outline"} onClick={() => handleToggleVerified(g)}>
-                      {g.is_verified ? t("cp.removeBadge") : t("cp.addBadge")}
-                    </Button>
+                    <div className="flex items-center gap-2 flex-shrink-0">
+                      <Button size="sm" variant={g.is_verified ? "default" : "outline"} onClick={() => handleToggleVerified(g)}>
+                        {g.is_verified ? t("cp.removeBadge") : t("cp.addBadge")}
+                      </Button>
+                      <Button size="sm" variant="destructive" onClick={() => handleDeleteGroup(g)} title="حذف المجموعة">
+                        <Trash2 className="w-4 h-4" />
+                      </Button>
+                    </div>
                   </div>
                 ))}
                 {groups.length === 0 && <p className="text-muted-foreground text-center py-4">{t("cp.noGroups")}</p>}
@@ -310,23 +315,56 @@ export default function ControlPanelPage() {
 
         <TabsContent value="users" className="mt-6">
           <Card className="glass-panel">
-            <CardContent className="py-6">
+            <CardContent className="py-6 space-y-3">
+              {pendingTutors.length > 0 && (
+                <div className="p-3 rounded-xl border border-amber-500/40 bg-amber-500/5 text-sm">
+                  ⏳ <b>{pendingTutors.length}</b> أستاذ بانتظار الموافقة. اضغط "اعتماد" أمام كل أستاذ.
+                </div>
+              )}
               {profiles.length === 0 ? (
                 <p className="text-center text-muted-foreground">{t("cp.noUsers")}</p>
               ) : (
-                <div className="space-y-3">
-                  {profiles.map((u) => (
-                    <div key={u.id} className="flex items-center justify-between p-3 rounded-xl bg-secondary/30 border border-border">
+                profiles.map((u) => {
+                  const meta = getLevelMeta(u.level);
+                  const isPendingTutor = u.role === "tutor" && u.approved === false;
+                  return (
+                    <div key={u.id} className={`p-4 rounded-xl bg-secondary/30 border space-y-3 ${isPendingTutor ? "border-amber-500/50" : "border-border"}`}>
                       <div className="flex items-center gap-3">
                         <img src={u.photo_url || `https://api.dicebear.com/7.x/bottts-neutral/svg?seed=${u.full_name}`} alt="" className="w-10 h-10 rounded-xl" />
-                        <div>
-                          <p className="font-bold">{u.full_name}</p>
-                          <p className="text-xs text-muted-foreground">{u.email} • {u.role} • SN: {u.serial_number}</p>
+                        <div className="flex-1 min-w-0">
+                          <p className="font-bold truncate">{u.full_name}</p>
+                          <p className="text-xs text-muted-foreground truncate">{u.email} • SN: {u.serial_number}</p>
+                          {u.level && <p className="text-xs text-primary mt-0.5">{meta?.icon} {levelLabel(u.level, u.branch)}</p>}
                         </div>
+                        {isPendingTutor && (
+                          <Button size="sm" onClick={() => handleUpdateProfile(u, { approved: true })} className="bg-green-600 hover:bg-green-700 text-white flex-shrink-0">
+                            <CheckCircle className="w-4 h-4 mr-1" /> اعتماد الأستاذ
+                          </Button>
+                        )}
+                      </div>
+                      <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
+                        <Select value={u.role} onValueChange={(v) => handleUpdateProfile(u, { role: v, approved: v !== "tutor" ? true : u.approved })}>
+                          <SelectTrigger className="bg-background/40 h-9 text-xs"><SelectValue placeholder="الدور" /></SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="student">تلميذ</SelectItem>
+                            <SelectItem value="tutor">أستاذ</SelectItem>
+                            <SelectItem value="parent">ولي أمر</SelectItem>
+                          </SelectContent>
+                        </Select>
+                        <Select value={u.level || ""} onValueChange={(v) => handleUpdateProfile(u, { level: v })}>
+                          <SelectTrigger className="bg-background/40 h-9 text-xs"><SelectValue placeholder="المستوى" /></SelectTrigger>
+                          <SelectContent>{LEVELS.map((l) => <SelectItem key={l.value} value={l.value}>{l.icon} {l.label}</SelectItem>)}</SelectContent>
+                        </Select>
+                        {meta?.branchRequired && (
+                          <Select value={u.branch || ""} onValueChange={(v) => handleUpdateProfile(u, { branch: v })}>
+                            <SelectTrigger className="bg-background/40 h-9 text-xs"><SelectValue placeholder="الشعبة" /></SelectTrigger>
+                            <SelectContent>{SECONDARY_BRANCHES.filter((b) => b.value !== "common").map((b) => <SelectItem key={b.value} value={b.value}>{b.label}</SelectItem>)}</SelectContent>
+                          </Select>
+                        )}
                       </div>
                     </div>
-                  ))}
-                </div>
+                  );
+                })
               )}
             </CardContent>
           </Card>
