@@ -44,6 +44,15 @@ export default function AutoGraderPage() {
       </div>
     );
   }
+  if (user.approved === false) {
+    return (
+      <div className="flex flex-col items-center justify-center py-20 text-center">
+        <ScanLine className="w-16 h-16 text-amber-500 mb-4" />
+        <h1 className="text-2xl font-bold mb-2">⏳ حسابك بانتظار الموافقة</h1>
+        <p className="text-muted-foreground max-w-md">يجب أن توافق الإدارة على حسابك كأستاذ قبل استخدام المصحّح الآلي.</p>
+      </div>
+    );
+  }
 
   const onPick = (selected: FileList | null) => {
     if (!selected) return;
