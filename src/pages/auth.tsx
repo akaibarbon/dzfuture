@@ -196,13 +196,15 @@ export default function AuthPage() {
     if (authData.user) {
       const { error: signInError } = await supabase.auth.signInWithPassword({ email: regData.email, password: regData.password });
       if (signInError) { toast({ title: t("auth.signInFailed"), description: signInError.message, variant: "destructive" }); setLoading(false); return; }
+      const isTutor = regData.role === "tutor";
       const { error: profileError } = await supabase.from("profiles").insert({
         user_id: authData.user.id, full_name: regData.fullName, email: regData.email, role: regData.role,
         serial_number: serialNum, photo_url: generateAvatarUrl(regData.fullName),
         level: regData.level, branch: meta?.branchRequired ? regData.branch : null,
-      });
+        approved: !isTutor,
+      } as any);
       if (profileError) { toast({ title: t("auth.profileError"), description: profileError.message, variant: "destructive" }); setLoading(false); return; }
-      setUser({ id: authData.user.id, fullName: regData.fullName, email: regData.email, role: regData.role, serialNumber: serialNum, photoUrl: generateAvatarUrl(regData.fullName), level: regData.level, branch: meta?.branchRequired ? regData.branch : null });
+      setUser({ id: authData.user.id, fullName: regData.fullName, email: regData.email, role: regData.role, serialNumber: serialNum, photoUrl: generateAvatarUrl(regData.fullName), level: regData.level, branch: meta?.branchRequired ? regData.branch : null, approved: !isTutor });
       setNewSerial(serialNum);
       setMode("success");
     }
