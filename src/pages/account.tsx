@@ -145,6 +145,34 @@ export default function AccountPage() {
       </Card>
 
       <Card className="glass-panel">
+        <CardHeader><CardTitle className="font-display flex items-center gap-2"><GraduationCap className="w-5 h-5 text-primary" />المعلومات الدراسية</CardTitle></CardHeader>
+        <CardContent className="space-y-4">
+          <p className="text-muted-foreground text-sm">حدّث مستواك وشعبتك لرؤية المحتوى المخصّص لك.</p>
+          <div className="grid md:grid-cols-2 gap-3">
+            <div className="space-y-2">
+              <Label>المستوى الدراسي</Label>
+              <Select value={studyForm.level} onValueChange={(v) => setStudyForm({ level: v, branch: "" })}>
+                <SelectTrigger className="bg-background/40"><SelectValue placeholder="اختر..." /></SelectTrigger>
+                <SelectContent>{LEVELS.map((l) => <SelectItem key={l.value} value={l.value}>{l.icon} {l.label}</SelectItem>)}</SelectContent>
+              </Select>
+            </div>
+            {getLevelMeta(studyForm.level)?.branchRequired && (
+              <div className="space-y-2">
+                <Label>الشعبة</Label>
+                <Select value={studyForm.branch} onValueChange={(v) => setStudyForm({ ...studyForm, branch: v })}>
+                  <SelectTrigger className="bg-background/40"><SelectValue placeholder="اختر..." /></SelectTrigger>
+                  <SelectContent>{SECONDARY_BRANCHES.filter((b) => b.value !== "common").map((b) => <SelectItem key={b.value} value={b.value}>{b.label}</SelectItem>)}</SelectContent>
+                </Select>
+              </div>
+            )}
+          </div>
+          <Button onClick={handleSaveStudy} disabled={savingStudy} className="bg-primary text-primary-foreground font-bold gap-2">
+            <Save className="w-4 h-4" /> حفظ التغييرات
+          </Button>
+        </CardContent>
+      </Card>
+
+      <Card className="glass-panel">
         <CardHeader><CardTitle className="font-display flex items-center gap-2"><Palette className="w-5 h-5 text-primary" />{t("acc.theme")}</CardTitle></CardHeader>
         <CardContent>
           <p className="text-muted-foreground text-sm mb-4">{t("acc.themeDesc")}</p>
