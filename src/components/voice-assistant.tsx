@@ -35,8 +35,13 @@ export function VoiceAssistant() {
     if (!("speechSynthesis" in window)) return;
     speechSynthesis.cancel();
     const u = new SpeechSynthesisUtterance(txt);
-    u.lang = "ar-SA";
-    u.rate = 1;
+    // Pick an Arabic voice if available for faster + more natural delivery
+    const voices = speechSynthesis.getVoices();
+    const ar = voices.find((v) => v.lang?.startsWith("ar")) || voices.find((v) => /arab/i.test(v.name));
+    if (ar) u.voice = ar;
+    u.lang = ar?.lang || "ar-SA";
+    u.rate = 1.15;
+    u.pitch = 1;
     speechSynthesis.speak(u);
   };
 
@@ -49,17 +54,32 @@ export function VoiceAssistant() {
     const rec = new SR();
     rec.lang = "ar-DZ";
     rec.continuous = false;
-    rec.interimResults = false;
+    rec.interimResults = true; // show partial results live
+    rec.maxAlternatives = 1;
+    let finalText = "";
     rec.onresult = (e: any) => {
-      const text = e.results[0][0].transcript;
-      setTranscript(text);
-      handleCommand(text);
+      let interim = "";
+      for (let i = e.resultIndex; i < e.results.length; i++) {
+        const r = e.results[i];
+        if (r.isFinal) finalText += r[0].transcript;
+        else interim += r[0].transcript;
+      }
+      setTranscript(finalText || interim);
+      // Trigger command as soon as we have a final result (no waiting for onend)
+      if (finalText) {
+        try { rec.stop(); } catch {}
+        handleCommand(finalText);
+      }
     };
     rec.onerror = (e: any) => {
       setListening(false);
-      toast({ title: "خطأ", description: e.error || "حدث خطأ في التسجيل", variant: "destructive" });
+      if (e.error !== "no-speech" && e.error !== "aborted") {
+        toast({ title: "خطأ", description: e.error || "حدث خطأ في التسجيل", variant: "destructive" });
+      }
     };
     rec.onend = () => setListening(false);
+    // Pre-warm voices (Chrome loads them async)
+    if ("speechSynthesis" in window) speechSynthesis.getVoices();
     rec.start();
     recognitionRef.current = rec;
     setListening(true);

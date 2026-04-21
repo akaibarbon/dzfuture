@@ -24,6 +24,7 @@ import DailySchedulePage from "./pages/daily-schedule";
 import GPACalculatorPage from "./pages/gpa-calculator";
 import KnowledgeRadarPage from "./pages/knowledge-radar";
 import LessonsPage from "./pages/lessons";
+import AutoGraderPage from "./pages/auto-grader";
 import NotFound from "./pages/not-found";
 
 const queryClient = new QueryClient();
@@ -58,6 +59,7 @@ function AppRoutes() {
       <Route path="/gpa-calculator" element={<ProtectedRoute><GPACalculatorPage /></ProtectedRoute>} />
       <Route path="/knowledge-radar" element={<ProtectedRoute><KnowledgeRadarPage /></ProtectedRoute>} />
       <Route path="/lessons" element={<ProtectedRoute><LessonsPage /></ProtectedRoute>} />
+      <Route path="/auto-grader" element={<ProtectedRoute><AutoGraderPage /></ProtectedRoute>} />
       
       <Route path="*" element={<NotFound />} />
     </Routes>

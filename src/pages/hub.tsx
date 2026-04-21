@@ -7,11 +7,13 @@ import { supabase } from "@/integrations/supabase/client";
 import { Link } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { XPDisplay } from "@/components/xp-display";
+import { useLevelBadge } from "@/hooks/use-level-theme";
 
 export default function HubPage() {
   const { user } = useAuth();
   const { t } = useTranslation();
   const [visits, setVisits] = useState(0);
+  const levelBadge = useLevelBadge();
 
   useEffect(() => {
     const fetchVisits = async () => {
@@ -39,6 +41,19 @@ export default function HubPage() {
 
   return (
     <div className="space-y-6">
+      {levelBadge && (
+        <div
+          className="rounded-2xl p-4 md:p-5 border border-primary/30 shadow-lg flex items-center gap-3 md:gap-4 overflow-hidden relative"
+          style={{ background: `linear-gradient(135deg, hsl(${levelBadge.color} / 0.25), hsl(${levelBadge.color} / 0.05))` }}
+        >
+          <div className="text-4xl md:text-5xl drop-shadow-lg">{levelBadge.icon}</div>
+          <div className="flex-1 min-w-0">
+            <p className="text-xs uppercase tracking-wider text-muted-foreground">مستواك الحالي</p>
+            <h2 className="text-lg md:text-2xl font-bold font-display truncate">{levelBadge.label}</h2>
+          </div>
+        </div>
+      )}
+
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
         <div>
           <h1 className="text-2xl sm:text-3xl md:text-4xl font-display font-bold text-glow mb-1">{t("hub.welcome", { name: user?.fullName || t("hub.traveler") })}</h1>
