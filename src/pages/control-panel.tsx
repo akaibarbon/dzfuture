@@ -132,7 +132,35 @@ export default function ControlPanelPage() {
     fetchData();
   };
 
+  const handleDeleteGroup = async (g: Group) => {
+    if (!confirm(`حذف المجموعة "${g.name}" نهائياً؟ سيتم حذف جميع الرسائل والإعلانات المرتبطة.`)) return;
+    // delete dependents first to avoid FK errors
+    await supabase.from("messages").delete().eq("group_id", g.id);
+    await supabase.from("group_announcements").delete().eq("group_id", g.id);
+    await supabase.from("group_join_requests").delete().eq("group_id", g.id);
+    await supabase.from("daily_schedules").delete().eq("group_id", g.id);
+    const { error } = await supabase.from("groups").delete().eq("id", g.id);
+    if (error) { toast({ title: "فشل الحذف", description: error.message, variant: "destructive" }); return; }
+    toast({ title: "✓ تم حذف المجموعة" });
+    fetchData();
+  };
+
+  const handleUpdateProfile = async (p: Profile, patch: Partial<Profile>) => {
+    const meta = getLevelMeta(patch.level ?? p.level);
+    const branch = meta?.branchRequired ? (patch.branch ?? p.branch) : null;
+    const payload: any = { ...patch };
+    if (patch.level !== undefined) payload.branch = branch;
+    const { error } = await supabase.from("profiles").update(payload).eq("id", p.id);
+    if (error) { toast({ title: "فشل الحفظ", description: error.message, variant: "destructive" }); return; }
+    if (patch.approved === true && p.user_id) {
+      await supabase.from("notifications").insert({ user_id: p.user_id, type: "tutor_approved", title: "✓ تمت الموافقة على حسابك كأستاذ", body: "يمكنك الآن نشر الدروس واستخدام المصحّح الآلي." });
+    }
+    toast({ title: "✓ تم التحديث" });
+    fetchData();
+  };
+
   const pendingRequests = joinRequests.filter((r) => r.status === "pending");
+  const pendingTutors = profiles.filter((p) => p.role === "tutor" && p.approved === false);
   const getGroupName = (gid: string) => groups.find((g) => g.id === gid)?.name || "—";
 
   return (
