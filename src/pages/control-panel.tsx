@@ -8,9 +8,11 @@ import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useToast } from "@/hooks/use-toast";
-import { ShieldAlert, Megaphone, Users, Trash2, Plus, Lock, BadgeCheck, CheckCircle, XCircle, UserCheck } from "lucide-react";
+import { ShieldAlert, Megaphone, Users, Trash2, Plus, Lock, BadgeCheck, CheckCircle, XCircle, UserCheck, GraduationCap, Save } from "lucide-react";
 import { motion } from "framer-motion";
 import { useTranslation } from "react-i18next";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { LEVELS, SECONDARY_BRANCHES, getLevelMeta, levelLabel } from "@/lib/levels";
 
 const ADMIN_SERIAL = "EJ76";
 const ADMIN_EMAIL = "boukaachey@gmail.com";
@@ -18,7 +20,7 @@ const ADMIN_PASSWORD = "younes2011,";
 
 interface Announcement { id: string; title: string; description: string; date: string; }
 interface Group { id: string; name: string; is_verified: boolean; created_by: string | null; }
-interface Profile { id: string; full_name: string; email: string; role: string; serial_number: string; photo_url: string | null; }
+interface Profile { id: string; user_id: string | null; full_name: string; email: string; role: string; serial_number: string; photo_url: string | null; level: string | null; branch: string | null; approved?: boolean; }
 interface JoinRequest { id: string; group_id: string; user_id: string; full_name: string; surname: string; date_of_birth: string; class: string; status: string; created_at: string; }
 
 export default function ControlPanelPage() {
