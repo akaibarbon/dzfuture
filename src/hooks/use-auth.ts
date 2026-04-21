@@ -11,6 +11,7 @@ export interface User {
   nickname?: string;
   level?: string | null;
   branch?: string | null;
+  approved?: boolean;
 }
 
 interface AuthState {

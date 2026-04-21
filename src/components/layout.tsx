@@ -9,7 +9,7 @@ import { useLevelTheme, useLevelBadge } from "@/hooks/use-level-theme";
 import { supabase } from "@/integrations/supabase/client";
 import {
   Home, Bell, CalendarDays, Users, Bot,
-  BookOpen, Settings, LogOut, BookMarked, Menu, X, Shield, Sun, Moon, MessageSquare, CalendarClock, Calculator, Target, ScanLine
+  BookOpen, Settings, LogOut, BookMarked, Menu, X, Shield, Sun, Moon, MessageSquare, CalendarClock, Calculator, Target, ScanLine, Globe
 } from "lucide-react";
 import { useState } from "react";
 import logoImg from "@/assets/logo.png";
@@ -90,7 +90,7 @@ export function Layout({ children }: { children: ReactNode }) {
     { href: "/messages", label: t("Messages"), icon: MessageSquare },
     { href: "/ai-chat", label: t("AIChat"), icon: Bot },
     { href: "/lessons", label: "الدروس", icon: BookOpenCheck },
-    ...(user?.role === "tutor" ? [{ href: "/auto-grader", label: "المصحّح الآلي", icon: ScanLine }] : []),
+    ...(user?.role === "tutor" && user?.approved !== false ? [{ href: "/auto-grader", label: "المصحّح الآلي", icon: ScanLine }] : []),
     { href: "/programme", label: t("Programme"), icon: BookOpen },
     { href: "/gpa-calculator", label: t("GPACalculator"), icon: Calculator },
     { href: "/knowledge-radar", label: t("KnowledgeRadar"), icon: Target },
@@ -135,15 +135,16 @@ export function Layout({ children }: { children: ReactNode }) {
         </nav>
 
         <div className="p-3 border-t border-border/50">
-          <div className="flex items-center justify-between px-2 py-1.5">
-            <button onClick={cycleLang} className="text-sm font-semibold uppercase tracking-wider text-muted-foreground hover:text-primary transition-colors">
-              {i18n.language}
+          <div className="flex items-center justify-between gap-1 px-1 py-1.5">
+            <button onClick={cycleLang} title="Language" className="flex items-center gap-1.5 px-2 py-1.5 rounded-lg text-sm font-semibold uppercase tracking-wider text-muted-foreground hover:text-primary hover:bg-secondary/50 transition-colors">
+              <Globe className="w-4 h-4" />
+              <span>{i18n.language}</span>
             </button>
             <NotificationsBell />
-            <button onClick={toggleDark} className="text-muted-foreground hover:text-primary transition-colors p-2 rounded-lg hover:bg-secondary/50">
+            <button onClick={toggleDark} title="Theme" className="text-muted-foreground hover:text-primary transition-colors p-2 rounded-lg hover:bg-secondary/50">
               {isDark ? <Sun className="w-4 h-4" /> : <Moon className="w-4 h-4" />}
             </button>
-            <button onClick={handleLogout} className="text-muted-foreground hover:text-destructive transition-colors p-2 rounded-lg hover:bg-destructive/10">
+            <button onClick={handleLogout} title="Logout" className="text-muted-foreground hover:text-destructive transition-colors p-2 rounded-lg hover:bg-destructive/10">
               <LogOut className="w-4 h-4" />
             </button>
           </div>
@@ -158,7 +159,10 @@ export function Layout({ children }: { children: ReactNode }) {
             <span className="font-display font-bold text-lg tracking-widest text-primary">Future DZ</span>
           </div>
           <div className="flex items-center gap-1">
-            <button onClick={cycleLang} className="text-xs font-semibold uppercase text-muted-foreground px-1.5">{i18n.language}</button>
+            <button onClick={cycleLang} title="Language" className="flex items-center gap-1 text-xs font-semibold uppercase text-muted-foreground hover:text-primary px-1.5 py-1 rounded">
+              <Globe className="w-3.5 h-3.5" />
+              <span>{i18n.language}</span>
+            </button>
             <NotificationsBell />
             <button onClick={toggleDark} className="p-1.5 text-muted-foreground hover:text-primary">
               {isDark ? <Sun className="w-4 h-4" /> : <Moon className="w-4 h-4" />}

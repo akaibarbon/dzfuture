@@ -39,7 +39,7 @@ async function ensureProfile(user: any, setUser: any, setNewSerial: any, setMode
   }
 
   if (profile) {
-    setUser({ id: user.id, fullName: profile.full_name, email: profile.email, role: profile.role, serialNumber: profile.serial_number, photoUrl: profile.photo_url || undefined, nickname: profile.nickname || undefined, level: profile.level, branch: profile.branch });
+    setUser({ id: user.id, fullName: profile.full_name, email: profile.email, role: profile.role, serialNumber: profile.serial_number, photoUrl: profile.photo_url || undefined, nickname: profile.nickname || undefined, level: profile.level, branch: profile.branch, approved: (profile as any).approved ?? true });
     navigate("/hub");
     return;
   }
@@ -140,13 +140,13 @@ export default function AuthPage() {
         // If password login fails (e.g. Google user), check if there's an existing session
         const { data: { session } } = await supabase.auth.getSession();
         if (session?.user) {
-          setUser({ id: session.user.id, fullName: profile.full_name, email: profile.email, role: profile.role, serialNumber: profile.serial_number, photoUrl: profile.photo_url || undefined, nickname: profile.nickname || undefined });
+          setUser({ id: session.user.id, fullName: profile.full_name, email: profile.email, role: profile.role, serialNumber: profile.serial_number, photoUrl: profile.photo_url || undefined, nickname: profile.nickname || undefined, level: profile.level, branch: profile.branch, approved: (profile as any).approved ?? true });
           navigate("/hub");
         } else {
           toast({ title: t("auth.googleOnly"), description: t("auth.googleOnlyDesc"), variant: "destructive" });
         }
       } else {
-        setUser({ id: authData.user.id, fullName: profile.full_name, email: profile.email, role: profile.role, serialNumber: profile.serial_number, photoUrl: profile.photo_url || undefined, nickname: profile.nickname || undefined });
+        setUser({ id: authData.user.id, fullName: profile.full_name, email: profile.email, role: profile.role, serialNumber: profile.serial_number, photoUrl: profile.photo_url || undefined, nickname: profile.nickname || undefined, level: profile.level, branch: profile.branch, approved: (profile as any).approved ?? true });
         navigate("/hub");
       }
     } else {
@@ -196,13 +196,15 @@ export default function AuthPage() {
     if (authData.user) {
       const { error: signInError } = await supabase.auth.signInWithPassword({ email: regData.email, password: regData.password });
       if (signInError) { toast({ title: t("auth.signInFailed"), description: signInError.message, variant: "destructive" }); setLoading(false); return; }
+      const isTutor = regData.role === "tutor";
       const { error: profileError } = await supabase.from("profiles").insert({
         user_id: authData.user.id, full_name: regData.fullName, email: regData.email, role: regData.role,
         serial_number: serialNum, photo_url: generateAvatarUrl(regData.fullName),
         level: regData.level, branch: meta?.branchRequired ? regData.branch : null,
-      });
+        approved: !isTutor,
+      } as any);
       if (profileError) { toast({ title: t("auth.profileError"), description: profileError.message, variant: "destructive" }); setLoading(false); return; }
-      setUser({ id: authData.user.id, fullName: regData.fullName, email: regData.email, role: regData.role, serialNumber: serialNum, photoUrl: generateAvatarUrl(regData.fullName), level: regData.level, branch: meta?.branchRequired ? regData.branch : null });
+      setUser({ id: authData.user.id, fullName: regData.fullName, email: regData.email, role: regData.role, serialNumber: serialNum, photoUrl: generateAvatarUrl(regData.fullName), level: regData.level, branch: meta?.branchRequired ? regData.branch : null, approved: !isTutor });
       setNewSerial(serialNum);
       setMode("success");
     }

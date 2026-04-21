@@ -45,6 +45,7 @@ export default function LessonsPage() {
   const { toast } = useToast();
   const fileRef = useRef<HTMLInputElement>(null);
   const isTutor = user?.role === "tutor";
+  const isApprovedTutor = isTutor && user?.approved === true;
 
   const [lessons, setLessons] = useState<Lesson[]>([]);
   const [favorites, setFavorites] = useState<Set<string>>(new Set());
@@ -154,7 +155,12 @@ export default function LessonsPage() {
           <h1 className="text-4xl font-display font-bold text-glow mb-2 flex items-center gap-2"><BookOpenCheck className="w-8 h-8 text-primary" /> الدروس</h1>
           <p className="text-muted-foreground">دروس مخصصة لمستواك من أساتذة معتمدين.</p>
         </div>
-        {isTutor && (
+        {isTutor && !isApprovedTutor && (
+          <div className="px-4 py-3 rounded-xl border border-amber-500/40 bg-amber-500/10 text-amber-700 dark:text-amber-300 text-sm max-w-md">
+            ⏳ حسابك كأستاذ بانتظار موافقة الإدارة قبل أن تتمكن من نشر الدروس.
+          </div>
+        )}
+        {isApprovedTutor && (
           <Dialog open={open} onOpenChange={setOpen}>
             <DialogTrigger asChild>
               <Button className="bg-primary text-primary-foreground font-bold"><Plus className="w-5 h-5 mr-2" /> نشر درس جديد</Button>
