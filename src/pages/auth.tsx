@@ -140,13 +140,13 @@ export default function AuthPage() {
         // If password login fails (e.g. Google user), check if there's an existing session
         const { data: { session } } = await supabase.auth.getSession();
         if (session?.user) {
-          setUser({ id: session.user.id, fullName: profile.full_name, email: profile.email, role: profile.role, serialNumber: profile.serial_number, photoUrl: profile.photo_url || undefined, nickname: profile.nickname || undefined });
+          setUser({ id: session.user.id, fullName: profile.full_name, email: profile.email, role: profile.role, serialNumber: profile.serial_number, photoUrl: profile.photo_url || undefined, nickname: profile.nickname || undefined, level: profile.level, branch: profile.branch, approved: (profile as any).approved ?? true });
           navigate("/hub");
         } else {
           toast({ title: t("auth.googleOnly"), description: t("auth.googleOnlyDesc"), variant: "destructive" });
         }
       } else {
-        setUser({ id: authData.user.id, fullName: profile.full_name, email: profile.email, role: profile.role, serialNumber: profile.serial_number, photoUrl: profile.photo_url || undefined, nickname: profile.nickname || undefined });
+        setUser({ id: authData.user.id, fullName: profile.full_name, email: profile.email, role: profile.role, serialNumber: profile.serial_number, photoUrl: profile.photo_url || undefined, nickname: profile.nickname || undefined, level: profile.level, branch: profile.branch, approved: (profile as any).approved ?? true });
         navigate("/hub");
       }
     } else {
