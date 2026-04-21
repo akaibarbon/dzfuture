@@ -5,10 +5,12 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { KeyRound, Mail, Shield, Palette, Camera, Save, Type, MessageCircle } from "lucide-react";
+import { KeyRound, Mail, Shield, Palette, Camera, Save, Type, MessageCircle, GraduationCap } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { useTranslation } from "react-i18next";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { supabase } from "@/integrations/supabase/client";
+import { LEVELS, SECONDARY_BRANCHES, getLevelMeta } from "@/lib/levels";
 
 const fontOptions = [
   { value: "default", label: "Default (DM Sans)", family: "'DM Sans', sans-serif" },
@@ -38,10 +40,32 @@ export default function AccountPage() {
 
   const [editing, setEditing] = useState(false);
   const [form, setForm] = useState({ fullName: user?.fullName || "", nickname: user?.nickname || "", email: user?.email || "" });
+  const [studyForm, setStudyForm] = useState({ level: user?.level || "", branch: user?.branch || "" });
+  const [savingStudy, setSavingStudy] = useState(false);
   const [selectedFont, setSelectedFont] = useState(localStorage.getItem("uno-font") || "default");
   const [selectedBubble, setSelectedBubble] = useState(localStorage.getItem("uno-bubble") || "primary");
 
-  const handleSave = () => { updateUser(form); setEditing(false); toast({ title: t("auth.profileUpdated") }); };
+  const handleSave = async () => {
+    updateUser(form);
+    if (user?.id) await supabase.from("profiles").update({ full_name: form.fullName, nickname: form.nickname, email: form.email }).eq("user_id", user.id);
+    setEditing(false);
+    toast({ title: t("auth.profileUpdated") });
+  };
+
+  const handleSaveStudy = async () => {
+    if (!user?.id || !studyForm.level) return;
+    const meta = getLevelMeta(studyForm.level);
+    if (meta?.branchRequired && !studyForm.branch) {
+      toast({ title: "اختر الشعبة", variant: "destructive" }); return;
+    }
+    setSavingStudy(true);
+    const branch = meta?.branchRequired ? studyForm.branch : null;
+    const { error } = await supabase.from("profiles").update({ level: studyForm.level, branch }).eq("user_id", user.id);
+    setSavingStudy(false);
+    if (error) { toast({ title: "فشل الحفظ", description: error.message, variant: "destructive" }); return; }
+    updateUser({ level: studyForm.level, branch });
+    toast({ title: "✓ تم تحديث المعلومات الدراسية" });
+  };
 
   const handlePhotoUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
