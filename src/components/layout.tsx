@@ -5,10 +5,11 @@ import { motion, AnimatePresence } from "framer-motion";
 import { useAuth } from "@/hooks/use-auth";
 import { useTheme } from "@/hooks/use-theme";
 import { useDarkMode } from "@/hooks/use-dark-mode";
+import { useLevelTheme, useLevelBadge } from "@/hooks/use-level-theme";
 import { supabase } from "@/integrations/supabase/client";
 import {
   Home, Bell, CalendarDays, Users, Bot,
-  BookOpen, Settings, LogOut, BookMarked, Menu, X, Shield, Sun, Moon, MessageSquare, CalendarClock, Calculator, Target
+  BookOpen, Settings, LogOut, BookMarked, Menu, X, Shield, Sun, Moon, MessageSquare, CalendarClock, Calculator, Target, ScanLine
 } from "lucide-react";
 import { useState } from "react";
 import logoImg from "@/assets/logo.png";
@@ -27,6 +28,8 @@ export function Layout({ children }: { children: ReactNode }) {
   const { currentTheme } = useTheme();
   const { isDark, toggle: toggleDark } = useDarkMode();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  useLevelTheme();
+  const levelBadge = useLevelBadge();
 
   // Apply accessibility settings on mount
   useEffect(() => {
@@ -87,6 +90,7 @@ export function Layout({ children }: { children: ReactNode }) {
     { href: "/messages", label: t("Messages"), icon: MessageSquare },
     { href: "/ai-chat", label: t("AIChat"), icon: Bot },
     { href: "/lessons", label: "الدروس", icon: BookOpenCheck },
+    ...(user?.role === "tutor" ? [{ href: "/auto-grader", label: "المصحّح الآلي", icon: ScanLine }] : []),
     { href: "/programme", label: t("Programme"), icon: BookOpen },
     { href: "/gpa-calculator", label: t("GPACalculator"), icon: Calculator },
     { href: "/knowledge-radar", label: t("KnowledgeRadar"), icon: Target },
@@ -109,6 +113,12 @@ export function Layout({ children }: { children: ReactNode }) {
             <img src={logoImg} alt="Future DZ" className="w-9 h-9 drop-shadow-[0_0_10px_hsl(var(--primary)/0.4)]" />
             <span className="font-display font-bold text-xl tracking-widest text-glow">Future DZ</span>
           </Link>
+          {levelBadge && (
+            <div className="mt-3 flex items-center gap-2 px-3 py-1.5 rounded-xl bg-primary/10 border border-primary/20 text-xs">
+              <span className="text-base">{levelBadge.icon}</span>
+              <span className="font-medium truncate">{levelBadge.label}</span>
+            </div>
+          )}
         </div>
 
         <nav className="flex-1 px-3 py-4 space-y-1 overflow-y-auto">
