@@ -50,9 +50,7 @@ export function getLevelMeta(value?: string | null): LevelOption | null {
 
 // Grouped for select rendering
 export const LEVEL_GROUPS: { key: LevelGroup; title: string }[] = [
-  { key: "primary", title: "الابتدائي" },
   { key: "middle", title: "المتوسط" },
-  { key: "secondary", title: "الثانوي" },
 ];
 
 // Subjects per level group (used for lessons / radar / programme etc.)
