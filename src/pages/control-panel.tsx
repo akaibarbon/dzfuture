@@ -420,6 +420,10 @@ export default function ControlPanelPage() {
           </Card>
         </TabsContent>
 
+        <TabsContent value="requests" className="mt-6">
+          <Card className="glass-panel">
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2"><UserCheck className="w-5 h-5 text-amber-400" /> {t("cp.joinRequests")}</CardTitle>
             </CardHeader>
             <CardContent>
               <p className="text-muted-foreground text-sm mb-4">{t("cp.joinRequestsDesc")}</p>
