@@ -88,6 +88,7 @@ export function Layout({ children }: { children: ReactNode }) {
     { href: "/daily-schedule", label: t("DailySchedule"), icon: CalendarClock },
     { href: "/groups", label: t("Groups"), icon: Users },
     { href: "/messages", label: t("Messages"), icon: MessageSquare },
+    { href: "/tutor-chat", label: "محادثة التلميذ–الأستاذ", icon: MessageSquare },
     { href: "/ai-chat", label: t("AIChat"), icon: Bot },
     { href: "/lessons", label: "الدروس", icon: BookOpenCheck },
     ...(user?.role === "tutor" && user?.approved !== false ? [{ href: "/auto-grader", label: "المصحّح الآلي", icon: ScanLine }] : []),
