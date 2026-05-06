@@ -8,11 +8,12 @@ import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useToast } from "@/hooks/use-toast";
-import { ShieldAlert, Megaphone, Users, Trash2, Plus, Lock, BadgeCheck, CheckCircle, XCircle, UserCheck, GraduationCap, Save } from "lucide-react";
+import { ShieldAlert, Megaphone, Users, Trash2, Plus, Lock, BadgeCheck, CheckCircle, XCircle, UserCheck, GraduationCap, Save, UserPlus, Copy, Loader2 } from "lucide-react";
 import { motion } from "framer-motion";
 import { useTranslation } from "react-i18next";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { LEVELS, SECONDARY_BRANCHES, getLevelMeta, levelLabel } from "@/lib/levels";
+import { adminCreateAccount } from "@/server/admin-users.functions";
 
 const ADMIN_SERIAL = "EJ76";
 const ADMIN_EMAIL = "boukaachey@gmail.com";
@@ -36,7 +37,20 @@ export default function ControlPanelPage() {
   const [profiles, setProfiles] = useState<Profile[]>([]);
   const [joinRequests, setJoinRequests] = useState<JoinRequest[]>([]);
 
-  const isAuthorized = user?.serialNumber?.toUpperCase() === ADMIN_SERIAL || user?.email?.toLowerCase() === ADMIN_EMAIL.toLowerCase();
+  // Create-account form
+  const [acctForm, setAcctForm] = useState<{ fullName: string; role: "student" | "tutor"; level: string; branch: string; levels: string[] }>({ fullName: "", role: "student", level: "", branch: "", levels: [] });
+  const [acctBusy, setAcctBusy] = useState(false);
+  const [createdSerial, setCreatedSerial] = useState<{ serial: string; name: string } | null>(null);
+
+  // Create-group form
+  const [grpForm, setGrpForm] = useState({ name: "", level: "", description: "", isPrivate: false, password: "" });
+  const [grpBusy, setGrpBusy] = useState(false);
+
+  const isSuperAdmin = user?.serialNumber?.toUpperCase() === ADMIN_SERIAL || user?.email?.toLowerCase() === ADMIN_EMAIL.toLowerCase();
+  const isApprovedTutor = user?.role === "tutor" && user?.approved !== false;
+  const isAuthorized = isSuperAdmin || isApprovedTutor;
+  // Approved tutors bypass the password gate
+  useEffect(() => { if (isApprovedTutor && !authenticated) setAuthenticated(true); }, [isApprovedTutor]);
 
   const fetchData = async () => {
     const [annRes, grpRes, profRes, reqRes] = await Promise.all([
@@ -159,6 +173,48 @@ export default function ControlPanelPage() {
     fetchData();
   };
 
+  const handleCreateAccount = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!acctForm.fullName.trim()) return;
+    setAcctBusy(true);
+    try {
+      const res = await adminCreateAccount({ data: {
+        fullName: acctForm.fullName.trim(),
+        role: acctForm.role,
+        level: acctForm.role === "student" ? acctForm.level : null,
+        branch: acctForm.role === "student" ? acctForm.branch : null,
+        levels: acctForm.role === "tutor" ? acctForm.levels : [],
+      }});
+      setCreatedSerial({ serial: res.serial, name: res.fullName });
+      setAcctForm({ fullName: "", role: "student", level: "", branch: "", levels: [] });
+      toast({ title: "✓ تم إنشاء الحساب", description: `الرقم التسلسلي: ${res.serial}` });
+      fetchData();
+    } catch (err: any) {
+      toast({ title: "فشل الإنشاء", description: err.message, variant: "destructive" });
+    } finally {
+      setAcctBusy(false);
+    }
+  };
+
+  const handleCreateGroup = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!grpForm.name.trim()) return;
+    setGrpBusy(true);
+    const { error } = await supabase.from("groups").insert({
+      name: grpForm.name.trim(),
+      description: grpForm.description || null,
+      level: grpForm.level || null,
+      is_private: grpForm.isPrivate,
+      password: grpForm.isPrivate ? grpForm.password : null,
+      created_by: user?.id || null,
+    });
+    setGrpBusy(false);
+    if (error) { toast({ title: "فشل الإنشاء", description: error.message, variant: "destructive" }); return; }
+    toast({ title: "✓ تم إنشاء المجموعة" });
+    setGrpForm({ name: "", level: "", description: "", isPrivate: false, password: "" });
+    fetchData();
+  };
+
   const pendingRequests = joinRequests.filter((r) => r.status === "pending");
   const pendingTutors = profiles.filter((p) => p.role === "tutor" && p.approved === false);
   const getGroupName = (gid: string) => groups.find((g) => g.id === gid)?.name || "—";
@@ -194,9 +250,11 @@ export default function ControlPanelPage() {
       </div>
 
       <Tabs defaultValue="announce" className="w-full">
-        <TabsList className="w-full grid grid-cols-4">
+        <TabsList className="w-full grid grid-cols-3 md:grid-cols-6">
           <TabsTrigger value="announce">{t("cp.announcements")}</TabsTrigger>
-          <TabsTrigger value="vbadge">{t("cp.vbadge")}</TabsTrigger>
+          <TabsTrigger value="vbadge">المجموعات</TabsTrigger>
+          <TabsTrigger value="newgroup">+ مجموعة</TabsTrigger>
+          <TabsTrigger value="newaccount">+ حساب</TabsTrigger>
           <TabsTrigger value="requests" className="relative">
             {t("cp.requests")}
             {pendingRequests.length > 0 && (
@@ -267,6 +325,97 @@ export default function ControlPanelPage() {
                 ))}
                 {groups.length === 0 && <p className="text-muted-foreground text-center py-4">{t("cp.noGroups")}</p>}
               </div>
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        <TabsContent value="newgroup" className="mt-6">
+          <Card className="glass-panel">
+            <CardHeader><CardTitle className="flex items-center gap-2"><Plus className="w-5 h-5 text-primary" /> إنشاء مجموعة لقسم</CardTitle></CardHeader>
+            <CardContent>
+              <form onSubmit={handleCreateGroup} className="space-y-4">
+                <div className="space-y-2"><Label>اسم المجموعة</Label><Input required value={grpForm.name} onChange={(e) => setGrpForm({ ...grpForm, name: e.target.value })} placeholder="مثال: 1م1 — رياضيات" className="bg-background/40" /></div>
+                <div className="space-y-2"><Label>وصف (اختياري)</Label><Input value={grpForm.description} onChange={(e) => setGrpForm({ ...grpForm, description: e.target.value })} className="bg-background/40" /></div>
+                <div className="space-y-2">
+                  <Label>المستوى المستهدف</Label>
+                  <Select value={grpForm.level || "__any__"} onValueChange={(v) => setGrpForm({ ...grpForm, level: v === "__any__" ? "" : v })}>
+                    <SelectTrigger className="bg-background/40"><SelectValue /></SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="__any__">كل المستويات</SelectItem>
+                      {LEVELS.map((l) => <SelectItem key={l.value} value={l.value}>{l.icon} {l.label}</SelectItem>)}
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className="flex items-center gap-2">
+                  <input type="checkbox" id="cp-private" checked={grpForm.isPrivate} onChange={(e) => setGrpForm({ ...grpForm, isPrivate: e.target.checked })} className="accent-primary w-4 h-4" />
+                  <Label htmlFor="cp-private">مجموعة خاصة (بكلمة سر)</Label>
+                </div>
+                {grpForm.isPrivate && (
+                  <div className="space-y-2"><Label>كلمة السر</Label><Input required type="text" value={grpForm.password} onChange={(e) => setGrpForm({ ...grpForm, password: e.target.value })} className="bg-background/40" /></div>
+                )}
+                <Button type="submit" disabled={grpBusy} className="w-full">{grpBusy ? <Loader2 className="w-4 h-4 animate-spin" /> : "إنشاء المجموعة"}</Button>
+              </form>
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        <TabsContent value="newaccount" className="mt-6">
+          <Card className="glass-panel">
+            <CardHeader><CardTitle className="flex items-center gap-2"><UserPlus className="w-5 h-5 text-primary" /> إنشاء حساب يدوي</CardTitle></CardHeader>
+            <CardContent>
+              {createdSerial && (
+                <div className="mb-4 p-4 rounded-xl border-2 border-green-500/50 bg-green-500/10 space-y-2">
+                  <p className="text-sm text-muted-foreground">تم إنشاء الحساب لـ <b>{createdSerial.name}</b>. الرقم التسلسلي للدخول:</p>
+                  <div className="flex items-center gap-2">
+                    <code className="flex-1 text-2xl font-mono font-bold text-green-400 bg-background/60 px-4 py-2 rounded-lg tracking-widest">{createdSerial.serial}</code>
+                    <Button type="button" size="sm" onClick={() => { navigator.clipboard.writeText(createdSerial.serial); toast({ title: "✓ نُسخ" }); }}>
+                      <Copy className="w-4 h-4" />
+                    </Button>
+                  </div>
+                  <p className="text-xs text-amber-400">⚠ احفظ هذا الرقم — لن يظهر مرة أخرى.</p>
+                </div>
+              )}
+              <form onSubmit={handleCreateAccount} className="space-y-4">
+                <div className="space-y-2"><Label>الاسم واللقب</Label><Input required value={acctForm.fullName} onChange={(e) => setAcctForm({ ...acctForm, fullName: e.target.value })} className="bg-background/40" placeholder="مثال: محمد بن علي" /></div>
+                <div className="space-y-2">
+                  <Label>الدور</Label>
+                  <Select value={acctForm.role} onValueChange={(v: any) => setAcctForm({ ...acctForm, role: v, level: "", branch: "", levels: [] })}>
+                    <SelectTrigger className="bg-background/40"><SelectValue /></SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="student">تلميذ</SelectItem>
+                      <SelectItem value="tutor">أستاذ</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                {acctForm.role === "student" ? (
+                  <div className="space-y-2">
+                    <Label>القسم</Label>
+                    <Select value={acctForm.level} onValueChange={(v) => setAcctForm({ ...acctForm, level: v })}>
+                      <SelectTrigger className="bg-background/40"><SelectValue placeholder="اختر..." /></SelectTrigger>
+                      <SelectContent>{LEVELS.map((l) => <SelectItem key={l.value} value={l.value}>{l.icon} {l.label}</SelectItem>)}</SelectContent>
+                    </Select>
+                  </div>
+                ) : (
+                  <div className="space-y-2">
+                    <Label>الأقسام التي يدرّسها (يمكن اختيار أكثر من واحد)</Label>
+                    <div className="grid grid-cols-2 gap-2">
+                      {LEVELS.map((l) => {
+                        const checked = acctForm.levels.includes(l.value);
+                        return (
+                          <label key={l.value} className={`flex items-center gap-2 p-2 rounded-lg border cursor-pointer ${checked ? "border-primary bg-primary/10" : "border-border bg-background/40"}`}>
+                            <input type="checkbox" checked={checked} onChange={(e) => {
+                              const next = e.target.checked ? [...acctForm.levels, l.value] : acctForm.levels.filter((x) => x !== l.value);
+                              setAcctForm({ ...acctForm, levels: next });
+                            }} className="accent-primary" />
+                            <span className="text-sm">{l.icon} {l.label}</span>
+                          </label>
+                        );
+                      })}
+                    </div>
+                  </div>
+                )}
+                <Button type="submit" disabled={acctBusy} className="w-full">{acctBusy ? <Loader2 className="w-4 h-4 animate-spin" /> : "إنشاء وإصدار رقم تسلسلي"}</Button>
+              </form>
             </CardContent>
           </Card>
         </TabsContent>
