@@ -194,7 +194,7 @@ export function Layout({ children }: { children: ReactNode }) {
           <div className="max-w-6xl mx-auto">{children}</div>
         </main>
       </div>
-      <LevelGate />
+      {/* LevelGate removed */}
       <VoiceAssistant />
       <AccessibilityPanel />
     </div>
