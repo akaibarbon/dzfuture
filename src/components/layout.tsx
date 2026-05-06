@@ -155,8 +155,8 @@ export function Layout({ children }: { children: ReactNode }) {
       <div className="flex-1 flex flex-col h-screen overflow-hidden relative">
         <header className="md:hidden h-14 border-b border-border/50 flex items-center justify-between px-3 bg-card/50 backdrop-blur-md z-20">
           <div className="flex items-center gap-2">
-            <img src={logoImg} alt="Future DZ" className="w-7 h-7" />
-            <span className="font-display font-bold text-lg tracking-widest text-primary">Future DZ</span>
+            <img src={logoImg} alt="CEM G.M" className="w-7 h-7" />
+            <span className="font-display font-bold text-lg tracking-widest text-primary">CEM G.M</span>
           </div>
           <div className="flex items-center gap-1">
             <button onClick={cycleLang} title="Language" className="flex items-center gap-1 text-xs font-semibold uppercase text-muted-foreground hover:text-primary px-1.5 py-1 rounded">
