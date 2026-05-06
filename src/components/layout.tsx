@@ -14,7 +14,7 @@ import {
 import { useState } from "react";
 import logoImg from "@/assets/logo.png";
 import { NotificationsBell } from "@/components/notifications-bell";
-import { LevelGate } from "@/components/level-gate";
+// LevelGate removed — middle school only, level chosen at signup
 import { BookOpenCheck } from "lucide-react";
 import { VoiceAssistant } from "@/components/voice-assistant";
 import { AccessibilityPanel } from "@/components/accessibility-panel";
