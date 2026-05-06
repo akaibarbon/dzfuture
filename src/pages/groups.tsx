@@ -138,49 +138,7 @@ export default function GroupsPage() {
           <h1 className="text-4xl font-display font-bold text-glow mb-2">{t("grp.title")}</h1>
           <p className="text-muted-foreground">{t("grp.subtitle")}</p>
         </div>
-        <Dialog open={open} onOpenChange={setOpen}>
-          <DialogTrigger asChild>
-            <Button className="bg-primary text-primary-foreground font-bold shadow-[0_0_15px_hsla(43,74%,49%,0.3)]">
-              <Plus className="w-5 h-5 mr-2" /> {t("grp.forge")}
-            </Button>
-          </DialogTrigger>
-          <DialogContent className="glass-panel sm:max-w-[425px]">
-            <DialogHeader>
-              <DialogTitle className="font-display text-2xl text-primary">{t("grp.createTitle")}</DialogTitle>
-            </DialogHeader>
-            <form onSubmit={handleCreate} className="space-y-4 pt-4">
-              <div className="space-y-2">
-                <Label>{t("grp.name")}</Label>
-                <Input required value={newGroup.name} onChange={(e) => setNewGroup({...newGroup, name: e.target.value})} className="bg-background/40" />
-              </div>
-              <div className="space-y-2">
-                <Label>{t("grp.descLabel") || "وصف (اختياري)"}</Label>
-                <Input value={newGroup.description} onChange={(e) => setNewGroup({...newGroup, description: e.target.value})} className="bg-background/40" />
-              </div>
-              <div className="flex items-center gap-2">
-                <input type="checkbox" id="private" checked={newGroup.isPrivate} onChange={(e) => setNewGroup({...newGroup, isPrivate: e.target.checked})} className="accent-primary w-4 h-4" />
-                <Label htmlFor="private">{t("grp.private")}</Label>
-              </div>
-              {newGroup.isPrivate && (
-                <div className="space-y-2">
-                  <Label>{t("grp.password")}</Label>
-                  <Input required type="password" value={newGroup.password} onChange={(e) => setNewGroup({...newGroup, password: e.target.value})} className="bg-background/40" />
-                </div>
-              )}
-              <div className="space-y-2">
-                <Label>المستوى المستهدف (اختياري)</Label>
-                <Select value={newGroup.level || "__any__"} onValueChange={(v) => setNewGroup({ ...newGroup, level: v === "__any__" ? "" : v })}>
-                  <SelectTrigger className="bg-background/40"><SelectValue /></SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="__any__">كل المستويات</SelectItem>
-                    {LEVELS.map((l) => <SelectItem key={l.value} value={l.value}>{l.icon} {l.label}</SelectItem>)}
-                  </SelectContent>
-                </Select>
-              </div>
-              <Button type="submit" className="w-full bg-primary font-bold">{t("grp.create")}</Button>
-            </form>
-          </DialogContent>
-        </Dialog>
+        <p className="text-xs text-muted-foreground hidden md:block">المجموعات يتم إنشاؤها من لوحة التحكم.</p>
       </div>
 
       {/* Search + level filter */}
