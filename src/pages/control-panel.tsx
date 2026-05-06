@@ -173,7 +173,48 @@ export default function ControlPanelPage() {
     fetchData();
   };
 
-  const pendingRequests = joinRequests.filter((r) => r.status === "pending");
+  const handleCreateAccount = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!acctForm.fullName.trim()) return;
+    setAcctBusy(true);
+    try {
+      const res = await adminCreateAccount({ data: {
+        fullName: acctForm.fullName.trim(),
+        role: acctForm.role,
+        level: acctForm.role === "student" ? acctForm.level : null,
+        branch: acctForm.role === "student" ? acctForm.branch : null,
+        levels: acctForm.role === "tutor" ? acctForm.levels : [],
+      }});
+      setCreatedSerial({ serial: res.serial, name: res.fullName });
+      setAcctForm({ fullName: "", role: "student", level: "", branch: "", levels: [] });
+      toast({ title: "✓ تم إنشاء الحساب", description: `الرقم التسلسلي: ${res.serial}` });
+      fetchData();
+    } catch (err: any) {
+      toast({ title: "فشل الإنشاء", description: err.message, variant: "destructive" });
+    } finally {
+      setAcctBusy(false);
+    }
+  };
+
+  const handleCreateGroup = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!grpForm.name.trim()) return;
+    setGrpBusy(true);
+    const { error } = await supabase.from("groups").insert({
+      name: grpForm.name.trim(),
+      description: grpForm.description || null,
+      level: grpForm.level || null,
+      is_private: grpForm.isPrivate,
+      password: grpForm.isPrivate ? grpForm.password : null,
+      created_by: user?.id || null,
+    });
+    setGrpBusy(false);
+    if (error) { toast({ title: "فشل الإنشاء", description: error.message, variant: "destructive" }); return; }
+    toast({ title: "✓ تم إنشاء المجموعة" });
+    setGrpForm({ name: "", level: "", description: "", isPrivate: false, password: "" });
+    fetchData();
+  };
+
   const pendingTutors = profiles.filter((p) => p.role === "tutor" && p.approved === false);
   const getGroupName = (gid: string) => groups.find((g) => g.id === gid)?.name || "—";
 
