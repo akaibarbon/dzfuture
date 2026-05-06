@@ -110,8 +110,8 @@ export function Layout({ children }: { children: ReactNode }) {
       <aside className="w-64 hidden md:flex flex-col border-r border-border/50 bg-card/30 backdrop-blur-xl relative z-10">
         <div className="p-6 pb-3">
           <Link to="/hub" className="flex items-center gap-3 group cursor-pointer">
-            <img src={logoImg} alt="Future DZ" className="w-9 h-9 drop-shadow-[0_0_10px_hsl(var(--primary)/0.4)]" />
-            <span className="font-display font-bold text-xl tracking-widest text-glow">Future DZ</span>
+            <img src={logoImg} alt="CEM G.M" className="w-9 h-9 drop-shadow-[0_0_10px_hsl(var(--primary)/0.4)]" />
+            <span className="font-display font-bold text-xl tracking-widest text-glow">CEM G.M</span>
           </Link>
           {levelBadge && (
             <div className="mt-3 flex items-center gap-2 px-3 py-1.5 rounded-xl bg-primary/10 border border-primary/20 text-xs">
