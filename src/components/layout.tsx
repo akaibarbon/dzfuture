@@ -14,7 +14,7 @@ import {
 import { useState } from "react";
 import logoImg from "@/assets/logo.png";
 import { NotificationsBell } from "@/components/notifications-bell";
-import { LevelGate } from "@/components/level-gate";
+// LevelGate removed — middle school only, level chosen at signup
 import { BookOpenCheck } from "lucide-react";
 import { VoiceAssistant } from "@/components/voice-assistant";
 import { AccessibilityPanel } from "@/components/accessibility-panel";
@@ -88,6 +88,7 @@ export function Layout({ children }: { children: ReactNode }) {
     { href: "/daily-schedule", label: t("DailySchedule"), icon: CalendarClock },
     { href: "/groups", label: t("Groups"), icon: Users },
     { href: "/messages", label: t("Messages"), icon: MessageSquare },
+    { href: "/tutor-chat", label: "محادثة التلميذ–الأستاذ", icon: MessageSquare },
     { href: "/ai-chat", label: t("AIChat"), icon: Bot },
     { href: "/lessons", label: "الدروس", icon: BookOpenCheck },
     ...(user?.role === "tutor" && user?.approved !== false ? [{ href: "/auto-grader", label: "المصحّح الآلي", icon: ScanLine }] : []),
@@ -110,8 +111,8 @@ export function Layout({ children }: { children: ReactNode }) {
       <aside className="w-64 hidden md:flex flex-col border-r border-border/50 bg-card/30 backdrop-blur-xl relative z-10">
         <div className="p-6 pb-3">
           <Link to="/hub" className="flex items-center gap-3 group cursor-pointer">
-            <img src={logoImg} alt="Future DZ" className="w-9 h-9 drop-shadow-[0_0_10px_hsl(var(--primary)/0.4)]" />
-            <span className="font-display font-bold text-xl tracking-widest text-glow">Future DZ</span>
+            <img src={logoImg} alt="CEM G.M" className="w-9 h-9 drop-shadow-[0_0_10px_hsl(var(--primary)/0.4)]" />
+            <span className="font-display font-bold text-xl tracking-widest text-glow">CEM G.M</span>
           </Link>
           {levelBadge && (
             <div className="mt-3 flex items-center gap-2 px-3 py-1.5 rounded-xl bg-primary/10 border border-primary/20 text-xs">
@@ -155,8 +156,8 @@ export function Layout({ children }: { children: ReactNode }) {
       <div className="flex-1 flex flex-col h-screen overflow-hidden relative">
         <header className="md:hidden h-14 border-b border-border/50 flex items-center justify-between px-3 bg-card/50 backdrop-blur-md z-20">
           <div className="flex items-center gap-2">
-            <img src={logoImg} alt="Future DZ" className="w-7 h-7" />
-            <span className="font-display font-bold text-lg tracking-widest text-primary">Future DZ</span>
+            <img src={logoImg} alt="CEM G.M" className="w-7 h-7" />
+            <span className="font-display font-bold text-lg tracking-widest text-primary">CEM G.M</span>
           </div>
           <div className="flex items-center gap-1">
             <button onClick={cycleLang} title="Language" className="flex items-center gap-1 text-xs font-semibold uppercase text-muted-foreground hover:text-primary px-1.5 py-1 rounded">
@@ -194,7 +195,7 @@ export function Layout({ children }: { children: ReactNode }) {
           <div className="max-w-6xl mx-auto">{children}</div>
         </main>
       </div>
-      <LevelGate />
+      {/* LevelGate removed */}
       <VoiceAssistant />
       <AccessibilityPanel />
     </div>

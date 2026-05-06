@@ -25,6 +25,7 @@ import GPACalculatorPage from "./pages/gpa-calculator";
 import KnowledgeRadarPage from "./pages/knowledge-radar";
 import LessonsPage from "./pages/lessons";
 import AutoGraderPage from "./pages/auto-grader";
+import TutorChatPage from "./pages/tutor-chat";
 import NotFound from "./pages/not-found";
 
 const queryClient = new QueryClient();
@@ -55,6 +56,7 @@ function AppRoutes() {
       <Route path="/account" element={<ProtectedRoute><AccountPage /></ProtectedRoute>} />
       <Route path="/control-panel" element={<ProtectedRoute><ControlPanelPage /></ProtectedRoute>} />
       <Route path="/messages" element={<ProtectedRoute><MessagesPage /></ProtectedRoute>} />
+      <Route path="/tutor-chat" element={<ProtectedRoute><TutorChatPage /></ProtectedRoute>} />
       <Route path="/daily-schedule" element={<ProtectedRoute><DailySchedulePage /></ProtectedRoute>} />
       <Route path="/gpa-calculator" element={<ProtectedRoute><GPACalculatorPage /></ProtectedRoute>} />
       <Route path="/knowledge-radar" element={<ProtectedRoute><KnowledgeRadarPage /></ProtectedRoute>} />

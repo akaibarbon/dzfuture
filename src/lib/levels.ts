@@ -25,21 +25,11 @@ export const SECONDARY_BRANCHES = [
 ];
 
 export const LEVELS: LevelOption[] = [
-  // Primaire 1-5
-  { value: "p1", label: "السنة 1 ابتدائي", group: "primary", color: "200 90% 60%", icon: "🌱" },
-  { value: "p2", label: "السنة 2 ابتدائي", group: "primary", color: "190 85% 55%", icon: "🌿" },
-  { value: "p3", label: "السنة 3 ابتدائي", group: "primary", color: "180 80% 50%", icon: "🪴" },
-  { value: "p4", label: "السنة 4 ابتدائي", group: "primary", color: "170 75% 48%", icon: "🌾" },
-  { value: "p5", label: "السنة 5 ابتدائي", group: "primary", color: "160 70% 45%", icon: "🌻" },
-  // Moyen 1-4
+  // متوسطة حسان بورغود — المتوسط فقط
   { value: "m1", label: "السنة 1 متوسط", group: "middle", color: "30 95% 55%", icon: "📘" },
   { value: "m2", label: "السنة 2 متوسط", group: "middle", color: "25 92% 53%", icon: "📗" },
   { value: "m3", label: "السنة 3 متوسط", group: "middle", color: "20 90% 50%", icon: "📙" },
   { value: "m4", label: "السنة 4 متوسط (BEM)", group: "middle", color: "15 88% 48%", icon: "🎓" },
-  // Secondaire 1-3
-  { value: "s1", label: "السنة 1 ثانوي (جذع مشترك)", group: "secondary", color: "270 80% 60%", icon: "🔭", branchRequired: false },
-  { value: "s2", label: "السنة 2 ثانوي", group: "secondary", color: "280 85% 58%", icon: "⚗️", branchRequired: true },
-  { value: "s3", label: "السنة 3 ثانوي (BAC)", group: "secondary", color: "290 90% 55%", icon: "🏆", branchRequired: true },
 ];
 
 export function levelLabel(value?: string | null, branch?: string | null): string {
@@ -60,9 +50,7 @@ export function getLevelMeta(value?: string | null): LevelOption | null {
 
 // Grouped for select rendering
 export const LEVEL_GROUPS: { key: LevelGroup; title: string }[] = [
-  { key: "primary", title: "الابتدائي" },
   { key: "middle", title: "المتوسط" },
-  { key: "secondary", title: "الثانوي" },
 ];
 
 // Subjects per level group (used for lessons / radar / programme etc.)
