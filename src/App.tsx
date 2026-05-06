@@ -56,6 +56,7 @@ function AppRoutes() {
       <Route path="/account" element={<ProtectedRoute><AccountPage /></ProtectedRoute>} />
       <Route path="/control-panel" element={<ProtectedRoute><ControlPanelPage /></ProtectedRoute>} />
       <Route path="/messages" element={<ProtectedRoute><MessagesPage /></ProtectedRoute>} />
+      <Route path="/tutor-chat" element={<ProtectedRoute><TutorChatPage /></ProtectedRoute>} />
       <Route path="/daily-schedule" element={<ProtectedRoute><DailySchedulePage /></ProtectedRoute>} />
       <Route path="/gpa-calculator" element={<ProtectedRoute><GPACalculatorPage /></ProtectedRoute>} />
       <Route path="/knowledge-radar" element={<ProtectedRoute><KnowledgeRadarPage /></ProtectedRoute>} />
