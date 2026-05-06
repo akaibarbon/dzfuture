@@ -8,11 +8,12 @@ import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useToast } from "@/hooks/use-toast";
-import { ShieldAlert, Megaphone, Users, Trash2, Plus, Lock, BadgeCheck, CheckCircle, XCircle, UserCheck, GraduationCap, Save } from "lucide-react";
+import { ShieldAlert, Megaphone, Users, Trash2, Plus, Lock, BadgeCheck, CheckCircle, XCircle, UserCheck, GraduationCap, Save, UserPlus, Copy, Loader2 } from "lucide-react";
 import { motion } from "framer-motion";
 import { useTranslation } from "react-i18next";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { LEVELS, SECONDARY_BRANCHES, getLevelMeta, levelLabel } from "@/lib/levels";
+import { adminCreateAccount } from "@/server/admin-users.functions";
 
 const ADMIN_SERIAL = "EJ76";
 const ADMIN_EMAIL = "boukaachey@gmail.com";
@@ -198,9 +199,11 @@ export default function ControlPanelPage() {
       </div>
 
       <Tabs defaultValue="announce" className="w-full">
-        <TabsList className="w-full grid grid-cols-4">
+        <TabsList className="w-full grid grid-cols-3 md:grid-cols-6">
           <TabsTrigger value="announce">{t("cp.announcements")}</TabsTrigger>
-          <TabsTrigger value="vbadge">{t("cp.vbadge")}</TabsTrigger>
+          <TabsTrigger value="vbadge">المجموعات</TabsTrigger>
+          <TabsTrigger value="newgroup">+ مجموعة</TabsTrigger>
+          <TabsTrigger value="newaccount">+ حساب</TabsTrigger>
           <TabsTrigger value="requests" className="relative">
             {t("cp.requests")}
             {pendingRequests.length > 0 && (
