@@ -329,10 +329,97 @@ export default function ControlPanelPage() {
           </Card>
         </TabsContent>
 
-        <TabsContent value="requests" className="mt-6">
+        <TabsContent value="newgroup" className="mt-6">
           <Card className="glass-panel">
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2"><UserCheck className="w-5 h-5 text-amber-400" /> {t("cp.joinRequests")}</CardTitle>
+            <CardHeader><CardTitle className="flex items-center gap-2"><Plus className="w-5 h-5 text-primary" /> إنشاء مجموعة لقسم</CardTitle></CardHeader>
+            <CardContent>
+              <form onSubmit={handleCreateGroup} className="space-y-4">
+                <div className="space-y-2"><Label>اسم المجموعة</Label><Input required value={grpForm.name} onChange={(e) => setGrpForm({ ...grpForm, name: e.target.value })} placeholder="مثال: 1م1 — رياضيات" className="bg-background/40" /></div>
+                <div className="space-y-2"><Label>وصف (اختياري)</Label><Input value={grpForm.description} onChange={(e) => setGrpForm({ ...grpForm, description: e.target.value })} className="bg-background/40" /></div>
+                <div className="space-y-2">
+                  <Label>المستوى المستهدف</Label>
+                  <Select value={grpForm.level || "__any__"} onValueChange={(v) => setGrpForm({ ...grpForm, level: v === "__any__" ? "" : v })}>
+                    <SelectTrigger className="bg-background/40"><SelectValue /></SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="__any__">كل المستويات</SelectItem>
+                      {LEVELS.map((l) => <SelectItem key={l.value} value={l.value}>{l.icon} {l.label}</SelectItem>)}
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className="flex items-center gap-2">
+                  <input type="checkbox" id="cp-private" checked={grpForm.isPrivate} onChange={(e) => setGrpForm({ ...grpForm, isPrivate: e.target.checked })} className="accent-primary w-4 h-4" />
+                  <Label htmlFor="cp-private">مجموعة خاصة (بكلمة سر)</Label>
+                </div>
+                {grpForm.isPrivate && (
+                  <div className="space-y-2"><Label>كلمة السر</Label><Input required type="text" value={grpForm.password} onChange={(e) => setGrpForm({ ...grpForm, password: e.target.value })} className="bg-background/40" /></div>
+                )}
+                <Button type="submit" disabled={grpBusy} className="w-full">{grpBusy ? <Loader2 className="w-4 h-4 animate-spin" /> : "إنشاء المجموعة"}</Button>
+              </form>
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        <TabsContent value="newaccount" className="mt-6">
+          <Card className="glass-panel">
+            <CardHeader><CardTitle className="flex items-center gap-2"><UserPlus className="w-5 h-5 text-primary" /> إنشاء حساب يدوي</CardTitle></CardHeader>
+            <CardContent>
+              {createdSerial && (
+                <div className="mb-4 p-4 rounded-xl border-2 border-green-500/50 bg-green-500/10 space-y-2">
+                  <p className="text-sm text-muted-foreground">تم إنشاء الحساب لـ <b>{createdSerial.name}</b>. الرقم التسلسلي للدخول:</p>
+                  <div className="flex items-center gap-2">
+                    <code className="flex-1 text-2xl font-mono font-bold text-green-400 bg-background/60 px-4 py-2 rounded-lg tracking-widest">{createdSerial.serial}</code>
+                    <Button type="button" size="sm" onClick={() => { navigator.clipboard.writeText(createdSerial.serial); toast({ title: "✓ نُسخ" }); }}>
+                      <Copy className="w-4 h-4" />
+                    </Button>
+                  </div>
+                  <p className="text-xs text-amber-400">⚠ احفظ هذا الرقم — لن يظهر مرة أخرى.</p>
+                </div>
+              )}
+              <form onSubmit={handleCreateAccount} className="space-y-4">
+                <div className="space-y-2"><Label>الاسم واللقب</Label><Input required value={acctForm.fullName} onChange={(e) => setAcctForm({ ...acctForm, fullName: e.target.value })} className="bg-background/40" placeholder="مثال: محمد بن علي" /></div>
+                <div className="space-y-2">
+                  <Label>الدور</Label>
+                  <Select value={acctForm.role} onValueChange={(v: any) => setAcctForm({ ...acctForm, role: v, level: "", branch: "", levels: [] })}>
+                    <SelectTrigger className="bg-background/40"><SelectValue /></SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="student">تلميذ</SelectItem>
+                      <SelectItem value="tutor">أستاذ</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                {acctForm.role === "student" ? (
+                  <div className="space-y-2">
+                    <Label>القسم</Label>
+                    <Select value={acctForm.level} onValueChange={(v) => setAcctForm({ ...acctForm, level: v })}>
+                      <SelectTrigger className="bg-background/40"><SelectValue placeholder="اختر..." /></SelectTrigger>
+                      <SelectContent>{LEVELS.map((l) => <SelectItem key={l.value} value={l.value}>{l.icon} {l.label}</SelectItem>)}</SelectContent>
+                    </Select>
+                  </div>
+                ) : (
+                  <div className="space-y-2">
+                    <Label>الأقسام التي يدرّسها (يمكن اختيار أكثر من واحد)</Label>
+                    <div className="grid grid-cols-2 gap-2">
+                      {LEVELS.map((l) => {
+                        const checked = acctForm.levels.includes(l.value);
+                        return (
+                          <label key={l.value} className={`flex items-center gap-2 p-2 rounded-lg border cursor-pointer ${checked ? "border-primary bg-primary/10" : "border-border bg-background/40"}`}>
+                            <input type="checkbox" checked={checked} onChange={(e) => {
+                              const next = e.target.checked ? [...acctForm.levels, l.value] : acctForm.levels.filter((x) => x !== l.value);
+                              setAcctForm({ ...acctForm, levels: next });
+                            }} className="accent-primary" />
+                            <span className="text-sm">{l.icon} {l.label}</span>
+                          </label>
+                        );
+                      })}
+                    </div>
+                  </div>
+                )}
+                <Button type="submit" disabled={acctBusy} className="w-full">{acctBusy ? <Loader2 className="w-4 h-4 animate-spin" /> : "إنشاء وإصدار رقم تسلسلي"}</Button>
+              </form>
+            </CardContent>
+          </Card>
+        </TabsContent>
+
             </CardHeader>
             <CardContent>
               <p className="text-muted-foreground text-sm mb-4">{t("cp.joinRequestsDesc")}</p>
