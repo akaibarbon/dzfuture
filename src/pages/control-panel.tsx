@@ -37,6 +37,15 @@ export default function ControlPanelPage() {
   const [profiles, setProfiles] = useState<Profile[]>([]);
   const [joinRequests, setJoinRequests] = useState<JoinRequest[]>([]);
 
+  // Create-account form
+  const [acctForm, setAcctForm] = useState<{ fullName: string; role: "student" | "tutor"; level: string; branch: string; levels: string[] }>({ fullName: "", role: "student", level: "", branch: "", levels: [] });
+  const [acctBusy, setAcctBusy] = useState(false);
+  const [createdSerial, setCreatedSerial] = useState<{ serial: string; name: string } | null>(null);
+
+  // Create-group form
+  const [grpForm, setGrpForm] = useState({ name: "", level: "", description: "", isPrivate: false, password: "" });
+  const [grpBusy, setGrpBusy] = useState(false);
+
   const isSuperAdmin = user?.serialNumber?.toUpperCase() === ADMIN_SERIAL || user?.email?.toLowerCase() === ADMIN_EMAIL.toLowerCase();
   const isApprovedTutor = user?.role === "tutor" && user?.approved !== false;
   const isAuthorized = isSuperAdmin || isApprovedTutor;
