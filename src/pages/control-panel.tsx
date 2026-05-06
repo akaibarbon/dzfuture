@@ -215,6 +215,7 @@ export default function ControlPanelPage() {
     fetchData();
   };
 
+  const pendingRequests = joinRequests.filter((r) => r.status === "pending");
   const pendingTutors = profiles.filter((p) => p.role === "tutor" && p.approved === false);
   const getGroupName = (gid: string) => groups.find((g) => g.id === gid)?.name || "—";
 
