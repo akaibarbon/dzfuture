@@ -36,7 +36,11 @@ export default function ControlPanelPage() {
   const [profiles, setProfiles] = useState<Profile[]>([]);
   const [joinRequests, setJoinRequests] = useState<JoinRequest[]>([]);
 
-  const isAuthorized = user?.serialNumber?.toUpperCase() === ADMIN_SERIAL || user?.email?.toLowerCase() === ADMIN_EMAIL.toLowerCase();
+  const isSuperAdmin = user?.serialNumber?.toUpperCase() === ADMIN_SERIAL || user?.email?.toLowerCase() === ADMIN_EMAIL.toLowerCase();
+  const isApprovedTutor = user?.role === "tutor" && user?.approved !== false;
+  const isAuthorized = isSuperAdmin || isApprovedTutor;
+  // Approved tutors bypass the password gate
+  useEffect(() => { if (isApprovedTutor && !authenticated) setAuthenticated(true); }, [isApprovedTutor]);
 
   const fetchData = async () => {
     const [annRes, grpRes, profRes, reqRes] = await Promise.all([
