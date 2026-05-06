@@ -25,6 +25,7 @@ import GPACalculatorPage from "./pages/gpa-calculator";
 import KnowledgeRadarPage from "./pages/knowledge-radar";
 import LessonsPage from "./pages/lessons";
 import AutoGraderPage from "./pages/auto-grader";
+import TutorChatPage from "./pages/tutor-chat";
 import NotFound from "./pages/not-found";
 
 const queryClient = new QueryClient();
