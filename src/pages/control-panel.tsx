@@ -221,51 +221,58 @@ export default function ControlPanelPage() {
   const getGroupName = (gid: string) => groups.find((g) => g.id === gid)?.name || "—";
 
   return (
-    <div className="space-y-8 max-w-5xl mx-auto">
+    <div className="space-y-8 max-w-4xl mx-auto" dir="rtl">
       <div className="text-center">
         <h1 className="text-4xl font-display font-bold text-glow mb-2">{t("cp.title")}</h1>
         <p className="text-muted-foreground">{t("cp.subtitle")}</p>
       </div>
 
-      <div className="grid grid-cols-1 sm:grid-cols-4 gap-4">
-        <Card className="glass-panel text-center p-6">
-          <Users className="w-8 h-8 mx-auto text-primary mb-2" />
-          <p className="text-3xl font-bold font-mono text-primary">{profiles.length}</p>
-          <p className="text-xs text-muted-foreground">{t("cp.users")}</p>
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+        <Card className="glass-panel text-center p-4">
+          <Users className="w-7 h-7 mx-auto text-primary mb-1.5" />
+          <p className="text-2xl font-bold font-mono text-primary">{profiles.length}</p>
+          <p className="text-[11px] text-muted-foreground">{t("cp.users")}</p>
         </Card>
-        <Card className="glass-panel text-center p-6">
-          <Megaphone className="w-8 h-8 mx-auto text-primary mb-2" />
-          <p className="text-3xl font-bold font-mono text-primary">{announcements.length}</p>
-          <p className="text-xs text-muted-foreground">{t("cp.announcements")}</p>
+        <Card className="glass-panel text-center p-4">
+          <Megaphone className="w-7 h-7 mx-auto text-primary mb-1.5" />
+          <p className="text-2xl font-bold font-mono text-primary">{announcements.length}</p>
+          <p className="text-[11px] text-muted-foreground">{t("cp.announcements")}</p>
         </Card>
-        <Card className="glass-panel text-center p-6">
-          <Users className="w-8 h-8 mx-auto text-primary mb-2" />
-          <p className="text-3xl font-bold font-mono text-primary">{groups.length}</p>
-          <p className="text-xs text-muted-foreground">{t("cp.groups")}</p>
+        <Card className="glass-panel text-center p-4">
+          <Users className="w-7 h-7 mx-auto text-primary mb-1.5" />
+          <p className="text-2xl font-bold font-mono text-primary">{groups.length}</p>
+          <p className="text-[11px] text-muted-foreground">{t("cp.groups")}</p>
         </Card>
-        <Card className="glass-panel text-center p-6">
-          <UserCheck className="w-8 h-8 mx-auto text-amber-400 mb-2" />
-          <p className="text-3xl font-bold font-mono text-amber-400">{pendingRequests.length}</p>
-          <p className="text-xs text-muted-foreground">{t("cp.pendingRequests")}</p>
+        <Card className="glass-panel text-center p-4">
+          <UserCheck className="w-7 h-7 mx-auto text-amber-400 mb-1.5" />
+          <p className="text-2xl font-bold font-mono text-amber-400">{pendingRequests.length + pendingTutors.length}</p>
+          <p className="text-[11px] text-muted-foreground">قيد الانتظار</p>
         </Card>
       </div>
 
-      <Tabs defaultValue="announce" className="w-full">
-        <TabsList className="w-full grid grid-cols-3 md:grid-cols-6">
-          <TabsTrigger value="announce">{t("cp.announcements")}</TabsTrigger>
-          <TabsTrigger value="vbadge">المجموعات</TabsTrigger>
-          <TabsTrigger value="newgroup">+ مجموعة</TabsTrigger>
-          <TabsTrigger value="newaccount">+ حساب</TabsTrigger>
-          <TabsTrigger value="requests" className="relative">
-            {t("cp.requests")}
-            {pendingRequests.length > 0 && (
-              <span className="absolute -top-1 -right-1 w-5 h-5 bg-amber-500 text-white text-[10px] rounded-full flex items-center justify-center font-bold">{pendingRequests.length}</span>
-            )}
-          </TabsTrigger>
-          <TabsTrigger value="users">{t("cp.users")}</TabsTrigger>
-        </TabsList>
+      {/* Quick navigation */}
+      <nav className="sticky top-0 z-10 -mx-3 px-3 py-2 bg-background/80 backdrop-blur-md border-y border-border/40 overflow-x-auto">
+        <ul className="flex items-center gap-2 text-xs whitespace-nowrap">
+          {[
+            { id: "sec-newaccount", label: "+ حساب", icon: UserPlus },
+            { id: "sec-newgroup", label: "+ مجموعة", icon: Plus },
+            { id: "sec-announce", label: "إعلانات", icon: Megaphone },
+            { id: "sec-groups", label: "المجموعات", icon: Users },
+            { id: "sec-requests", label: `طلبات (${pendingRequests.length})`, icon: UserCheck },
+            { id: "sec-users", label: "المستخدمون", icon: Users },
+          ].map((s) => (
+            <li key={s.id}>
+              <a href={`#${s.id}`} className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-secondary/50 hover:bg-primary/20 hover:text-primary transition">
+                <s.icon className="w-3.5 h-3.5" />{s.label}
+              </a>
+            </li>
+          ))}
+        </ul>
+      </nav>
 
-        <TabsContent value="announce" className="space-y-6 mt-6">
+      {/* SECTION: Create account */}
+      <section id="sec-newaccount" className="space-y-3 scroll-mt-20">
+        <h2 className="text-xl font-bold flex items-center gap-2 border-b border-border/40 pb-2"><UserPlus className="w-5 h-5 text-primary" /> إنشاء حساب جديد</h2>
           <Card className="glass-panel">
             <CardHeader><CardTitle className="flex items-center gap-2"><Plus className="w-5 h-5" /> {t("cp.newAnn")}</CardTitle></CardHeader>
             <CardContent>
