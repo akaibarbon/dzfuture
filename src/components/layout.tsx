@@ -133,13 +133,14 @@ export function Layout({ children }: { children: ReactNode }) {
         </div>
 
         <nav className="flex-1 px-3 py-4 space-y-1 overflow-y-auto">
-          {navItems.map((item) => {
+          {navItems.map((item: any) => {
             const isActive = location.pathname.startsWith(item.href);
             return (
               <Link key={item.href} to={item.href} className={`flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all duration-300 relative overflow-hidden group text-sm ${isActive ? "text-primary font-medium" : "text-muted-foreground hover:text-foreground hover:bg-secondary/50"}`}>
                 {isActive && <motion.div layoutId="activeNav" className="absolute inset-0 bg-primary/10 border border-primary/20 rounded-xl z-0" />}
                 <item.icon className={`w-4 h-4 relative z-10 flex-shrink-0 ${isActive ? "drop-shadow-[0_0_8px_hsl(var(--primary)/0.5)]" : ""}`} />
-                <span className="relative z-10 truncate">{item.label}</span>
+                <span className="relative z-10 truncate flex-1">{item.label}</span>
+                {item.tutorOnly && <span className="relative z-10 text-[9px] px-1.5 py-0.5 rounded-md bg-amber-500/20 text-amber-400 font-bold flex-shrink-0">أستاذ</span>}
               </Link>
             );
           })}
@@ -187,10 +188,11 @@ export function Layout({ children }: { children: ReactNode }) {
         <AnimatePresence>
           {mobileMenuOpen && (
             <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }} className="md:hidden absolute top-14 left-0 right-0 bg-card/95 backdrop-blur-xl border-b border-border z-30 p-3 space-y-1 max-h-[70vh] overflow-y-auto">
-              {navItems.map((item) => (
+              {navItems.map((item: any) => (
                 <Link key={item.href} to={item.href} onClick={() => setMobileMenuOpen(false)} className="flex items-center gap-3 px-3 py-2.5 rounded-xl text-muted-foreground hover:text-foreground hover:bg-secondary/50 transition-colors text-sm">
                   <item.icon className="w-4 h-4" />
-                  <span>{item.label}</span>
+                  <span className="flex-1">{item.label}</span>
+                  {item.tutorOnly && <span className="text-[9px] px-1.5 py-0.5 rounded-md bg-amber-500/20 text-amber-400 font-bold">أستاذ</span>}
                 </Link>
               ))}
               <button onClick={handleLogout} className="flex items-center gap-3 px-3 py-2.5 rounded-xl text-destructive hover:bg-destructive/10 w-full text-sm">
