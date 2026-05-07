@@ -43,7 +43,7 @@ export default function ControlPanelPage() {
   const [createdSerial, setCreatedSerial] = useState<{ serial: string; name: string } | null>(null);
 
   // Create-group form
-  const [grpForm, setGrpForm] = useState({ name: "", level: "", description: "", isPrivate: false, password: "" });
+  const [grpForm, setGrpForm] = useState({ name: "", level: "", description: "", isPrivate: false, password: "", tutorsOnly: false });
   const [grpBusy, setGrpBusy] = useState(false);
 
   const isSuperAdmin = user?.serialNumber?.toUpperCase() === ADMIN_SERIAL || user?.email?.toLowerCase() === ADMIN_EMAIL.toLowerCase();
@@ -206,12 +206,13 @@ export default function ControlPanelPage() {
       level: grpForm.level || null,
       is_private: grpForm.isPrivate,
       password: grpForm.isPrivate ? grpForm.password : null,
+      tutors_only: grpForm.tutorsOnly,
       created_by: user?.id || null,
-    });
+    } as any);
     setGrpBusy(false);
     if (error) { toast({ title: "فشل الإنشاء", description: error.message, variant: "destructive" }); return; }
     toast({ title: "✓ تم إنشاء المجموعة" });
-    setGrpForm({ name: "", level: "", description: "", isPrivate: false, password: "" });
+    setGrpForm({ name: "", level: "", description: "", isPrivate: false, password: "", tutorsOnly: false });
     fetchData();
   };
 
