@@ -25,6 +25,7 @@ interface Group {
   background_url?: string | null;
   description?: string | null;
   level?: string | null;
+  tutors_only?: boolean | null;
 }
 
 const PASSWORD_CACHE_KEY = "group_pwd_cache_v1";
@@ -74,7 +75,11 @@ export default function GroupsPage() {
 
   const filteredGroups = useMemo(() => {
     let list = groups;
-    // Level filter: "__all__" = all, "__mine__" = user's level + groups with no level, else specific level
+    // Hide tutor-only groups from non-tutors
+    if (user?.role !== "tutor") {
+      list = list.filter((g) => !g.tutors_only);
+    }
+    // Level filter
     if (levelFilter === "__mine__" && user?.level) {
       list = list.filter((g) => !g.level || g.level === user.level);
     } else if (levelFilter !== "__all__" && levelFilter !== "__mine__") {
@@ -89,7 +94,7 @@ export default function GroupsPage() {
       );
     }
     return list;
-  }, [groups, search, levelFilter, user?.level]);
+  }, [groups, search, levelFilter, user?.level, user?.role]);
 
   const handleCreate = async (e: React.FormEvent) => {
     e.preventDefault();
