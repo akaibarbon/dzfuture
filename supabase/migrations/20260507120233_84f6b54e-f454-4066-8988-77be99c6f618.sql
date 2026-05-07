@@ -1,0 +1,1 @@
+ALTER TABLE public.groups ADD COLUMN IF NOT EXISTS tutors_only BOOLEAN NOT NULL DEFAULT false;

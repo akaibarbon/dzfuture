@@ -287,6 +287,7 @@ export type Database = {
           name: string
           password: string | null
           serial_number: string | null
+          tutors_only: boolean
         }
         Insert: {
           background_url?: string | null
@@ -300,6 +301,7 @@ export type Database = {
           name: string
           password?: string | null
           serial_number?: string | null
+          tutors_only?: boolean
         }
         Update: {
           background_url?: string | null
@@ -313,6 +315,7 @@ export type Database = {
           name?: string
           password?: string | null
           serial_number?: string | null
+          tutors_only?: boolean
         }
         Relationships: []
       }
