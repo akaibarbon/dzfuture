@@ -26,6 +26,8 @@ import KnowledgeRadarPage from "./pages/knowledge-radar";
 import LessonsPage from "./pages/lessons";
 import AutoGraderPage from "./pages/auto-grader";
 import TutorChatPage from "./pages/tutor-chat";
+import AdvancedTeachingPage from "./pages/advanced-teaching";
+import AIToolsPage from "./pages/ai-tools";
 import NotFound from "./pages/not-found";
 
 const queryClient = new QueryClient();
@@ -62,7 +64,9 @@ function AppRoutes() {
       <Route path="/knowledge-radar" element={<ProtectedRoute><KnowledgeRadarPage /></ProtectedRoute>} />
       <Route path="/lessons" element={<ProtectedRoute><LessonsPage /></ProtectedRoute>} />
       <Route path="/auto-grader" element={<ProtectedRoute><AutoGraderPage /></ProtectedRoute>} />
-      
+      <Route path="/advanced-teaching" element={<ProtectedRoute><AdvancedTeachingPage /></ProtectedRoute>} />
+      <Route path="/ai-tools" element={<ProtectedRoute><AIToolsPage /></ProtectedRoute>} />
+
       <Route path="*" element={<NotFound />} />
     </Routes>
   );
