@@ -9,7 +9,7 @@ import { useLevelTheme, useLevelBadge } from "@/hooks/use-level-theme";
 import { supabase } from "@/integrations/supabase/client";
 import {
   Home, Bell, CalendarDays, Users, Bot,
-  BookOpen, Settings, LogOut, BookMarked, Menu, X, Shield, Sun, Moon, MessageSquare, CalendarClock, Calculator, Target, ScanLine, Globe
+  BookOpen, Settings, LogOut, BookMarked, Menu, X, Shield, Sun, Moon, MessageSquare, CalendarClock, Calculator, Target, ScanLine, Globe, GraduationCap, Sparkles
 } from "lucide-react";
 import { useState } from "react";
 import logoImg from "@/assets/logo.png";
@@ -83,6 +83,9 @@ export function Layout({ children }: { children: ReactNode }) {
   const isApprovedTutor = user?.role === "tutor" && user?.approved !== false;
   const isAdmin = isSuperAdmin || isApprovedTutor;
 
+  const isTutor = user?.role === "tutor";
+  const tutorApproved = isTutor && user?.approved !== false;
+
   const navItems = [
     { href: "/hub", label: t("Hub"), icon: Home },
     { href: "/announcements", label: t("Announcements"), icon: Bell },
@@ -93,13 +96,18 @@ export function Layout({ children }: { children: ReactNode }) {
     { href: "/tutor-chat", label: "محادثة التلميذ–الأستاذ", icon: MessageSquare },
     { href: "/ai-chat", label: t("AIChat"), icon: Bot },
     { href: "/lessons", label: "الدروس", icon: BookOpenCheck },
-    ...(user?.role === "tutor" && user?.approved !== false ? [{ href: "/auto-grader", label: "المصحّح الآلي", icon: ScanLine }] : []),
     { href: "/programme", label: t("Programme"), icon: BookOpen },
     { href: "/gpa-calculator", label: t("GPACalculator"), icon: Calculator },
     { href: "/knowledge-radar", label: t("KnowledgeRadar"), icon: Target },
     { href: "/study-helps", label: t("StudyHelps"), icon: BookMarked },
+    // Tutor-only sections
+    ...(tutorApproved ? [
+      { href: "/auto-grader", label: "المصحّح الآلي", icon: ScanLine, tutorOnly: true },
+      { href: "/advanced-teaching", label: "التعليم المتقدم", icon: GraduationCap, tutorOnly: true },
+      { href: "/ai-tools", label: "أدوات AI", icon: Sparkles, tutorOnly: true },
+    ] : []),
     { href: "/account", label: t("Account"), icon: Settings },
-    ...(isAdmin ? [{ href: "/control-panel", label: t("ControlPanel"), icon: Shield }] : []),
+    ...(isAdmin ? [{ href: "/control-panel", label: t("ControlPanel"), icon: Shield, tutorOnly: true }] : []),
   ];
 
   const handleLogout = () => {
