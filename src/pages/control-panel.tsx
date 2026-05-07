@@ -273,260 +273,263 @@ export default function ControlPanelPage() {
       {/* SECTION: Create account */}
       <section id="sec-newaccount" className="space-y-3 scroll-mt-20">
         <h2 className="text-xl font-bold flex items-center gap-2 border-b border-border/40 pb-2"><UserPlus className="w-5 h-5 text-primary" /> إنشاء حساب جديد</h2>
-          <Card className="glass-panel">
-            <CardHeader><CardTitle className="flex items-center gap-2"><Plus className="w-5 h-5" /> {t("cp.newAnn")}</CardTitle></CardHeader>
-            <CardContent>
-              <form onSubmit={handleAddAnnouncement} className="space-y-4">
-                <div className="space-y-2">
-                  <Label>{t("cp.annTitle")}</Label>
-                  <Input value={newTitle} onChange={(e) => setNewTitle(e.target.value)} className="bg-background/40" />
+        <Card className="glass-panel">
+          <CardContent className="pt-6">
+            {createdSerial && (
+              <div className="mb-4 p-4 rounded-xl border-2 border-green-500/50 bg-green-500/10 space-y-2">
+                <p className="text-sm text-muted-foreground">تم إنشاء الحساب لـ <b>{createdSerial.name}</b>. الرقم التسلسلي للدخول:</p>
+                <div className="flex items-center gap-2">
+                  <code className="flex-1 text-2xl font-mono font-bold text-green-400 bg-background/60 px-4 py-2 rounded-lg tracking-widest">{createdSerial.serial}</code>
+                  <Button type="button" size="sm" onClick={() => { navigator.clipboard.writeText(createdSerial.serial); toast({ title: "✓ نُسخ" }); }}>
+                    <Copy className="w-4 h-4" />
+                  </Button>
                 </div>
+                <p className="text-xs text-amber-400">⚠ احفظ هذا الرقم — لن يظهر مرة أخرى.</p>
+              </div>
+            )}
+            <form onSubmit={handleCreateAccount} className="space-y-4">
+              <div className="space-y-2"><Label>الاسم واللقب</Label><Input required value={acctForm.fullName} onChange={(e) => setAcctForm({ ...acctForm, fullName: e.target.value })} className="bg-background/40" placeholder="مثال: محمد بن علي" /></div>
+              <div className="space-y-2">
+                <Label>الدور</Label>
+                <Select value={acctForm.role} onValueChange={(v: any) => setAcctForm({ ...acctForm, role: v, level: "", branch: "", levels: [] })}>
+                  <SelectTrigger className="bg-background/40"><SelectValue /></SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="student">تلميذ</SelectItem>
+                    <SelectItem value="tutor">أستاذ</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              {acctForm.role === "student" ? (
                 <div className="space-y-2">
-                  <Label>{t("cp.annDesc")}</Label>
-                  <Textarea value={newDesc} onChange={(e) => setNewDesc(e.target.value)} className="bg-background/40 min-h-[120px]" />
+                  <Label>القسم</Label>
+                  <Select value={acctForm.level} onValueChange={(v) => setAcctForm({ ...acctForm, level: v })}>
+                    <SelectTrigger className="bg-background/40"><SelectValue placeholder="اختر..." /></SelectTrigger>
+                    <SelectContent>{LEVELS.map((l) => <SelectItem key={l.value} value={l.value}>{l.icon} {l.label}</SelectItem>)}</SelectContent>
+                  </Select>
                 </div>
-                <Button type="submit" className="w-full">{t("cp.publish")}</Button>
-              </form>
-            </CardContent>
-          </Card>
-          <div className="space-y-3">
-            {announcements.map((ev) => (
-              <Card key={ev.id} className="glass-panel border-l-4 border-l-primary">
-                <CardContent className="py-4 flex justify-between items-start">
-                  <div>
-                    <h3 className="font-bold text-lg">{ev.title}</h3>
-                    <p className="text-sm text-muted-foreground">{ev.description}</p>
-                    <p className="text-xs text-muted-foreground mt-1">{ev.date}</p>
+              ) : (
+                <div className="space-y-2">
+                  <Label>الأقسام التي يدرّسها (يمكن اختيار أكثر من واحد)</Label>
+                  <div className="grid grid-cols-2 gap-2">
+                    {LEVELS.map((l) => {
+                      const checked = acctForm.levels.includes(l.value);
+                      return (
+                        <label key={l.value} className={`flex items-center gap-2 p-2 rounded-lg border cursor-pointer ${checked ? "border-primary bg-primary/10" : "border-border bg-background/40"}`}>
+                          <input type="checkbox" checked={checked} onChange={(e) => {
+                            const next = e.target.checked ? [...acctForm.levels, l.value] : acctForm.levels.filter((x) => x !== l.value);
+                            setAcctForm({ ...acctForm, levels: next });
+                          }} className="accent-primary" />
+                          <span className="text-sm">{l.icon} {l.label}</span>
+                        </label>
+                      );
+                    })}
                   </div>
-                  <Button variant="ghost" size="icon" onClick={() => handleDeleteAnnouncement(ev.id)} className="text-destructive hover:bg-destructive/10">
+                </div>
+              )}
+              <Button type="submit" disabled={acctBusy} className="w-full h-11">{acctBusy ? <Loader2 className="w-4 h-4 animate-spin" /> : "إنشاء وإصدار رقم تسلسلي"}</Button>
+            </form>
+          </CardContent>
+        </Card>
+      </section>
+
+      {/* SECTION: Create group */}
+      <section id="sec-newgroup" className="space-y-3 scroll-mt-20">
+        <h2 className="text-xl font-bold flex items-center gap-2 border-b border-border/40 pb-2"><Plus className="w-5 h-5 text-primary" /> إنشاء مجموعة جديدة</h2>
+        <Card className="glass-panel">
+          <CardContent className="pt-6">
+            <form onSubmit={handleCreateGroup} className="space-y-4">
+              <div className="space-y-2"><Label>اسم المجموعة</Label><Input required value={grpForm.name} onChange={(e) => setGrpForm({ ...grpForm, name: e.target.value })} placeholder="مثال: 1م1 — رياضيات" className="bg-background/40" /></div>
+              <div className="space-y-2"><Label>وصف (اختياري)</Label><Input value={grpForm.description} onChange={(e) => setGrpForm({ ...grpForm, description: e.target.value })} className="bg-background/40" /></div>
+              <div className="space-y-2">
+                <Label>المستوى المستهدف</Label>
+                <Select value={grpForm.level || "__any__"} onValueChange={(v) => setGrpForm({ ...grpForm, level: v === "__any__" ? "" : v })}>
+                  <SelectTrigger className="bg-background/40"><SelectValue /></SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="__any__">كل المستويات</SelectItem>
+                    {LEVELS.map((l) => <SelectItem key={l.value} value={l.value}>{l.icon} {l.label}</SelectItem>)}
+                  </SelectContent>
+                </Select>
+              </div>
+              <label className="flex items-center gap-2 p-3 rounded-lg border border-amber-500/30 bg-amber-500/5 cursor-pointer">
+                <input type="checkbox" checked={grpForm.tutorsOnly} onChange={(e) => setGrpForm({ ...grpForm, tutorsOnly: e.target.checked })} className="accent-primary w-4 h-4" />
+                <span className="text-sm"><GraduationCap className="w-4 h-4 inline ml-1 text-amber-400" /> مجموعة خاصة بالأساتذة فقط (لن يراها التلاميذ)</span>
+              </label>
+              <label className="flex items-center gap-2">
+                <input type="checkbox" id="cp-private" checked={grpForm.isPrivate} onChange={(e) => setGrpForm({ ...grpForm, isPrivate: e.target.checked })} className="accent-primary w-4 h-4" />
+                <span className="text-sm">مجموعة خاصة (بكلمة سر)</span>
+              </label>
+              {grpForm.isPrivate && (
+                <div className="space-y-2"><Label>كلمة السر</Label><Input required type="text" value={grpForm.password} onChange={(e) => setGrpForm({ ...grpForm, password: e.target.value })} className="bg-background/40" /></div>
+              )}
+              <Button type="submit" disabled={grpBusy} className="w-full h-11">{grpBusy ? <Loader2 className="w-4 h-4 animate-spin" /> : "إنشاء المجموعة"}</Button>
+            </form>
+          </CardContent>
+        </Card>
+      </section>
+
+      {/* SECTION: Announcements */}
+      <section id="sec-announce" className="space-y-3 scroll-mt-20">
+        <h2 className="text-xl font-bold flex items-center gap-2 border-b border-border/40 pb-2"><Megaphone className="w-5 h-5 text-primary" /> إعلانات الموقع</h2>
+        <Card className="glass-panel">
+          <CardContent className="pt-6">
+            <form onSubmit={handleAddAnnouncement} className="space-y-4">
+              <div className="space-y-2">
+                <Label>{t("cp.annTitle")}</Label>
+                <Input value={newTitle} onChange={(e) => setNewTitle(e.target.value)} className="bg-background/40" />
+              </div>
+              <div className="space-y-2">
+                <Label>{t("cp.annDesc")}</Label>
+                <Textarea value={newDesc} onChange={(e) => setNewDesc(e.target.value)} className="bg-background/40 min-h-[100px]" />
+              </div>
+              <Button type="submit" className="w-full h-11">{t("cp.publish")}</Button>
+            </form>
+          </CardContent>
+        </Card>
+        <div className="space-y-2">
+          {announcements.map((ev) => (
+            <Card key={ev.id} className="glass-panel border-l-4 border-l-primary">
+              <CardContent className="py-3 flex justify-between items-start gap-2">
+                <div className="min-w-0">
+                  <h3 className="font-bold">{ev.title}</h3>
+                  <p className="text-sm text-muted-foreground line-clamp-2">{ev.description}</p>
+                  <p className="text-[11px] text-muted-foreground mt-1">{ev.date}</p>
+                </div>
+                <Button variant="ghost" size="icon" onClick={() => handleDeleteAnnouncement(ev.id)} className="text-destructive hover:bg-destructive/10 flex-shrink-0">
+                  <Trash2 className="w-4 h-4" />
+                </Button>
+              </CardContent>
+            </Card>
+          ))}
+        </div>
+      </section>
+
+      {/* SECTION: Manage groups */}
+      <section id="sec-groups" className="space-y-3 scroll-mt-20">
+        <h2 className="text-xl font-bold flex items-center gap-2 border-b border-border/40 pb-2"><Users className="w-5 h-5 text-primary" /> إدارة المجموعات</h2>
+        <Card className="glass-panel">
+          <CardContent className="pt-6 space-y-3">
+            <p className="text-muted-foreground text-sm">{t("cp.vbadgeDesc")}</p>
+            {groups.map((g) => (
+              <div key={g.id} className="flex items-center justify-between p-3 rounded-xl bg-secondary/30 border border-border gap-2">
+                <div className="flex items-center gap-2 min-w-0">
+                  <span className="font-bold truncate">{g.name}</span>
+                  {g.is_verified && <BadgeCheck className="w-4 h-4 text-primary flex-shrink-0" />}
+                  {(g as any).tutors_only && <span className="text-[10px] px-1.5 py-0.5 rounded bg-amber-500/20 text-amber-400 font-bold">أساتذة</span>}
+                </div>
+                <div className="flex items-center gap-2 flex-shrink-0">
+                  <Button size="sm" variant={g.is_verified ? "default" : "outline"} onClick={() => handleToggleVerified(g)}>
+                    {g.is_verified ? t("cp.removeBadge") : t("cp.addBadge")}
+                  </Button>
+                  <Button size="sm" variant="destructive" onClick={() => handleDeleteGroup(g)} title="حذف المجموعة">
                     <Trash2 className="w-4 h-4" />
                   </Button>
-                </CardContent>
-              </Card>
+                </div>
+              </div>
             ))}
-          </div>
-        </TabsContent>
+            {groups.length === 0 && <p className="text-muted-foreground text-center py-4">{t("cp.noGroups")}</p>}
+          </CardContent>
+        </Card>
+      </section>
 
-        <TabsContent value="vbadge" className="mt-6">
-          <Card className="glass-panel">
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2"><BadgeCheck className="w-5 h-5 text-primary" /> {t("cp.vbadge")}</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <p className="text-muted-foreground text-sm mb-4">{t("cp.vbadgeDesc")}</p>
+      {/* SECTION: Requests */}
+      <section id="sec-requests" className="space-y-3 scroll-mt-20">
+        <h2 className="text-xl font-bold flex items-center gap-2 border-b border-border/40 pb-2"><UserCheck className="w-5 h-5 text-amber-400" /> طلبات الانضمام</h2>
+        <Card className="glass-panel">
+          <CardContent className="pt-6">
+            <p className="text-muted-foreground text-sm mb-4">{t("cp.joinRequestsDesc")}</p>
+            {joinRequests.length === 0 ? (
+              <p className="text-muted-foreground text-center py-4">{t("cp.noRequests")}</p>
+            ) : (
               <div className="space-y-3">
-                {groups.map((g) => (
-                  <div key={g.id} className="flex items-center justify-between p-3 rounded-xl bg-secondary/30 border border-border gap-2">
-                    <div className="flex items-center gap-2 min-w-0">
-                      <span className="font-bold truncate">{g.name}</span>
-                      {g.is_verified && <BadgeCheck className="w-4 h-4 text-primary flex-shrink-0" />}
-                    </div>
-                    <div className="flex items-center gap-2 flex-shrink-0">
-                      <Button size="sm" variant={g.is_verified ? "default" : "outline"} onClick={() => handleToggleVerified(g)}>
-                        {g.is_verified ? t("cp.removeBadge") : t("cp.addBadge")}
-                      </Button>
-                      <Button size="sm" variant="destructive" onClick={() => handleDeleteGroup(g)} title="حذف المجموعة">
-                        <Trash2 className="w-4 h-4" />
-                      </Button>
+                {joinRequests.map((req) => (
+                  <div key={req.id} className={`p-3 rounded-xl border ${req.status === "pending" ? "border-amber-500/50 bg-amber-500/5" : req.status === "approved" ? "border-green-500/50 bg-green-500/5" : "border-destructive/50 bg-destructive/5"}`}>
+                    <div className="flex items-start justify-between gap-3 flex-wrap">
+                      <div className="space-y-0.5 flex-1 min-w-0">
+                        <p className="font-bold text-foreground">{req.full_name} {req.surname}</p>
+                        <p className="text-xs text-muted-foreground">{t("chat.dob")}: {req.date_of_birth} • {t("chat.class")}: {req.class}</p>
+                        <p className="text-xs text-muted-foreground">{t("cp.forGroup")}: <span className="text-primary font-semibold">{getGroupName(req.group_id)}</span></p>
+                        <p className={`text-xs font-bold ${req.status === "pending" ? "text-amber-400" : req.status === "approved" ? "text-green-400" : "text-destructive"}`}>
+                          {req.status === "pending" ? t("cp.statusPending") : req.status === "approved" ? t("cp.statusApproved") : t("cp.statusRejected")}
+                        </p>
+                      </div>
+                      {req.status === "pending" && (
+                        <div className="flex gap-2 flex-shrink-0">
+                          <Button size="sm" onClick={() => handleApproveRequest(req)} className="bg-green-600 hover:bg-green-700 text-white">
+                            <CheckCircle className="w-4 h-4 mr-1" /> {t("cp.approve")}
+                          </Button>
+                          <Button size="sm" variant="destructive" onClick={() => handleRejectRequest(req)}>
+                            <XCircle className="w-4 h-4 mr-1" /> {t("cp.reject")}
+                          </Button>
+                        </div>
+                      )}
                     </div>
                   </div>
                 ))}
-                {groups.length === 0 && <p className="text-muted-foreground text-center py-4">{t("cp.noGroups")}</p>}
               </div>
-            </CardContent>
-          </Card>
-        </TabsContent>
+            )}
+          </CardContent>
+        </Card>
+      </section>
 
-        <TabsContent value="newgroup" className="mt-6">
-          <Card className="glass-panel">
-            <CardHeader><CardTitle className="flex items-center gap-2"><Plus className="w-5 h-5 text-primary" /> إنشاء مجموعة لقسم</CardTitle></CardHeader>
-            <CardContent>
-              <form onSubmit={handleCreateGroup} className="space-y-4">
-                <div className="space-y-2"><Label>اسم المجموعة</Label><Input required value={grpForm.name} onChange={(e) => setGrpForm({ ...grpForm, name: e.target.value })} placeholder="مثال: 1م1 — رياضيات" className="bg-background/40" /></div>
-                <div className="space-y-2"><Label>وصف (اختياري)</Label><Input value={grpForm.description} onChange={(e) => setGrpForm({ ...grpForm, description: e.target.value })} className="bg-background/40" /></div>
-                <div className="space-y-2">
-                  <Label>المستوى المستهدف</Label>
-                  <Select value={grpForm.level || "__any__"} onValueChange={(v) => setGrpForm({ ...grpForm, level: v === "__any__" ? "" : v })}>
-                    <SelectTrigger className="bg-background/40"><SelectValue /></SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="__any__">كل المستويات</SelectItem>
-                      {LEVELS.map((l) => <SelectItem key={l.value} value={l.value}>{l.icon} {l.label}</SelectItem>)}
-                    </SelectContent>
-                  </Select>
-                </div>
-                <div className="flex items-center gap-2">
-                  <input type="checkbox" id="cp-private" checked={grpForm.isPrivate} onChange={(e) => setGrpForm({ ...grpForm, isPrivate: e.target.checked })} className="accent-primary w-4 h-4" />
-                  <Label htmlFor="cp-private">مجموعة خاصة (بكلمة سر)</Label>
-                </div>
-                {grpForm.isPrivate && (
-                  <div className="space-y-2"><Label>كلمة السر</Label><Input required type="text" value={grpForm.password} onChange={(e) => setGrpForm({ ...grpForm, password: e.target.value })} className="bg-background/40" /></div>
-                )}
-                <Button type="submit" disabled={grpBusy} className="w-full">{grpBusy ? <Loader2 className="w-4 h-4 animate-spin" /> : "إنشاء المجموعة"}</Button>
-              </form>
-            </CardContent>
-          </Card>
-        </TabsContent>
-
-        <TabsContent value="newaccount" className="mt-6">
-          <Card className="glass-panel">
-            <CardHeader><CardTitle className="flex items-center gap-2"><UserPlus className="w-5 h-5 text-primary" /> إنشاء حساب يدوي</CardTitle></CardHeader>
-            <CardContent>
-              {createdSerial && (
-                <div className="mb-4 p-4 rounded-xl border-2 border-green-500/50 bg-green-500/10 space-y-2">
-                  <p className="text-sm text-muted-foreground">تم إنشاء الحساب لـ <b>{createdSerial.name}</b>. الرقم التسلسلي للدخول:</p>
-                  <div className="flex items-center gap-2">
-                    <code className="flex-1 text-2xl font-mono font-bold text-green-400 bg-background/60 px-4 py-2 rounded-lg tracking-widest">{createdSerial.serial}</code>
-                    <Button type="button" size="sm" onClick={() => { navigator.clipboard.writeText(createdSerial.serial); toast({ title: "✓ نُسخ" }); }}>
-                      <Copy className="w-4 h-4" />
-                    </Button>
-                  </div>
-                  <p className="text-xs text-amber-400">⚠ احفظ هذا الرقم — لن يظهر مرة أخرى.</p>
-                </div>
-              )}
-              <form onSubmit={handleCreateAccount} className="space-y-4">
-                <div className="space-y-2"><Label>الاسم واللقب</Label><Input required value={acctForm.fullName} onChange={(e) => setAcctForm({ ...acctForm, fullName: e.target.value })} className="bg-background/40" placeholder="مثال: محمد بن علي" /></div>
-                <div className="space-y-2">
-                  <Label>الدور</Label>
-                  <Select value={acctForm.role} onValueChange={(v: any) => setAcctForm({ ...acctForm, role: v, level: "", branch: "", levels: [] })}>
-                    <SelectTrigger className="bg-background/40"><SelectValue /></SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="student">تلميذ</SelectItem>
-                      <SelectItem value="tutor">أستاذ</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-                {acctForm.role === "student" ? (
-                  <div className="space-y-2">
-                    <Label>القسم</Label>
-                    <Select value={acctForm.level} onValueChange={(v) => setAcctForm({ ...acctForm, level: v })}>
-                      <SelectTrigger className="bg-background/40"><SelectValue placeholder="اختر..." /></SelectTrigger>
-                      <SelectContent>{LEVELS.map((l) => <SelectItem key={l.value} value={l.value}>{l.icon} {l.label}</SelectItem>)}</SelectContent>
-                    </Select>
-                  </div>
-                ) : (
-                  <div className="space-y-2">
-                    <Label>الأقسام التي يدرّسها (يمكن اختيار أكثر من واحد)</Label>
-                    <div className="grid grid-cols-2 gap-2">
-                      {LEVELS.map((l) => {
-                        const checked = acctForm.levels.includes(l.value);
-                        return (
-                          <label key={l.value} className={`flex items-center gap-2 p-2 rounded-lg border cursor-pointer ${checked ? "border-primary bg-primary/10" : "border-border bg-background/40"}`}>
-                            <input type="checkbox" checked={checked} onChange={(e) => {
-                              const next = e.target.checked ? [...acctForm.levels, l.value] : acctForm.levels.filter((x) => x !== l.value);
-                              setAcctForm({ ...acctForm, levels: next });
-                            }} className="accent-primary" />
-                            <span className="text-sm">{l.icon} {l.label}</span>
-                          </label>
-                        );
-                      })}
-                    </div>
-                  </div>
-                )}
-                <Button type="submit" disabled={acctBusy} className="w-full">{acctBusy ? <Loader2 className="w-4 h-4 animate-spin" /> : "إنشاء وإصدار رقم تسلسلي"}</Button>
-              </form>
-            </CardContent>
-          </Card>
-        </TabsContent>
-
-        <TabsContent value="requests" className="mt-6">
-          <Card className="glass-panel">
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2"><UserCheck className="w-5 h-5 text-amber-400" /> {t("cp.joinRequests")}</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <p className="text-muted-foreground text-sm mb-4">{t("cp.joinRequestsDesc")}</p>
-              {joinRequests.length === 0 ? (
-                <p className="text-muted-foreground text-center py-4">{t("cp.noRequests")}</p>
-              ) : (
-                <div className="space-y-4">
-                  {joinRequests.map((req) => (
-                    <div key={req.id} className={`p-4 rounded-xl border ${req.status === "pending" ? "border-amber-500/50 bg-amber-500/5" : req.status === "approved" ? "border-green-500/50 bg-green-500/5" : "border-destructive/50 bg-destructive/5"}`}>
-                      <div className="flex items-start justify-between gap-4">
-                        <div className="space-y-1 flex-1">
-                          <p className="font-bold text-foreground">{req.full_name} {req.surname}</p>
-                          <p className="text-sm text-muted-foreground">{t("chat.dob")}: {req.date_of_birth}</p>
-                          <p className="text-sm text-muted-foreground">{t("chat.class")}: {req.class}</p>
-                          <p className="text-xs text-muted-foreground">{t("cp.forGroup")}: <span className="text-primary font-semibold">{getGroupName(req.group_id)}</span></p>
-                          <p className={`text-xs font-bold mt-1 ${req.status === "pending" ? "text-amber-400" : req.status === "approved" ? "text-green-400" : "text-destructive"}`}>
-                            {req.status === "pending" ? t("cp.statusPending") : req.status === "approved" ? t("cp.statusApproved") : t("cp.statusRejected")}
-                          </p>
-                        </div>
-                        {req.status === "pending" && (
-                          <div className="flex gap-2 flex-shrink-0">
-                            <Button size="sm" onClick={() => handleApproveRequest(req)} className="bg-green-600 hover:bg-green-700 text-white">
-                              <CheckCircle className="w-4 h-4 mr-1" /> {t("cp.approve")}
-                            </Button>
-                            <Button size="sm" variant="destructive" onClick={() => handleRejectRequest(req)}>
-                              <XCircle className="w-4 h-4 mr-1" /> {t("cp.reject")}
-                            </Button>
-                          </div>
-                        )}
+      {/* SECTION: Users */}
+      <section id="sec-users" className="space-y-3 scroll-mt-20 pb-12">
+        <h2 className="text-xl font-bold flex items-center gap-2 border-b border-border/40 pb-2"><Users className="w-5 h-5 text-primary" /> إدارة المستخدمين</h2>
+        <Card className="glass-panel">
+          <CardContent className="py-6 space-y-3">
+            {pendingTutors.length > 0 && (
+              <div className="p-3 rounded-xl border border-amber-500/40 bg-amber-500/5 text-sm">
+                ⏳ <b>{pendingTutors.length}</b> أستاذ بانتظار الموافقة. اضغط "اعتماد" أمام كل أستاذ.
+              </div>
+            )}
+            {profiles.length === 0 ? (
+              <p className="text-center text-muted-foreground">{t("cp.noUsers")}</p>
+            ) : (
+              profiles.map((u) => {
+                const meta = getLevelMeta(u.level);
+                const isPendingTutor = u.role === "tutor" && u.approved === false;
+                return (
+                  <div key={u.id} className={`p-4 rounded-xl bg-secondary/30 border space-y-3 ${isPendingTutor ? "border-amber-500/50" : "border-border"}`}>
+                    <div className="flex items-center gap-3">
+                      <img src={u.photo_url || `https://api.dicebear.com/7.x/bottts-neutral/svg?seed=${u.full_name}`} alt="" className="w-10 h-10 rounded-xl" />
+                      <div className="flex-1 min-w-0">
+                        <p className="font-bold truncate">{u.full_name}</p>
+                        <p className="text-xs text-muted-foreground truncate">{u.email} • SN: {u.serial_number}</p>
+                        {u.level && <p className="text-xs text-primary mt-0.5">{meta?.icon} {levelLabel(u.level, u.branch)}</p>}
                       </div>
+                      {isPendingTutor && (
+                        <Button size="sm" onClick={() => handleUpdateProfile(u, { approved: true })} className="bg-green-600 hover:bg-green-700 text-white flex-shrink-0">
+                          <CheckCircle className="w-4 h-4 mr-1" /> اعتماد
+                        </Button>
+                      )}
                     </div>
-                  ))}
-                </div>
-              )}
-            </CardContent>
-          </Card>
-        </TabsContent>
-
-        <TabsContent value="users" className="mt-6">
-          <Card className="glass-panel">
-            <CardContent className="py-6 space-y-3">
-              {pendingTutors.length > 0 && (
-                <div className="p-3 rounded-xl border border-amber-500/40 bg-amber-500/5 text-sm">
-                  ⏳ <b>{pendingTutors.length}</b> أستاذ بانتظار الموافقة. اضغط "اعتماد" أمام كل أستاذ.
-                </div>
-              )}
-              {profiles.length === 0 ? (
-                <p className="text-center text-muted-foreground">{t("cp.noUsers")}</p>
-              ) : (
-                profiles.map((u) => {
-                  const meta = getLevelMeta(u.level);
-                  const isPendingTutor = u.role === "tutor" && u.approved === false;
-                  return (
-                    <div key={u.id} className={`p-4 rounded-xl bg-secondary/30 border space-y-3 ${isPendingTutor ? "border-amber-500/50" : "border-border"}`}>
-                      <div className="flex items-center gap-3">
-                        <img src={u.photo_url || `https://api.dicebear.com/7.x/bottts-neutral/svg?seed=${u.full_name}`} alt="" className="w-10 h-10 rounded-xl" />
-                        <div className="flex-1 min-w-0">
-                          <p className="font-bold truncate">{u.full_name}</p>
-                          <p className="text-xs text-muted-foreground truncate">{u.email} • SN: {u.serial_number}</p>
-                          {u.level && <p className="text-xs text-primary mt-0.5">{meta?.icon} {levelLabel(u.level, u.branch)}</p>}
-                        </div>
-                        {isPendingTutor && (
-                          <Button size="sm" onClick={() => handleUpdateProfile(u, { approved: true })} className="bg-green-600 hover:bg-green-700 text-white flex-shrink-0">
-                            <CheckCircle className="w-4 h-4 mr-1" /> اعتماد الأستاذ
-                          </Button>
-                        )}
-                      </div>
-                      <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
-                        <Select value={u.role} onValueChange={(v) => handleUpdateProfile(u, { role: v, approved: v !== "tutor" ? true : u.approved })}>
-                          <SelectTrigger className="bg-background/40 h-9 text-xs"><SelectValue placeholder="الدور" /></SelectTrigger>
-                          <SelectContent>
-                            <SelectItem value="student">تلميذ</SelectItem>
-                            <SelectItem value="tutor">أستاذ</SelectItem>
-                            <SelectItem value="parent">ولي أمر</SelectItem>
-                          </SelectContent>
+                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
+                      <Select value={u.role} onValueChange={(v) => handleUpdateProfile(u, { role: v, approved: v !== "tutor" ? true : u.approved })}>
+                        <SelectTrigger className="bg-background/40 h-9 text-xs"><SelectValue placeholder="الدور" /></SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="student">تلميذ</SelectItem>
+                          <SelectItem value="tutor">أستاذ</SelectItem>
+                          <SelectItem value="parent">ولي أمر</SelectItem>
+                        </SelectContent>
+                      </Select>
+                      <Select value={u.level || ""} onValueChange={(v) => handleUpdateProfile(u, { level: v })}>
+                        <SelectTrigger className="bg-background/40 h-9 text-xs"><SelectValue placeholder="المستوى" /></SelectTrigger>
+                        <SelectContent>{LEVELS.map((l) => <SelectItem key={l.value} value={l.value}>{l.icon} {l.label}</SelectItem>)}</SelectContent>
+                      </Select>
+                      {meta?.branchRequired && (
+                        <Select value={u.branch || ""} onValueChange={(v) => handleUpdateProfile(u, { branch: v })}>
+                          <SelectTrigger className="bg-background/40 h-9 text-xs"><SelectValue placeholder="الشعبة" /></SelectTrigger>
+                          <SelectContent>{SECONDARY_BRANCHES.filter((b) => b.value !== "common").map((b) => <SelectItem key={b.value} value={b.value}>{b.label}</SelectItem>)}</SelectContent>
                         </Select>
-                        <Select value={u.level || ""} onValueChange={(v) => handleUpdateProfile(u, { level: v })}>
-                          <SelectTrigger className="bg-background/40 h-9 text-xs"><SelectValue placeholder="المستوى" /></SelectTrigger>
-                          <SelectContent>{LEVELS.map((l) => <SelectItem key={l.value} value={l.value}>{l.icon} {l.label}</SelectItem>)}</SelectContent>
-                        </Select>
-                        {meta?.branchRequired && (
-                          <Select value={u.branch || ""} onValueChange={(v) => handleUpdateProfile(u, { branch: v })}>
-                            <SelectTrigger className="bg-background/40 h-9 text-xs"><SelectValue placeholder="الشعبة" /></SelectTrigger>
-                            <SelectContent>{SECONDARY_BRANCHES.filter((b) => b.value !== "common").map((b) => <SelectItem key={b.value} value={b.value}>{b.label}</SelectItem>)}</SelectContent>
-                          </Select>
-                        )}
-                      </div>
+                      )}
                     </div>
-                  );
-                })
-              )}
-            </CardContent>
-          </Card>
-        </TabsContent>
-      </Tabs>
+                  </div>
+                );
+              })
+            )}
+          </CardContent>
+        </Card>
+      </section>
     </div>
   );
 }
+
