@@ -224,7 +224,35 @@ export default function AuthPage() {
     setLoading(false);
   };
 
-  if (checkingSession) return <div className="min-h-screen flex items-center justify-center bg-background"><Loader2 className="w-8 h-8 animate-spin text-primary" /></div>;
+  const handleOAuthOnboardingSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!oauthPending || !oauthForm.fullName.trim() || !oauthForm.level) return;
+    const meta = getLevelMeta(oauthForm.level);
+    if (meta?.branchRequired && !oauthForm.branch) {
+      toast({ title: "اختر الشعبة", variant: "destructive" }); return;
+    }
+    setOauthBusy(true);
+    const serialNum = generateSerial();
+    const isTutor = oauthForm.role === "tutor";
+    const photoUrl = oauthPending.user_metadata?.avatar_url || generateAvatarUrl(oauthForm.fullName);
+    const { error } = await supabase.from("profiles").insert({
+      user_id: oauthPending.id,
+      full_name: oauthForm.fullName.trim(),
+      email: oauthPending.email || "",
+      role: oauthForm.role,
+      serial_number: serialNum,
+      photo_url: photoUrl,
+      level: oauthForm.level,
+      branch: meta?.branchRequired ? oauthForm.branch : null,
+      approved: !isTutor,
+    } as any);
+    setOauthBusy(false);
+    if (error) { toast({ title: "تعذر إنشاء الحساب", description: error.message, variant: "destructive" }); return; }
+    setUser({ id: oauthPending.id, fullName: oauthForm.fullName.trim(), email: oauthPending.email || "", role: oauthForm.role, serialNumber: serialNum, photoUrl, level: oauthForm.level, branch: meta?.branchRequired ? oauthForm.branch : null, approved: !isTutor });
+    setNewSerial(serialNum);
+    setOauthPending(null);
+    setMode("success");
+  };
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-background relative overflow-hidden p-4">
