@@ -26,7 +26,15 @@ function generateAvatarUrl(seed: string) {
   return `https://api.dicebear.com/7.x/bottts-neutral/svg?seed=${encodeURIComponent(seed)}&backgroundColor=1a1a2e`;
 }
 
-async function ensureProfile(user: any, setUser: any, setNewSerial: any, setMode: any, navigate: any, isOAuth = false) {
+async function ensureProfile(
+  user: any,
+  setUser: any,
+  setNewSerial: any,
+  setMode: any,
+  navigate: any,
+  isOAuth = false,
+  setOAuthPending?: (u: any) => void,
+) {
   // 1) Try by user_id (existing linked account)
   let { data: profile } = await supabase.from("profiles").select("*").eq("user_id", user.id).maybeSingle();
 
@@ -46,25 +54,23 @@ async function ensureProfile(user: any, setUser: any, setNewSerial: any, setMode
     return;
   }
 
-  // 3) Brand new — create profile
+  // 3) Brand new
+  if (isOAuth && setOAuthPending) {
+    // Defer profile creation until user completes onboarding form
+    setOAuthPending(user);
+    setMode("oauth-onboarding");
+    return;
+  }
+
+  // Email/password signup path (legacy) — auto-create
   const serialNum = generateSerial();
   const fullName = user.user_metadata?.full_name || user.email?.split("@")[0] || "User";
   const photoUrl = user.user_metadata?.avatar_url || generateAvatarUrl(user.email || serialNum);
   const { error } = await supabase.from("profiles").insert({ user_id: user.id, full_name: fullName, email: user.email || "", role: "student", serial_number: serialNum, photo_url: photoUrl });
   if (!error) {
     setUser({ id: user.id, fullName, email: user.email || "", role: "student", serialNumber: serialNum, photoUrl });
-    if (isOAuth) {
-      navigate("/hub");
-    } else {
-      setNewSerial(serialNum);
-      setMode("success");
-    }
-  } else {
-    const { data: retryProfile } = await supabase.from("profiles").select("*").eq("user_id", user.id).maybeSingle();
-    if (retryProfile) {
-      setUser({ id: user.id, fullName: retryProfile.full_name, email: retryProfile.email, role: retryProfile.role, serialNumber: retryProfile.serial_number, photoUrl: retryProfile.photo_url || undefined, nickname: retryProfile.nickname || undefined });
-      navigate("/hub");
-    }
+    setNewSerial(serialNum);
+    setMode("success");
   }
 }
 
