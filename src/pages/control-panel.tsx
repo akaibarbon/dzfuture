@@ -7,7 +7,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
-import { ShieldAlert, Megaphone, Users, Trash2, Plus, Lock, BadgeCheck, CheckCircle, XCircle, UserCheck, GraduationCap, UserPlus, Copy, Loader2 } from "lucide-react";
+import { ShieldAlert, Megaphone, Users, Trash2, Plus, Lock, BadgeCheck, CheckCircle, XCircle, UserCheck, GraduationCap, UserPlus, Copy, Loader2, Download, ImageDown } from "lucide-react";
 import { motion } from "framer-motion";
 import { useTranslation } from "react-i18next";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
