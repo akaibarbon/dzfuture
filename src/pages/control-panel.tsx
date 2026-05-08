@@ -37,7 +37,7 @@ export default function ControlPanelPage() {
   const [joinRequests, setJoinRequests] = useState<JoinRequest[]>([]);
 
   // Create-account form
-  const [acctForm, setAcctForm] = useState<{ fullName: string; role: "student" | "tutor"; level: string; branch: string; levels: string[] }>({ fullName: "", role: "student", level: "", branch: "", levels: [] });
+  const [acctForm, setAcctForm] = useState<{ fullName: string; role: "student" | "tutor"; level: string; branch: string; levels: string[]; email: string }>({ fullName: "", role: "student", level: "", branch: "", levels: [], email: "" });
   const [acctBusy, setAcctBusy] = useState(false);
   const [createdSerial, setCreatedSerial] = useState<{ serial: string; name: string } | null>(null);
 
