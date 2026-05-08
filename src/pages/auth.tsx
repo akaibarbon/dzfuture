@@ -134,7 +134,7 @@ export default function AuthPage() {
     // getSession to trigger INITIAL_SESSION
     supabase.auth.getSession().then(({ data: { session } }) => {
       if (session?.user && mounted) {
-        ensureProfile(session.user, setUser, setNewSerial, setMode, navigate, true);
+        ensureProfile(session.user, setUser, setNewSerial, setMode, navigate, true, setOauthPending);
       }
       if (mounted) setCheckingSession(false);
     });
