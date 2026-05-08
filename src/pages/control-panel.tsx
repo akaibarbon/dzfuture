@@ -7,12 +7,13 @@ import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
-import { ShieldAlert, Megaphone, Users, Trash2, Plus, Lock, BadgeCheck, CheckCircle, XCircle, UserCheck, GraduationCap, UserPlus, Copy, Loader2 } from "lucide-react";
+import { ShieldAlert, Megaphone, Users, Trash2, Plus, Lock, BadgeCheck, CheckCircle, XCircle, UserCheck, GraduationCap, UserPlus, Copy, Loader2, Download, ImageDown } from "lucide-react";
 import { motion } from "framer-motion";
 import { useTranslation } from "react-i18next";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { LEVELS, SECONDARY_BRANCHES, getLevelMeta, levelLabel } from "@/lib/levels";
 import { adminCreateAccount } from "@/server/admin-users.functions";
+import { downloadSerialAsImage } from "@/lib/serial-image";
 
 const ADMIN_SERIAL = "EJ76";
 const ADMIN_EMAIL = "boukaachey@gmail.com";
@@ -37,7 +38,7 @@ export default function ControlPanelPage() {
   const [joinRequests, setJoinRequests] = useState<JoinRequest[]>([]);
 
   // Create-account form
-  const [acctForm, setAcctForm] = useState<{ fullName: string; role: "student" | "tutor"; level: string; branch: string; levels: string[] }>({ fullName: "", role: "student", level: "", branch: "", levels: [] });
+  const [acctForm, setAcctForm] = useState<{ fullName: string; role: "student" | "tutor"; level: string; branch: string; levels: string[]; email: string }>({ fullName: "", role: "student", level: "", branch: "", levels: [], email: "" });
   const [acctBusy, setAcctBusy] = useState(false);
   const [createdSerial, setCreatedSerial] = useState<{ serial: string; name: string } | null>(null);
 
@@ -183,9 +184,10 @@ export default function ControlPanelPage() {
         level: acctForm.role === "student" ? acctForm.level : null,
         branch: acctForm.role === "student" ? acctForm.branch : null,
         levels: acctForm.role === "tutor" ? acctForm.levels : [],
+        email: acctForm.email.trim() || null,
       }});
       setCreatedSerial({ serial: res.serial, name: res.fullName });
-      setAcctForm({ fullName: "", role: "student", level: "", branch: "", levels: [] });
+      setAcctForm({ fullName: "", role: "student", level: "", branch: "", levels: [], email: "" });
       toast({ title: "✓ تم إنشاء الحساب", description: `الرقم التسلسلي: ${res.serial}` });
       fetchData();
     } catch (err: any) {
@@ -275,19 +277,35 @@ export default function ControlPanelPage() {
         <Card className="glass-panel">
           <CardContent className="pt-6">
             {createdSerial && (
-              <div className="mb-4 p-4 rounded-xl border-2 border-green-500/50 bg-green-500/10 space-y-2">
+              <div className="mb-4 p-4 rounded-xl border-2 border-green-500/50 bg-green-500/10 space-y-3">
                 <p className="text-sm text-muted-foreground">تم إنشاء الحساب لـ <b>{createdSerial.name}</b>. الرقم التسلسلي للدخول:</p>
                 <div className="flex items-center gap-2">
-                  <code className="flex-1 text-2xl font-mono font-bold text-green-400 bg-background/60 px-4 py-2 rounded-lg tracking-widest">{createdSerial.serial}</code>
-                  <Button type="button" size="sm" onClick={() => { navigator.clipboard.writeText(createdSerial.serial); toast({ title: "✓ نُسخ" }); }}>
-                    <Copy className="w-4 h-4" />
+                  <code className="flex-1 text-2xl font-mono font-bold text-green-400 bg-background/60 px-4 py-2 rounded-lg tracking-widest text-center">{createdSerial.serial}</code>
+                </div>
+                <div className="grid grid-cols-3 gap-2">
+                  <Button type="button" size="sm" variant="outline" onClick={() => { navigator.clipboard.writeText(createdSerial.serial); toast({ title: "✓ نُسخ" }); }}>
+                    <Copy className="w-4 h-4 ml-1" /> نسخ
+                  </Button>
+                  <Button type="button" size="sm" variant="outline" onClick={() => {
+                    const txt = `CEM G.M\n\nالاسم: ${createdSerial.name}\nالرقم التسلسلي: ${createdSerial.serial}\n\nاحفظ هذا الرقم — هو مفتاح الدخول.`;
+                    const blob = new Blob([txt], { type: "text/plain;charset=utf-8" });
+                    const url = URL.createObjectURL(blob);
+                    const a = document.createElement("a"); a.href = url; a.download = `CEMGM-Serial-${createdSerial.serial}.txt`;
+                    document.body.appendChild(a); a.click(); document.body.removeChild(a); URL.revokeObjectURL(url);
+                  }}>
+                    <Download className="w-4 h-4 ml-1" /> ملف
+                  </Button>
+                  <Button type="button" size="sm" variant="outline" onClick={() => downloadSerialAsImage(createdSerial.serial, createdSerial.name)}>
+                    <ImageDown className="w-4 h-4 ml-1" /> صورة
                   </Button>
                 </div>
                 <p className="text-xs text-amber-400">⚠ احفظ هذا الرقم — لن يظهر مرة أخرى.</p>
+                <Button type="button" size="sm" variant="ghost" className="w-full" onClick={() => setCreatedSerial(null)}>إغلاق</Button>
               </div>
             )}
             <form onSubmit={handleCreateAccount} className="space-y-4">
               <div className="space-y-2"><Label>الاسم واللقب</Label><Input required value={acctForm.fullName} onChange={(e) => setAcctForm({ ...acctForm, fullName: e.target.value })} className="bg-background/40" placeholder="مثال: محمد بن علي" /></div>
+              <div className="space-y-2"><Label>الإيميل (اختياري — لربط الدخول عبر Google)</Label><Input type="email" value={acctForm.email} onChange={(e) => setAcctForm({ ...acctForm, email: e.target.value })} className="bg-background/40" placeholder="student@gmail.com" /></div>
               <div className="space-y-2">
                 <Label>الدور</Label>
                 <Select value={acctForm.role} onValueChange={(v: any) => setAcctForm({ ...acctForm, role: v, level: "", branch: "", levels: [] })}>

@@ -13,6 +13,8 @@ import { supabase } from "@/integrations/supabase/client";
 import { useTranslation } from "react-i18next";
 import { LevelPicker } from "@/components/level-picker";
 import { getLevelMeta } from "@/lib/levels";
+import { downloadSerialAsImage } from "@/lib/serial-image";
+import { ImageDown } from "lucide-react";
 import logoImg from "@/assets/logo.png";
 
 function generateSerial() {
@@ -24,7 +26,15 @@ function generateAvatarUrl(seed: string) {
   return `https://api.dicebear.com/7.x/bottts-neutral/svg?seed=${encodeURIComponent(seed)}&backgroundColor=1a1a2e`;
 }
 
-async function ensureProfile(user: any, setUser: any, setNewSerial: any, setMode: any, navigate: any, isOAuth = false) {
+async function ensureProfile(
+  user: any,
+  setUser: any,
+  setNewSerial: any,
+  setMode: any,
+  navigate: any,
+  isOAuth = false,
+  setOAuthPending?: (u: any) => void,
+) {
   // 1) Try by user_id (existing linked account)
   let { data: profile } = await supabase.from("profiles").select("*").eq("user_id", user.id).maybeSingle();
 
@@ -44,25 +54,23 @@ async function ensureProfile(user: any, setUser: any, setNewSerial: any, setMode
     return;
   }
 
-  // 3) Brand new — create profile
+  // 3) Brand new
+  if (isOAuth && setOAuthPending) {
+    // Defer profile creation until user completes onboarding form
+    setOAuthPending(user);
+    setMode("oauth-onboarding");
+    return;
+  }
+
+  // Email/password signup path (legacy) — auto-create
   const serialNum = generateSerial();
   const fullName = user.user_metadata?.full_name || user.email?.split("@")[0] || "User";
   const photoUrl = user.user_metadata?.avatar_url || generateAvatarUrl(user.email || serialNum);
   const { error } = await supabase.from("profiles").insert({ user_id: user.id, full_name: fullName, email: user.email || "", role: "student", serial_number: serialNum, photo_url: photoUrl });
   if (!error) {
     setUser({ id: user.id, fullName, email: user.email || "", role: "student", serialNumber: serialNum, photoUrl });
-    if (isOAuth) {
-      navigate("/hub");
-    } else {
-      setNewSerial(serialNum);
-      setMode("success");
-    }
-  } else {
-    const { data: retryProfile } = await supabase.from("profiles").select("*").eq("user_id", user.id).maybeSingle();
-    if (retryProfile) {
-      setUser({ id: user.id, fullName: retryProfile.full_name, email: retryProfile.email, role: retryProfile.role, serialNumber: retryProfile.serial_number, photoUrl: retryProfile.photo_url || undefined, nickname: retryProfile.nickname || undefined });
-      navigate("/hub");
-    }
+    setNewSerial(serialNum);
+    setMode("success");
   }
 }
 
@@ -71,7 +79,10 @@ export default function AuthPage() {
   const { toast } = useToast();
   const { t } = useTranslation();
   const { setUser } = useAuth();
-  const [mode, setMode] = useState<"login" | "register" | "success">("login");
+  const [mode, setMode] = useState<"login" | "register" | "success" | "oauth-onboarding">("login");
+  const [oauthPending, setOauthPending] = useState<any>(null);
+  const [oauthForm, setOauthForm] = useState({ fullName: "", role: "student", level: "", branch: "" });
+  const [oauthBusy, setOauthBusy] = useState(false);
   const [loading, setLoading] = useState(false);
   const [serial, setSerial] = useState("");
   const [regData, setRegData] = useState({ fullName: "", email: "", password: "", role: "student", level: "", branch: "" });
@@ -112,7 +123,9 @@ export default function AuthPage() {
       if (!mounted) return;
       if ((event === "SIGNED_IN" || event === "TOKEN_REFRESHED" || event === "INITIAL_SESSION") && session?.user) {
         const isOAuth = session.user.app_metadata?.provider === "google" || !!session.user.user_metadata?.avatar_url;
-        setTimeout(() => { ensureProfile(session.user, setUser, setNewSerial, setMode, navigate, isOAuth); }, 0);
+        const u = session.user;
+        setOauthForm((f) => ({ ...f, fullName: f.fullName || u.user_metadata?.full_name || "" }));
+        setTimeout(() => { ensureProfile(u, setUser, setNewSerial, setMode, navigate, isOAuth, setOauthPending); }, 0);
       }
       if (event === "INITIAL_SESSION" && !session) {
         if (mounted) setCheckingSession(false);
@@ -121,7 +134,7 @@ export default function AuthPage() {
     // getSession to trigger INITIAL_SESSION
     supabase.auth.getSession().then(({ data: { session } }) => {
       if (session?.user && mounted) {
-        ensureProfile(session.user, setUser, setNewSerial, setMode, navigate, true);
+        ensureProfile(session.user, setUser, setNewSerial, setMode, navigate, true, setOauthPending);
       }
       if (mounted) setCheckingSession(false);
     });
@@ -210,6 +223,37 @@ export default function AuthPage() {
     }
     setLoading(false);
   };
+
+  const handleOAuthOnboardingSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!oauthPending || !oauthForm.fullName.trim() || !oauthForm.level) return;
+    const meta = getLevelMeta(oauthForm.level);
+    if (meta?.branchRequired && !oauthForm.branch) {
+      toast({ title: "اختر الشعبة", variant: "destructive" }); return;
+    }
+    setOauthBusy(true);
+    const serialNum = generateSerial();
+    const isTutor = oauthForm.role === "tutor";
+    const photoUrl = oauthPending.user_metadata?.avatar_url || generateAvatarUrl(oauthForm.fullName);
+    const { error } = await supabase.from("profiles").insert({
+      user_id: oauthPending.id,
+      full_name: oauthForm.fullName.trim(),
+      email: oauthPending.email || "",
+      role: oauthForm.role,
+      serial_number: serialNum,
+      photo_url: photoUrl,
+      level: oauthForm.level,
+      branch: meta?.branchRequired ? oauthForm.branch : null,
+      approved: !isTutor,
+    } as any);
+    setOauthBusy(false);
+    if (error) { toast({ title: "تعذر إنشاء الحساب", description: error.message, variant: "destructive" }); return; }
+    setUser({ id: oauthPending.id, fullName: oauthForm.fullName.trim(), email: oauthPending.email || "", role: oauthForm.role, serialNumber: serialNum, photoUrl, level: oauthForm.level, branch: meta?.branchRequired ? oauthForm.branch : null, approved: !isTutor });
+    setNewSerial(serialNum);
+    setOauthPending(null);
+    setMode("success");
+  };
+
 
   if (checkingSession) return <div className="min-h-screen flex items-center justify-center bg-background"><Loader2 className="w-8 h-8 animate-spin text-primary" /></div>;
 
@@ -300,6 +344,44 @@ export default function AuthPage() {
             </motion.form>
           )}
 
+          {mode === "oauth-onboarding" && (
+            <motion.form key="oauth-onboarding" initial={{ y: 10, opacity: 0 }} animate={{ y: 0, opacity: 1 }} onSubmit={handleOAuthOnboardingSubmit} className="space-y-4">
+              <div className="text-center mb-2">
+                <h2 className="text-xl font-display font-bold text-glow">أكمل بياناتك</h2>
+                <p className="text-sm text-muted-foreground mt-1">أدخل اسمك ومستواك لإنشاء حسابك</p>
+              </div>
+              <div className="space-y-2">
+                <Label>الاسم واللقب</Label>
+                <div className="relative">
+                  <User className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
+                  <Input required value={oauthForm.fullName} onChange={(e) => setOauthForm({ ...oauthForm, fullName: e.target.value })} placeholder="مثال: محمد بن علي" className="pl-10 h-12 bg-background/40" />
+                </div>
+              </div>
+              <div className="space-y-2">
+                <Label>الدور</Label>
+                <Select value={oauthForm.role} onValueChange={(v) => setOauthForm({ ...oauthForm, role: v })}>
+                  <SelectTrigger className="h-12 bg-background/40"><SelectValue /></SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="student">{t("auth.student")}</SelectItem>
+                    <SelectItem value="tutor">{t("auth.tutor")}</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              <LevelPicker
+                level={oauthForm.level || null}
+                branch={oauthForm.branch || null}
+                onLevelChange={(v) => setOauthForm({ ...oauthForm, level: v, branch: "" })}
+                onBranchChange={(v) => setOauthForm({ ...oauthForm, branch: v })}
+              />
+              <Button type="submit" disabled={oauthBusy || !oauthForm.fullName || !oauthForm.level} className="w-full h-12 bg-primary text-primary-foreground font-bold">
+                {oauthBusy ? <Loader2 className="animate-spin" /> : "متابعة"}
+              </Button>
+              <Button type="button" variant="ghost" className="w-full" onClick={async () => { await supabase.auth.signOut(); setOauthPending(null); setMode("login"); }}>
+                إلغاء
+              </Button>
+            </motion.form>
+          )}
+
           {mode === "success" && (
             <motion.div key="success" initial={{ scale: 0.9, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} className="text-center space-y-5">
               <div className="w-20 h-20 mx-auto bg-green-500/20 rounded-full flex items-center justify-center border border-green-500/50">
@@ -316,14 +398,16 @@ export default function AuthPage() {
                 </div>
               </div>
               <div className="p-6 bg-background/60 rounded-xl border-2 border-primary/50 text-4xl font-mono font-bold tracking-[0.2em] text-primary shadow-[0_0_20px_hsl(var(--primary)/0.2)] select-all">{newSerial}</div>
-              <div className="grid grid-cols-2 gap-3">
-                <Button type="button" onClick={handleCopySerial} variant="outline" className="h-12 gap-2 border-primary/50 hover:bg-primary/10">
+              <div className="grid grid-cols-3 gap-2">
+                <Button type="button" onClick={handleCopySerial} variant="outline" className="h-12 gap-1 border-primary/50 hover:bg-primary/10 text-xs">
                   {copied ? <Check className="w-4 h-4 text-green-400" /> : <Copy className="w-4 h-4" />}
-                  {copied ? "تم النسخ" : "نسخ"}
+                  {copied ? "نُسخ" : "نسخ"}
                 </Button>
-                <Button type="button" onClick={handleDownloadSerial} variant="outline" className="h-12 gap-2 border-primary/50 hover:bg-primary/10">
-                  <Download className="w-4 h-4" />
-                  تنزيل
+                <Button type="button" onClick={handleDownloadSerial} variant="outline" className="h-12 gap-1 border-primary/50 hover:bg-primary/10 text-xs">
+                  <Download className="w-4 h-4" /> ملف
+                </Button>
+                <Button type="button" onClick={() => downloadSerialAsImage(newSerial)} variant="outline" className="h-12 gap-1 border-primary/50 hover:bg-primary/10 text-xs">
+                  <ImageDown className="w-4 h-4" /> صورة
                 </Button>
               </div>
               <label className="flex items-center gap-3 p-3 bg-background/40 rounded-lg border border-border cursor-pointer hover:bg-background/60 transition">

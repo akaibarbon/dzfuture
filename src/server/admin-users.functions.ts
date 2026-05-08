@@ -13,15 +13,16 @@ function generateSerial() {
 interface CreateAccountInput {
   fullName: string;
   role: "student" | "tutor";
-  level?: string | null;        // for student: single level (m1..m4)
+  level?: string | null;
   branch?: string | null;
-  levels?: string[];            // for tutor: list of classes/levels (informational)
+  levels?: string[];
+  email?: string | null; // optional real email so the user can also log in via Google with the same identity
 }
 
 export const adminCreateAccount = createServerFn({ method: "POST" })
   .inputValidator((data: unknown) => data as CreateAccountInput)
   .handler(async ({ data }) => {
-    const { fullName, role, level, branch, levels } = data;
+    const { fullName, role, level, branch, levels, email } = data;
     if (!fullName?.trim()) throw new Error("الاسم مطلوب");
 
     // Generate unique serial (max 10 attempts)
@@ -36,12 +37,21 @@ export const adminCreateAccount = createServerFn({ method: "POST" })
       if (!existing) break;
     }
 
+    const realEmail = email?.trim().toLowerCase() || null;
     const fakeEmail = `${serial.toLowerCase()}@cem-gm.local`;
+    const loginEmail = realEmail || fakeEmail; // auth.email used by serial-password login
     const password = serial; // serial == password (login flow uses this)
 
-    // Create auth user
+    // If a real email was provided, ensure it's not already used in profiles
+    if (realEmail) {
+      const { data: existingByEmail } = await supabaseAdmin
+        .from("profiles").select("id").eq("email", realEmail).maybeSingle();
+      if (existingByEmail) throw new Error("هذا الإيميل مسجّل مسبقاً");
+    }
+
+    // Create auth user (auto-confirmed)
     const { data: authUser, error: authErr } = await supabaseAdmin.auth.admin.createUser({
-      email: fakeEmail,
+      email: loginEmail,
       password,
       email_confirm: true,
       user_metadata: { full_name: fullName, created_by_admin: true },
@@ -54,7 +64,7 @@ export const adminCreateAccount = createServerFn({ method: "POST" })
     const { error: profErr } = await supabaseAdmin.from("profiles").insert({
       user_id: authUser.user.id,
       full_name: fullName,
-      email: fakeEmail,
+      email: loginEmail,
       role,
       serial_number: serial,
       photo_url: `https://api.dicebear.com/7.x/bottts-neutral/svg?seed=${encodeURIComponent(fullName)}`,
@@ -69,5 +79,5 @@ export const adminCreateAccount = createServerFn({ method: "POST" })
       throw new Error(profErr.message);
     }
 
-    return { serial, fullName, role, email: fakeEmail };
+    return { serial, fullName, role, email: loginEmail };
   });
