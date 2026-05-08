@@ -344,6 +344,44 @@ export default function AuthPage() {
             </motion.form>
           )}
 
+          {mode === "oauth-onboarding" && (
+            <motion.form key="oauth-onboarding" initial={{ y: 10, opacity: 0 }} animate={{ y: 0, opacity: 1 }} onSubmit={handleOAuthOnboardingSubmit} className="space-y-4">
+              <div className="text-center mb-2">
+                <h2 className="text-xl font-display font-bold text-glow">أكمل بياناتك</h2>
+                <p className="text-sm text-muted-foreground mt-1">أدخل اسمك ومستواك لإنشاء حسابك</p>
+              </div>
+              <div className="space-y-2">
+                <Label>الاسم واللقب</Label>
+                <div className="relative">
+                  <User className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
+                  <Input required value={oauthForm.fullName} onChange={(e) => setOauthForm({ ...oauthForm, fullName: e.target.value })} placeholder="مثال: محمد بن علي" className="pl-10 h-12 bg-background/40" />
+                </div>
+              </div>
+              <div className="space-y-2">
+                <Label>الدور</Label>
+                <Select value={oauthForm.role} onValueChange={(v) => setOauthForm({ ...oauthForm, role: v })}>
+                  <SelectTrigger className="h-12 bg-background/40"><SelectValue /></SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="student">{t("auth.student")}</SelectItem>
+                    <SelectItem value="tutor">{t("auth.tutor")}</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              <LevelPicker
+                level={oauthForm.level || null}
+                branch={oauthForm.branch || null}
+                onLevelChange={(v) => setOauthForm({ ...oauthForm, level: v, branch: "" })}
+                onBranchChange={(v) => setOauthForm({ ...oauthForm, branch: v })}
+              />
+              <Button type="submit" disabled={oauthBusy || !oauthForm.fullName || !oauthForm.level} className="w-full h-12 bg-primary text-primary-foreground font-bold">
+                {oauthBusy ? <Loader2 className="animate-spin" /> : "متابعة"}
+              </Button>
+              <Button type="button" variant="ghost" className="w-full" onClick={async () => { await supabase.auth.signOut(); setOauthPending(null); setMode("login"); }}>
+                إلغاء
+              </Button>
+            </motion.form>
+          )}
+
           {mode === "success" && (
             <motion.div key="success" initial={{ scale: 0.9, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} className="text-center space-y-5">
               <div className="w-20 h-20 mx-auto bg-green-500/20 rounded-full flex items-center justify-center border border-green-500/50">
