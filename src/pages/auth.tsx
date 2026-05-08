@@ -123,7 +123,9 @@ export default function AuthPage() {
       if (!mounted) return;
       if ((event === "SIGNED_IN" || event === "TOKEN_REFRESHED" || event === "INITIAL_SESSION") && session?.user) {
         const isOAuth = session.user.app_metadata?.provider === "google" || !!session.user.user_metadata?.avatar_url;
-        setTimeout(() => { ensureProfile(session.user, setUser, setNewSerial, setMode, navigate, isOAuth); }, 0);
+        const u = session.user;
+        setOauthForm((f) => ({ ...f, fullName: f.fullName || u.user_metadata?.full_name || "" }));
+        setTimeout(() => { ensureProfile(u, setUser, setNewSerial, setMode, navigate, isOAuth, setOauthPending); }, 0);
       }
       if (event === "INITIAL_SESSION" && !session) {
         if (mounted) setCheckingSession(false);
