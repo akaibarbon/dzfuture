@@ -64,7 +64,7 @@ export const adminCreateAccount = createServerFn({ method: "POST" })
     const { error: profErr } = await supabaseAdmin.from("profiles").insert({
       user_id: authUser.user.id,
       full_name: fullName,
-      email: fakeEmail,
+      email: loginEmail,
       role,
       serial_number: serial,
       photo_url: `https://api.dicebear.com/7.x/bottts-neutral/svg?seed=${encodeURIComponent(fullName)}`,
