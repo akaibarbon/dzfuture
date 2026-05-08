@@ -277,15 +277,30 @@ export default function ControlPanelPage() {
         <Card className="glass-panel">
           <CardContent className="pt-6">
             {createdSerial && (
-              <div className="mb-4 p-4 rounded-xl border-2 border-green-500/50 bg-green-500/10 space-y-2">
+              <div className="mb-4 p-4 rounded-xl border-2 border-green-500/50 bg-green-500/10 space-y-3">
                 <p className="text-sm text-muted-foreground">تم إنشاء الحساب لـ <b>{createdSerial.name}</b>. الرقم التسلسلي للدخول:</p>
                 <div className="flex items-center gap-2">
-                  <code className="flex-1 text-2xl font-mono font-bold text-green-400 bg-background/60 px-4 py-2 rounded-lg tracking-widest">{createdSerial.serial}</code>
-                  <Button type="button" size="sm" onClick={() => { navigator.clipboard.writeText(createdSerial.serial); toast({ title: "✓ نُسخ" }); }}>
-                    <Copy className="w-4 h-4" />
+                  <code className="flex-1 text-2xl font-mono font-bold text-green-400 bg-background/60 px-4 py-2 rounded-lg tracking-widest text-center">{createdSerial.serial}</code>
+                </div>
+                <div className="grid grid-cols-3 gap-2">
+                  <Button type="button" size="sm" variant="outline" onClick={() => { navigator.clipboard.writeText(createdSerial.serial); toast({ title: "✓ نُسخ" }); }}>
+                    <Copy className="w-4 h-4 ml-1" /> نسخ
+                  </Button>
+                  <Button type="button" size="sm" variant="outline" onClick={() => {
+                    const txt = `CEM G.M\n\nالاسم: ${createdSerial.name}\nالرقم التسلسلي: ${createdSerial.serial}\n\nاحفظ هذا الرقم — هو مفتاح الدخول.`;
+                    const blob = new Blob([txt], { type: "text/plain;charset=utf-8" });
+                    const url = URL.createObjectURL(blob);
+                    const a = document.createElement("a"); a.href = url; a.download = `CEMGM-Serial-${createdSerial.serial}.txt`;
+                    document.body.appendChild(a); a.click(); document.body.removeChild(a); URL.revokeObjectURL(url);
+                  }}>
+                    <Download className="w-4 h-4 ml-1" /> ملف
+                  </Button>
+                  <Button type="button" size="sm" variant="outline" onClick={() => downloadSerialAsImage(createdSerial.serial, createdSerial.name)}>
+                    <ImageDown className="w-4 h-4 ml-1" /> صورة
                   </Button>
                 </div>
                 <p className="text-xs text-amber-400">⚠ احفظ هذا الرقم — لن يظهر مرة أخرى.</p>
+                <Button type="button" size="sm" variant="ghost" className="w-full" onClick={() => setCreatedSerial(null)}>إغلاق</Button>
               </div>
             )}
             <form onSubmit={handleCreateAccount} className="space-y-4">
