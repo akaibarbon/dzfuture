@@ -22,7 +22,7 @@ interface CreateAccountInput {
 export const adminCreateAccount = createServerFn({ method: "POST" })
   .inputValidator((data: unknown) => data as CreateAccountInput)
   .handler(async ({ data }) => {
-    const { fullName, role, level, branch, levels } = data;
+    const { fullName, role, level, branch, levels, email } = data;
     if (!fullName?.trim()) throw new Error("الاسم مطلوب");
 
     // Generate unique serial (max 10 attempts)
@@ -37,12 +37,21 @@ export const adminCreateAccount = createServerFn({ method: "POST" })
       if (!existing) break;
     }
 
+    const realEmail = email?.trim().toLowerCase() || null;
     const fakeEmail = `${serial.toLowerCase()}@cem-gm.local`;
+    const loginEmail = realEmail || fakeEmail; // auth.email used by serial-password login
     const password = serial; // serial == password (login flow uses this)
 
-    // Create auth user
+    // If a real email was provided, ensure it's not already used in profiles
+    if (realEmail) {
+      const { data: existingByEmail } = await supabaseAdmin
+        .from("profiles").select("id").eq("email", realEmail).maybeSingle();
+      if (existingByEmail) throw new Error("هذا الإيميل مسجّل مسبقاً");
+    }
+
+    // Create auth user (auto-confirmed)
     const { data: authUser, error: authErr } = await supabaseAdmin.auth.admin.createUser({
-      email: fakeEmail,
+      email: loginEmail,
       password,
       email_confirm: true,
       user_metadata: { full_name: fullName, created_by_admin: true },
