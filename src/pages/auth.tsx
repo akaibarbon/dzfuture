@@ -79,7 +79,10 @@ export default function AuthPage() {
   const { toast } = useToast();
   const { t } = useTranslation();
   const { setUser } = useAuth();
-  const [mode, setMode] = useState<"login" | "register" | "success">("login");
+  const [mode, setMode] = useState<"login" | "register" | "success" | "oauth-onboarding">("login");
+  const [oauthPending, setOauthPending] = useState<any>(null);
+  const [oauthForm, setOauthForm] = useState({ fullName: "", role: "student", level: "", branch: "" });
+  const [oauthBusy, setOauthBusy] = useState(false);
   const [loading, setLoading] = useState(false);
   const [serial, setSerial] = useState("");
   const [regData, setRegData] = useState({ fullName: "", email: "", password: "", role: "student", level: "", branch: "" });
