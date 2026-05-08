@@ -13,9 +13,10 @@ function generateSerial() {
 interface CreateAccountInput {
   fullName: string;
   role: "student" | "tutor";
-  level?: string | null;        // for student: single level (m1..m4)
+  level?: string | null;
   branch?: string | null;
-  levels?: string[];            // for tutor: list of classes/levels (informational)
+  levels?: string[];
+  email?: string | null; // optional real email so the user can also log in via Google with the same identity
 }
 
 export const adminCreateAccount = createServerFn({ method: "POST" })
