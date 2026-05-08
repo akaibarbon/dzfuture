@@ -360,14 +360,16 @@ export default function AuthPage() {
                 </div>
               </div>
               <div className="p-6 bg-background/60 rounded-xl border-2 border-primary/50 text-4xl font-mono font-bold tracking-[0.2em] text-primary shadow-[0_0_20px_hsl(var(--primary)/0.2)] select-all">{newSerial}</div>
-              <div className="grid grid-cols-2 gap-3">
-                <Button type="button" onClick={handleCopySerial} variant="outline" className="h-12 gap-2 border-primary/50 hover:bg-primary/10">
+              <div className="grid grid-cols-3 gap-2">
+                <Button type="button" onClick={handleCopySerial} variant="outline" className="h-12 gap-1 border-primary/50 hover:bg-primary/10 text-xs">
                   {copied ? <Check className="w-4 h-4 text-green-400" /> : <Copy className="w-4 h-4" />}
-                  {copied ? "تم النسخ" : "نسخ"}
+                  {copied ? "نُسخ" : "نسخ"}
                 </Button>
-                <Button type="button" onClick={handleDownloadSerial} variant="outline" className="h-12 gap-2 border-primary/50 hover:bg-primary/10">
-                  <Download className="w-4 h-4" />
-                  تنزيل
+                <Button type="button" onClick={handleDownloadSerial} variant="outline" className="h-12 gap-1 border-primary/50 hover:bg-primary/10 text-xs">
+                  <Download className="w-4 h-4" /> ملف
+                </Button>
+                <Button type="button" onClick={() => downloadSerialAsImage(newSerial)} variant="outline" className="h-12 gap-1 border-primary/50 hover:bg-primary/10 text-xs">
+                  <ImageDown className="w-4 h-4" /> صورة
                 </Button>
               </div>
               <label className="flex items-center gap-3 p-3 bg-background/40 rounded-lg border border-border cursor-pointer hover:bg-background/60 transition">
