@@ -13,6 +13,8 @@ import { supabase } from "@/integrations/supabase/client";
 import { useTranslation } from "react-i18next";
 import { LevelPicker } from "@/components/level-picker";
 import { getLevelMeta } from "@/lib/levels";
+import { downloadSerialAsImage } from "@/lib/serial-image";
+import { ImageDown } from "lucide-react";
 import logoImg from "@/assets/logo.png";
 
 function generateSerial() {
