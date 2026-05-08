@@ -305,6 +305,7 @@ export default function ControlPanelPage() {
             )}
             <form onSubmit={handleCreateAccount} className="space-y-4">
               <div className="space-y-2"><Label>الاسم واللقب</Label><Input required value={acctForm.fullName} onChange={(e) => setAcctForm({ ...acctForm, fullName: e.target.value })} className="bg-background/40" placeholder="مثال: محمد بن علي" /></div>
+              <div className="space-y-2"><Label>الإيميل (اختياري — لربط الدخول عبر Google)</Label><Input type="email" value={acctForm.email} onChange={(e) => setAcctForm({ ...acctForm, email: e.target.value })} className="bg-background/40" placeholder="student@gmail.com" /></div>
               <div className="space-y-2">
                 <Label>الدور</Label>
                 <Select value={acctForm.role} onValueChange={(v: any) => setAcctForm({ ...acctForm, role: v, level: "", branch: "", levels: [] })}>
