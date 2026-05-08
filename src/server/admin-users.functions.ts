@@ -79,5 +79,5 @@ export const adminCreateAccount = createServerFn({ method: "POST" })
       throw new Error(profErr.message);
     }
 
-    return { serial, fullName, role, email: fakeEmail };
+    return { serial, fullName, role, email: loginEmail };
   });
