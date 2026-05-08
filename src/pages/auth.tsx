@@ -254,6 +254,9 @@ export default function AuthPage() {
     setMode("success");
   };
 
+
+  if (checkingSession) return <div className="min-h-screen flex items-center justify-center bg-background"><Loader2 className="w-8 h-8 animate-spin text-primary" /></div>;
+
   return (
     <div className="min-h-screen flex items-center justify-center bg-background relative overflow-hidden p-4">
       <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[800px] bg-primary/10 rounded-full blur-[120px] pointer-events-none" />
