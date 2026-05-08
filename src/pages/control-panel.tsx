@@ -183,9 +183,10 @@ export default function ControlPanelPage() {
         level: acctForm.role === "student" ? acctForm.level : null,
         branch: acctForm.role === "student" ? acctForm.branch : null,
         levels: acctForm.role === "tutor" ? acctForm.levels : [],
+        email: acctForm.email.trim() || null,
       }});
       setCreatedSerial({ serial: res.serial, name: res.fullName });
-      setAcctForm({ fullName: "", role: "student", level: "", branch: "", levels: [] });
+      setAcctForm({ fullName: "", role: "student", level: "", branch: "", levels: [], email: "" });
       toast({ title: "✓ تم إنشاء الحساب", description: `الرقم التسلسلي: ${res.serial}` });
       fetchData();
     } catch (err: any) {
