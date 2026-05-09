@@ -2,10 +2,6 @@ import { createServerFn } from "@tanstack/react-start";
 import { supabaseAdmin } from "@/integrations/supabase/client.server";
 import { generateSerialNumber, serialToAuthPassword } from "@/lib/serial-auth";
 
-function generateSerial() {
-  return generateSerialNumber();
-}
-
 interface CreateAccountInput {
   fullName: string;
   role: "student" | "tutor";
@@ -24,7 +20,7 @@ export const adminCreateAccount = createServerFn({ method: "POST" })
     // Generate unique serial (max 10 attempts)
     let serial = "";
     for (let i = 0; i < 10; i++) {
-      serial = generateSerial();
+      serial = generateSerialNumber();
       const { data: existing } = await supabaseAdmin
         .from("profiles")
         .select("id")
