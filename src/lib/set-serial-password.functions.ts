@@ -1,5 +1,6 @@
 import { createServerFn } from "@tanstack/react-start";
 import { supabaseAdmin } from "@/integrations/supabase/client.server";
+import { normalizeSerial, serialPasswordCandidates, serialToAuthPassword } from "@/lib/serial-auth";
 
 interface Input { userId: string; serial: string }
 
@@ -11,7 +12,7 @@ export const setSerialPassword = createServerFn({ method: "POST" })
     const { userId, serial } = data;
     if (!userId || !serial) throw new Error("بيانات ناقصة");
     const { error } = await supabaseAdmin.auth.admin.updateUserById(userId, {
-      password: serial,
+      password: serialToAuthPassword(serial),
     });
     if (error) throw new Error(error.message);
     return { ok: true };
@@ -23,7 +24,7 @@ export const setSerialPassword = createServerFn({ method: "POST" })
 export const healSerialLogin = createServerFn({ method: "POST" })
   .inputValidator((data: unknown) => data as { serial: string })
   .handler(async ({ data }) => {
-    const serial = (data.serial || "").toUpperCase();
+    const serial = normalizeSerial(data.serial || "");
     if (!serial) throw new Error("الرقم التسلسلي مطلوب");
     const { data: profile, error } = await supabaseAdmin
       .from("profiles")
@@ -33,8 +34,8 @@ export const healSerialLogin = createServerFn({ method: "POST" })
     if (error) throw new Error(error.message);
     if (!profile?.user_id) throw new Error("الحساب غير موجود");
     const { error: updErr } = await supabaseAdmin.auth.admin.updateUserById(profile.user_id, {
-      password: serial,
+      password: serialToAuthPassword(serial),
     });
     if (updErr) throw new Error(updErr.message);
-    return { email: profile.email as string };
+    return { email: profile.email as string, passwords: serialPasswordCandidates(serial) };
   });
