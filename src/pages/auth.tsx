@@ -14,6 +14,7 @@ import { useTranslation } from "react-i18next";
 import { LevelPicker } from "@/components/level-picker";
 import { getLevelMeta } from "@/lib/levels";
 import { downloadSerialAsImage } from "@/lib/serial-image";
+import { setSerialPassword, healSerialLogin } from "@/lib/set-serial-password.functions";
 import { ImageDown } from "lucide-react";
 import logoImg from "@/assets/logo.png";
 
