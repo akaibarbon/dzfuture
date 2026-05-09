@@ -1,13 +1,9 @@
 import { createServerFn } from "@tanstack/react-start";
 import { supabaseAdmin } from "@/integrations/supabase/client.server";
+import { generateSerialNumber, serialToAuthPassword } from "@/lib/serial-auth";
 
 function generateSerial() {
-  const letters = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
-  return (
-    letters[Math.floor(Math.random() * 26)] +
-    letters[Math.floor(Math.random() * 26)] +
-    Math.floor(10 + Math.random() * 90).toString()
-  );
+  return generateSerialNumber();
 }
 
 interface CreateAccountInput {
@@ -40,7 +36,7 @@ export const adminCreateAccount = createServerFn({ method: "POST" })
     const realEmail = email?.trim().toLowerCase() || null;
     const fakeEmail = `${serial.toLowerCase()}@cem-gm.local`;
     const loginEmail = realEmail || fakeEmail; // auth.email used by serial-password login
-    const password = serial; // serial == password (login flow uses this)
+    const password = serialToAuthPassword(serial); // derived from serial for reliable auth password rules
 
     // If a real email was provided, ensure it's not already used in profiles
     if (realEmail) {
