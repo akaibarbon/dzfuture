@@ -203,8 +203,9 @@ export default function AuthPage() {
     }
     setLoading(true);
 
-    // Check if email already exists (linked via Google previously)
-    const { data: existingProfile } = await supabase.from("profiles").select("user_id, serial_number").eq("email", regData.email).maybeSingle();
+    const emailLower = regData.email.trim().toLowerCase();
+    // Check if email already exists (case-insensitive) — prevents duplicate accounts
+    const { data: existingProfile } = await supabase.from("profiles").select("user_id, serial_number").ilike("email", emailLower).maybeSingle();
     if (existingProfile) {
       toast({
         title: "هذا الإيميل مسجّل مسبقاً",
