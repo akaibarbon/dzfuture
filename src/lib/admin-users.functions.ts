@@ -34,7 +34,7 @@ export const adminCreateAccount = createServerFn({ method: "POST" })
     }
 
     const realEmail = email?.trim().toLowerCase() || null;
-    const fakeEmail = `${serial.toLowerCase()}@cem-gm.local`;
+    const fakeEmail = `${serial.toLowerCase()}@accounts.cemgm.lovable.app`;
     const loginEmail = realEmail || fakeEmail; // auth.email used by serial-password login
     const password = serialToAuthPassword(serial); // derived from serial for reliable auth password rules
 
