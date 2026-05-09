@@ -45,7 +45,7 @@ export const adminCreateAccount = createServerFn({ method: "POST" })
     // If a real email was provided, ensure it's not already used in profiles
     if (realEmail) {
       const { data: existingByEmail } = await supabaseAdmin
-        .from("profiles").select("id").eq("email", realEmail).maybeSingle();
+        .from("profiles").select("id").ilike("email", realEmail).maybeSingle();
       if (existingByEmail) throw new Error("هذا الإيميل مسجّل مسبقاً");
     }
 
