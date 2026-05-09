@@ -270,6 +270,8 @@ export default function AuthPage() {
     } as any);
     setOauthBusy(false);
     if (error) { toast({ title: "تعذر إنشاء الحساب", description: error.message, variant: "destructive" }); return; }
+    // Set the auth password = serial so the user can also log in via the serial-number flow
+    try { await setSerialPassword({ data: { userId: oauthPending.id, serial: serialNum } }); } catch {}
     setUser({ id: oauthPending.id, fullName: oauthForm.fullName.trim(), email: oauthPending.email || "", role: oauthForm.role, serialNumber: serialNum, photoUrl, level: oauthForm.level, branch: meta?.branchRequired ? oauthForm.branch : null, approved: !isTutor });
     setNewSerial(serialNum);
     setOauthPending(null);
