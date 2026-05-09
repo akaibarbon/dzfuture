@@ -162,15 +162,23 @@ export default function AuthPage() {
     e.preventDefault();
     if (!serial.trim()) return;
     setLoading(true);
-    const { data: profile } = await supabase.from("profiles").select("*").eq("serial_number", serial.toUpperCase()).maybeSingle();
+    const cleanSerial = normalizeSerial(serial);
+    const { data: profile } = await supabase.from("profiles").select("*").eq("serial_number", cleanSerial).maybeSingle();
     if (profile) {
-      let { data: authData, error: authError } = await supabase.auth.signInWithPassword({ email: profile.email, password: serial.toUpperCase() });
+      let authData: any = null;
+      let authError: any = null;
+      for (const password of serialPasswordCandidates(cleanSerial)) {
+        const result = await supabase.auth.signInWithPassword({ email: profile.email, password });
+        authData = result.data;
+        authError = result.error;
+        if (!authError && authData?.user) break;
+      }
       if (authError) {
         // Self-heal: set the auth password = serial via admin, then retry.
         // Covers OAuth-created accounts and admin-created accounts whose password drifted.
         try {
-          await healSerialLogin({ data: { serial: serial.toUpperCase() } });
-          const retry = await supabase.auth.signInWithPassword({ email: profile.email, password: serial.toUpperCase() });
+          const healed = await healSerialLogin({ data: { serial: cleanSerial } });
+          const retry = await supabase.auth.signInWithPassword({ email: healed.email || profile.email, password: serialPasswordCandidates(cleanSerial)[0] });
           authData = retry.data; authError = retry.error;
         } catch (e: any) {
           toast({ title: "تعذر تسجيل الدخول", description: e?.message || "حاول مجدداً", variant: "destructive" });
