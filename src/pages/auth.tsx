@@ -164,17 +164,21 @@ export default function AuthPage() {
     setLoading(true);
     const { data: profile } = await supabase.from("profiles").select("*").eq("serial_number", serial.toUpperCase()).maybeSingle();
     if (profile) {
-      // Try signing in with serial as password
-      const { data: authData, error: authError } = await supabase.auth.signInWithPassword({ email: profile.email, password: serial.toUpperCase() });
+      let { data: authData, error: authError } = await supabase.auth.signInWithPassword({ email: profile.email, password: serial.toUpperCase() });
       if (authError) {
-        // If password login fails (e.g. Google user), check if there's an existing session
-        const { data: { session } } = await supabase.auth.getSession();
-        if (session?.user) {
-          setUser({ id: session.user.id, fullName: profile.full_name, email: profile.email, role: profile.role, serialNumber: profile.serial_number, photoUrl: profile.photo_url || undefined, nickname: profile.nickname || undefined, level: profile.level, branch: profile.branch, approved: (profile as any).approved ?? true });
-          navigate("/hub");
-        } else {
-          toast({ title: t("auth.googleOnly"), description: t("auth.googleOnlyDesc"), variant: "destructive" });
+        // Self-heal: set the auth password = serial via admin, then retry.
+        // Covers OAuth-created accounts and admin-created accounts whose password drifted.
+        try {
+          await healSerialLogin({ data: { serial: serial.toUpperCase() } });
+          const retry = await supabase.auth.signInWithPassword({ email: profile.email, password: serial.toUpperCase() });
+          authData = retry.data; authError = retry.error;
+        } catch (e: any) {
+          toast({ title: "تعذر تسجيل الدخول", description: e?.message || "حاول مجدداً", variant: "destructive" });
+          setLoading(false); return;
         }
+      }
+      if (authError || !authData?.user) {
+        toast({ title: t("auth.notFound"), description: authError?.message || "", variant: "destructive" });
       } else {
         setUser({ id: authData.user.id, fullName: profile.full_name, email: profile.email, role: profile.role, serialNumber: profile.serial_number, photoUrl: profile.photo_url || undefined, nickname: profile.nickname || undefined, level: profile.level, branch: profile.branch, approved: (profile as any).approved ?? true });
         navigate("/hub");
