@@ -41,20 +41,39 @@ export const adminCreateAccount = createServerFn({ method: "POST" })
       if (existingByEmail) throw new Error("هذا الإيميل مسجّل مسبقاً");
     }
 
-    // Create auth user (auto-confirmed)
-    const { data: authUser, error: authErr } = await supabaseAdmin.auth.admin.createUser({
-      email: loginEmail,
-      password,
-      email_confirm: true,
-      user_metadata: { full_name: fullName, created_by_admin: true },
-    });
-    if (authErr || !authUser.user) throw new Error(authErr?.message || "فشل إنشاء الحساب");
+    let createdAuthUser = false;
+    let authUserId = "";
+    if (realEmail) {
+      const { data: listed, error: listErr } = await supabaseAdmin.auth.admin.listUsers({ page: 1, perPage: 1000 });
+      if (listErr) throw new Error(listErr.message);
+      const existingAuth = listed.users.find((u) => u.email?.toLowerCase() === realEmail);
+      if (existingAuth) {
+        const { error: updateErr } = await supabaseAdmin.auth.admin.updateUserById(existingAuth.id, {
+          password,
+          user_metadata: { ...existingAuth.user_metadata, full_name: fullName, created_by_admin: true },
+        });
+        if (updateErr) throw new Error(updateErr.message);
+        authUserId = existingAuth.id;
+      }
+    }
+
+    if (!authUserId) {
+      const { data: authUser, error: authErr } = await supabaseAdmin.auth.admin.createUser({
+        email: loginEmail,
+        password,
+        email_confirm: true,
+        user_metadata: { full_name: fullName, created_by_admin: true },
+      });
+      if (authErr || !authUser.user) throw new Error(authErr?.message || "فشل إنشاء الحساب");
+      authUserId = authUser.user.id;
+      createdAuthUser = true;
+    }
 
     // For tutors, store joined levels in nickname field as helper, level=null
     const tutorLevels = role === "tutor" && levels?.length ? levels.join(",") : null;
 
     const { error: profErr } = await supabaseAdmin.from("profiles").insert({
-      user_id: authUser.user.id,
+      user_id: authUserId,
       full_name: fullName,
       email: loginEmail,
       role,
@@ -66,8 +85,7 @@ export const adminCreateAccount = createServerFn({ method: "POST" })
       approved: true,
     });
     if (profErr) {
-      // rollback auth user
-      await supabaseAdmin.auth.admin.deleteUser(authUser.user.id);
+      if (createdAuthUser) await supabaseAdmin.auth.admin.deleteUser(authUserId);
       throw new Error(profErr.message);
     }
 
