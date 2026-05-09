@@ -110,7 +110,8 @@ export function Layout({ children }: { children: ReactNode }) {
     ...(isAdmin ? [{ href: "/control-panel", label: t("ControlPanel"), icon: Shield, tutorOnly: true }] : []),
   ];
 
-  const handleLogout = () => {
+  const handleLogout = async () => {
+    try { await supabase.auth.signOut(); } catch {}
     logout();
     window.location.href = "/auth";
   };
