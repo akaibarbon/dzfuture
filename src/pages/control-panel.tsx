@@ -12,7 +12,7 @@ import { motion } from "framer-motion";
 import { useTranslation } from "react-i18next";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { LEVELS, SECONDARY_BRANCHES, getLevelMeta, levelLabel } from "@/lib/levels";
-import { adminCreateAccount } from "@/server/admin-users.functions";
+import { adminCreateAccount } from "@/lib/admin-users.functions";
 import { downloadSerialAsImage } from "@/lib/serial-image";
 
 const ADMIN_SERIAL = "EJ76";
