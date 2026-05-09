@@ -188,6 +188,9 @@ export default function AuthPage() {
       if (authError || !authData?.user) {
         toast({ title: t("auth.notFound"), description: authError?.message || "", variant: "destructive" });
       } else {
+        if (profile.user_id !== authData.user.id) {
+          await supabase.from("profiles").update({ user_id: authData.user.id }).eq("id", profile.id);
+        }
         setUser({ id: authData.user.id, fullName: profile.full_name, email: profile.email, role: profile.role, serialNumber: profile.serial_number, photoUrl: profile.photo_url || undefined, nickname: profile.nickname || undefined, level: profile.level, branch: profile.branch, approved: (profile as any).approved ?? true });
         navigate("/hub");
       }
