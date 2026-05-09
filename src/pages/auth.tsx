@@ -15,12 +15,12 @@ import { LevelPicker } from "@/components/level-picker";
 import { getLevelMeta } from "@/lib/levels";
 import { downloadSerialAsImage } from "@/lib/serial-image";
 import { setSerialPassword, healSerialLogin } from "@/lib/set-serial-password.functions";
+import { generateSerialNumber, normalizeSerial, serialPasswordCandidates } from "@/lib/serial-auth";
 import { ImageDown } from "lucide-react";
 import logoImg from "@/assets/logo.png";
 
 function generateSerial() {
-  const letters = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
-  return letters[Math.floor(Math.random() * 26)] + letters[Math.floor(Math.random() * 26)] + Math.floor(10 + Math.random() * 90).toString();
+  return generateSerialNumber();
 }
 
 function generateAvatarUrl(seed: string) {
