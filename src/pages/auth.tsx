@@ -35,17 +35,33 @@ async function ensureProfile(
   isOAuth = false,
   setOAuthPending?: (u: any) => void,
 ) {
+  const normalizedEmail = (user.email || "").trim().toLowerCase();
+
   // 1) Try by user_id (existing linked account)
   let { data: profile } = await supabase.from("profiles").select("*").eq("user_id", user.id).maybeSingle();
 
-  // 2) If OAuth and no profile by user_id, try linking by email (account merge)
-  if (!profile && isOAuth && user.email) {
-    const { data: byEmail } = await supabase.from("profiles").select("*").eq("email", user.email).maybeSingle();
+  // 2) If no profile by user_id, ALWAYS try linking by email (case-insensitive) to avoid duplicates
+  //    This covers OAuth signing in for an admin-created account, or any provider-mismatch scenario.
+  if (!profile && normalizedEmail) {
+    const { data: byEmail } = await supabase
+      .from("profiles")
+      .select("*")
+      .ilike("email", normalizedEmail)
+      .maybeSingle();
     if (byEmail) {
-      // Link this auth user to the existing profile
-      await supabase.from("profiles").update({ user_id: user.id }).eq("id", byEmail.id);
-      profile = { ...byEmail, user_id: user.id };
+      // Re-link this auth user to the existing profile (and normalize stored email)
+      await supabase
+        .from("profiles")
+        .update({ user_id: user.id, email: normalizedEmail })
+        .eq("id", byEmail.id);
+      profile = { ...byEmail, user_id: user.id, email: normalizedEmail };
     }
+  }
+
+  // 3) If profile exists but its user_id no longer matches current auth user, re-link it
+  if (profile && profile.user_id !== user.id) {
+    await supabase.from("profiles").update({ user_id: user.id }).eq("id", profile.id);
+    profile.user_id = user.id;
   }
 
   if (profile) {
