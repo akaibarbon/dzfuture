@@ -33,9 +33,18 @@ export const healSerialLogin = createServerFn({ method: "POST" })
       .maybeSingle();
     if (error) throw new Error(error.message);
     if (!profile?.user_id) throw new Error("الحساب غير موجود");
+    // Fetch the actual auth user so we use the email Supabase has on record
+    const { data: authUser, error: getErr } = await supabaseAdmin.auth.admin.getUserById(profile.user_id);
+    if (getErr) throw new Error(getErr.message);
+    const authEmail = authUser?.user?.email || (profile.email as string);
     const { error: updErr } = await supabaseAdmin.auth.admin.updateUserById(profile.user_id, {
       password: serialToAuthPassword(serial),
+      email_confirm: true,
     });
     if (updErr) throw new Error(updErr.message);
-    return { email: profile.email as string, passwords: serialPasswordCandidates(serial) };
+    // Sync profile.email to auth email if they drifted
+    if (authEmail && authEmail.toLowerCase() !== (profile.email || "").toLowerCase()) {
+      await supabaseAdmin.from("profiles").update({ email: authEmail }).eq("user_id", profile.user_id);
+    }
+    return { email: authEmail, passwords: serialPasswordCandidates(serial) };
   });
