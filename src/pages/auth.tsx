@@ -174,19 +174,22 @@ export default function AuthPage() {
         if (!authError && authData?.user) break;
       }
       if (authError) {
-        // Self-heal: set the auth password = serial via admin, then retry.
-        // Covers OAuth-created accounts and admin-created accounts whose password drifted.
+        // Self-heal: set the auth password = serial via admin, then retry both candidates.
         try {
           const healed = await healSerialLogin({ data: { serial: cleanSerial } });
-          const retry = await supabase.auth.signInWithPassword({ email: healed.email || profile.email, password: serialPasswordCandidates(cleanSerial)[0] });
-          authData = retry.data; authError = retry.error;
+          const emailToUse = healed.email || profile.email;
+          for (const password of healed.passwords || serialPasswordCandidates(cleanSerial)) {
+            const retry = await supabase.auth.signInWithPassword({ email: emailToUse, password });
+            authData = retry.data; authError = retry.error;
+            if (!authError && authData?.user) break;
+          }
         } catch (e: any) {
-          toast({ title: "تعذر تسجيل الدخول", description: e?.message || "حاول مجدداً", variant: "destructive" });
+          toast({ title: "تعذر تسجيل الدخول", description: e?.message || "حاول الدخول عبر Google بدلاً من ذلك", variant: "destructive" });
           setLoading(false); return;
         }
       }
       if (authError || !authData?.user) {
-        toast({ title: t("auth.notFound"), description: authError?.message || "", variant: "destructive" });
+        toast({ title: "تعذر تسجيل الدخول بالرقم التسلسلي", description: "إذا كان الحساب مرتبطاً بـ Google، استخدم زر «الدخول عبر Google» أدناه.", variant: "destructive" });
       } else {
         if (profile.user_id !== authData.user.id) {
           await supabase.from("profiles").update({ user_id: authData.user.id }).eq("id", profile.id);
