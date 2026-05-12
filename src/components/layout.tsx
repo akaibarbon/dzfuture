@@ -9,7 +9,7 @@ import { useLevelTheme, useLevelBadge } from "@/hooks/use-level-theme";
 import { supabase } from "@/integrations/supabase/client";
 import {
   Home, Bell, CalendarDays, Users, Bot,
-  BookOpen, Settings, LogOut, BookMarked, Menu, X, Shield, Sun, Moon, MessageSquare, CalendarClock, Calculator, Target, ScanLine, Globe, GraduationCap, Sparkles
+  BookOpen, Settings, LogOut, BookMarked, Menu, X, Shield, Sun, Moon, MessageSquare, CalendarClock, Calculator, Target, ScanLine, Globe, GraduationCap, Sparkles, ClipboardList
 } from "lucide-react";
 import { useState } from "react";
 import logoImg from "@/assets/logo.png";
@@ -96,6 +96,7 @@ export function Layout({ children }: { children: ReactNode }) {
     { href: "/tutor-chat", label: "محادثة التلميذ–الأستاذ", icon: MessageSquare },
     { href: "/ai-chat", label: t("AIChat"), icon: Bot },
     { href: "/lessons", label: "الدروس", icon: BookOpenCheck },
+    { href: "/assignments", label: "الواجبات والتحديات", icon: ClipboardList },
     { href: "/programme", label: t("Programme"), icon: BookOpen },
     { href: "/gpa-calculator", label: t("GPACalculator"), icon: Calculator },
     { href: "/knowledge-radar", label: t("KnowledgeRadar"), icon: Target },

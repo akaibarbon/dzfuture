@@ -63,6 +63,9 @@ export function NotificationsBell() {
     join_rejected: "❌",
     new_message: "💬",
     new_event: "📢",
+    new_assignment: "📝",
+    new_challenge: "🏆",
+    new_lesson: "📚",
     info: "ℹ️",
   };
 
