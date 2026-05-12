@@ -5,7 +5,7 @@ import { useAuth } from "@/hooks/use-auth";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Loader2, ShieldCheck, Mail, User, KeyRound, Copy, Download, Check, AlertTriangle } from "lucide-react";
+import { Loader2, ShieldCheck, Mail, User, KeyRound, Copy, Download, Check, AlertTriangle, Info, BookOpen, ChevronDown } from "lucide-react";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
 import { lovable } from "@/integrations/lovable/index";
@@ -318,7 +318,70 @@ export default function AuthPage() {
               <Button type="submit" disabled={loading} className="w-full h-12 text-lg font-bold bg-primary hover:bg-primary/90 text-primary-foreground shadow-[0_0_15px_hsl(var(--primary)/0.3)]">
                 {loading ? <Loader2 className="animate-spin" /> : t("enterHub")}
               </Button>
-              <p className="text-center text-xs text-muted-foreground mt-4">
+
+              <div className="rounded-xl border border-primary/30 bg-primary/5 p-4 text-right space-y-2">
+                <div className="flex items-start gap-2">
+                  <Info className="w-5 h-5 text-primary flex-shrink-0 mt-0.5" />
+                  <div className="text-sm">
+                    <strong className="block mb-1 text-primary">الحسابات مُدارة من الإدارة</strong>
+                    <span className="text-muted-foreground">لا يمكن إنشاء حساب ذاتياً. يتم إنشاء الحسابات من قِبل إدارة المنصة، وتسجيل الدخول يتم حصراً بالرقم التسلسلي الذي يُمنح لك. للحصول على حساب أو في حال فقدان الرقم، تواصل مع الإدارة.</span>
+                  </div>
+                </div>
+              </div>
+
+              <details className="group rounded-xl border border-border bg-background/40 overflow-hidden">
+                <summary className="flex items-center justify-between gap-2 p-4 cursor-pointer hover:bg-background/60 transition list-none">
+                  <div className="flex items-center gap-2">
+                    <BookOpen className="w-5 h-5 text-primary" />
+                    <span className="font-bold text-sm">دليل سريع للمنصة</span>
+                  </div>
+                  <ChevronDown className="w-4 h-4 transition-transform group-open:rotate-180" />
+                </summary>
+                <div className="p-4 pt-0 text-right text-xs space-y-3 text-muted-foreground max-h-80 overflow-y-auto">
+                  <section>
+                    <h3 className="font-bold text-foreground text-sm mb-1">🏠 المركز (Hub)</h3>
+                    <p>الواجهة الرئيسية للوصول إلى جميع الأدوات والصفحات بعد الدخول.</p>
+                  </section>
+                  <section>
+                    <h3 className="font-bold text-foreground text-sm mb-1">📅 الأجندة والبرنامج اليومي</h3>
+                    <p>تنظيم المهام، الواجبات، الجدول الدراسي اليومي والاختبارات القادمة.</p>
+                  </section>
+                  <section>
+                    <h3 className="font-bold text-foreground text-sm mb-1">📚 الدروس والملخصات</h3>
+                    <p>الوصول إلى الدروس المعتمدة، الملخصات التشاركية، والمحتوى التعليمي.</p>
+                  </section>
+                  <section>
+                    <h3 className="font-bold text-foreground text-sm mb-1">🤖 المحادثة الذكية وأدوات الذكاء الاصطناعي</h3>
+                    <p>مساعد ذكي للإجابة على الأسئلة، توليد التمارين، تصحيح آلي، ورادار المعرفة لتحديد نقاط الضعف.</p>
+                  </section>
+                  <section>
+                    <h3 className="font-bold text-foreground text-sm mb-1">👥 المجموعات والمحادثات</h3>
+                    <p>مجموعات دراسية بإدارة الأستاذ، محادثات مباشرة مع الأساتذة والزملاء، ورسائل خاصة.</p>
+                  </section>
+                  <section>
+                    <h3 className="font-bold text-foreground text-sm mb-1">📢 الإعلانات</h3>
+                    <p>متابعة آخر الإعلانات الرسمية من الإدارة والأساتذة.</p>
+                  </section>
+                  <section>
+                    <h3 className="font-bold text-foreground text-sm mb-1">🧮 حاسبة المعدل (GPA)</h3>
+                    <p>حساب المعدل الفصلي والسنوي وفق نظام التعليم الجزائري.</p>
+                  </section>
+                  <section>
+                    <h3 className="font-bold text-foreground text-sm mb-1">⚙️ الحساب ولوحة التحكم</h3>
+                    <p>إدارة الملف الشخصي ورؤية الرقم التسلسلي. لوحة التحكم متاحة للأساتذة والإدارة فقط.</p>
+                  </section>
+                  <section>
+                    <h3 className="font-bold text-foreground text-sm mb-1">🎯 آلية النقاط (XP) والشارات</h3>
+                    <p>اكسب نقاط خبرة وشارات عبر إنجاز المهام والمشاركة في المنصة.</p>
+                  </section>
+                  <section>
+                    <h3 className="font-bold text-foreground text-sm mb-1">🔐 الأمان</h3>
+                    <p>الرقم التسلسلي شخصي وسري. لا تشاركه مع أحد. في حال فقدانه راسل الإدارة لإعادة التعيين.</p>
+                  </section>
+                </div>
+              </details>
+
+              <p className="text-center text-xs text-muted-foreground">
                 للحصول على حساب، تواصل مع إدارة المنصة.
               </p>
             </motion.form>
