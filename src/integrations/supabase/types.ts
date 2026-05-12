@@ -106,6 +106,57 @@ export type Database = {
         }
         Relationships: []
       }
+      assignments: {
+        Row: {
+          created_at: string
+          description: string
+          due_at: string | null
+          file_type: string | null
+          file_url: string | null
+          id: string
+          kind: string
+          subject: string | null
+          target_branches: string[]
+          target_group_id: string | null
+          target_levels: string[]
+          title: string
+          tutor_id: string
+          tutor_name: string
+        }
+        Insert: {
+          created_at?: string
+          description?: string
+          due_at?: string | null
+          file_type?: string | null
+          file_url?: string | null
+          id?: string
+          kind?: string
+          subject?: string | null
+          target_branches?: string[]
+          target_group_id?: string | null
+          target_levels?: string[]
+          title: string
+          tutor_id: string
+          tutor_name: string
+        }
+        Update: {
+          created_at?: string
+          description?: string
+          due_at?: string | null
+          file_type?: string | null
+          file_url?: string | null
+          id?: string
+          kind?: string
+          subject?: string | null
+          target_branches?: string[]
+          target_group_id?: string | null
+          target_levels?: string[]
+          title?: string
+          tutor_id?: string
+          tutor_name?: string
+        }
+        Relationships: []
+      }
       daily_schedules: {
         Row: {
           created_at: string
