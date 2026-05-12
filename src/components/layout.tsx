@@ -9,7 +9,7 @@ import { useLevelTheme, useLevelBadge } from "@/hooks/use-level-theme";
 import { supabase } from "@/integrations/supabase/client";
 import {
   Home, Bell, CalendarDays, Users, Bot,
-  BookOpen, Settings, LogOut, BookMarked, Menu, X, Shield, Sun, Moon, MessageSquare, CalendarClock, Calculator, Target, ScanLine, Globe, GraduationCap, Sparkles
+  BookOpen, Settings, LogOut, BookMarked, Menu, X, Shield, Sun, Moon, MessageSquare, CalendarClock, Calculator, Target, ScanLine, Globe, GraduationCap, Sparkles, ClipboardList
 } from "lucide-react";
 import { useState } from "react";
 import logoImg from "@/assets/logo.png";
