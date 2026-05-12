@@ -96,6 +96,7 @@ export function Layout({ children }: { children: ReactNode }) {
     { href: "/tutor-chat", label: "محادثة التلميذ–الأستاذ", icon: MessageSquare },
     { href: "/ai-chat", label: t("AIChat"), icon: Bot },
     { href: "/lessons", label: "الدروس", icon: BookOpenCheck },
+    { href: "/assignments", label: "الواجبات والتحديات", icon: ClipboardList },
     { href: "/programme", label: t("Programme"), icon: BookOpen },
     { href: "/gpa-calculator", label: t("GPACalculator"), icon: Calculator },
     { href: "/knowledge-radar", label: t("KnowledgeRadar"), icon: Target },
