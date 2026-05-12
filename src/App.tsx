@@ -28,6 +28,7 @@ import AutoGraderPage from "./pages/auto-grader";
 import TutorChatPage from "./pages/tutor-chat";
 import AdvancedTeachingPage from "./pages/advanced-teaching";
 import AIToolsPage from "./pages/ai-tools";
+import AssignmentsPage from "./pages/assignments";
 import NotFound from "./pages/not-found";
 
 const queryClient = new QueryClient();
