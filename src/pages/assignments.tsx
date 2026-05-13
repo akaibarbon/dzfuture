@@ -263,13 +263,16 @@ export default function AssignmentsPage() {
                 )}
                 <div className="space-y-2">
                   <Label>إرفاق ملف أو صورة (اختياري — حتى 50MB)</Label>
-                  <input ref={fileRef} type="file" onChange={(e) => setFile(e.target.files?.[0] || null)} className="hidden" accept="image/*,video/*,audio/*,.pdf,.txt,.doc,.docx,.ppt,.pptx" />
+                  <input ref={fileRef} type="file" onChange={(e) => { setFile(e.target.files?.[0] || null); setKeepExistingFile(false); }} className="hidden" accept="image/*,video/*,audio/*,.pdf,.txt,.doc,.docx,.ppt,.pptx" />
                   <Button type="button" variant="outline" onClick={() => fileRef.current?.click()} className="w-full justify-start">
-                    <Upload className="w-4 h-4 mr-2" />{file ? file.name : "اختر ملفاً..."}
+                    <Upload className="w-4 h-4 mr-2" />{file ? file.name : (editingId && keepExistingFile ? "إبقاء الملف الحالي" : "اختر ملفاً...")}
                   </Button>
+                  {editingId && keepExistingFile && !file && (
+                    <Button type="button" variant="ghost" size="sm" onClick={() => setKeepExistingFile(false)} className="text-xs text-destructive">إزالة الملف الحالي</Button>
+                  )}
                 </div>
                 <Button type="submit" disabled={uploading} className="w-full bg-primary font-bold h-11">
-                  {uploading ? <Loader2 className="w-4 h-4 animate-spin" /> : "نشر"}
+                  {uploading ? <Loader2 className="w-4 h-4 animate-spin" /> : (editingId ? "حفظ التعديلات" : "نشر")}
                 </Button>
               </form>
             </DialogContent>
