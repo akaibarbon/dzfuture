@@ -11,7 +11,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Checkbox } from "@/components/ui/checkbox";
 import { useToast } from "@/hooks/use-toast";
 import { LEVELS, levelLabel, getLevelMeta, SECONDARY_BRANCHES } from "@/lib/levels";
-import { ClipboardList, Plus, Trash2, FileText, Image as ImageIcon, Music, Video, File, Loader2, Upload, Trophy, Clock, Users } from "lucide-react";
+import { ClipboardList, Plus, Trash2, FileText, Image as ImageIcon, Music, Video, File, Loader2, Upload, Trophy, Clock, Users, Pencil } from "lucide-react";
 
 interface Assignment {
   id: string;
@@ -61,8 +61,10 @@ export default function AssignmentsPage() {
   const [tab, setTab] = useState<"homework" | "challenge">("homework");
   const [groups, setGroups] = useState<GroupItem[]>([]);
   const [open, setOpen] = useState(false);
+  const [editingId, setEditingId] = useState<string | null>(null);
   const [uploading, setUploading] = useState(false);
   const [file, setFile] = useState<File | null>(null);
+  const [keepExistingFile, setKeepExistingFile] = useState(true);
   const [form, setForm] = useState({
     kind: "homework" as "homework" | "challenge",
     title: "",
@@ -114,12 +116,42 @@ export default function AssignmentsPage() {
     }));
   };
 
+  const resetForm = () => {
+    setForm({ kind: tab, title: "", description: "", subject: "", due_at: "", target_levels: [], target_branches: [], target_group_id: "__none__" });
+    setFile(null);
+    setEditingId(null);
+    setKeepExistingFile(true);
+  };
+
+  const openCreate = () => {
+    resetForm();
+    setOpen(true);
+  };
+
+  const openEdit = (a: Assignment) => {
+    setEditingId(a.id);
+    setForm({
+      kind: (a.kind as "homework" | "challenge") || "homework",
+      title: a.title,
+      description: a.description || "",
+      subject: a.subject || "",
+      due_at: a.due_at ? new Date(a.due_at).toISOString().slice(0, 16) : "",
+      target_levels: a.target_levels || [],
+      target_branches: a.target_branches || [],
+      target_group_id: a.target_group_id || "__none__",
+    });
+    setFile(null);
+    setKeepExistingFile(!!a.file_url);
+    setOpen(true);
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!user?.id || !form.title.trim()) return;
     setUploading(true);
-    let fileUrl: string | null = null;
-    let fileType: string | null = null;
+    const existing = editingId ? items.find((i) => i.id === editingId) : null;
+    let fileUrl: string | null = existing && keepExistingFile ? existing.file_url : null;
+    let fileType: string | null = existing && keepExistingFile ? existing.file_type : null;
     if (file) {
       if (file.size > 50 * 1024 * 1024) {
         toast({ title: "الملف كبير جداً", description: "الحد 50MB", variant: "destructive" });
@@ -131,7 +163,7 @@ export default function AssignmentsPage() {
       fileUrl = supabase.storage.from("lessons").getPublicUrl(path).data.publicUrl;
       fileType = file.type;
     }
-    const { error } = await supabase.from("assignments").insert({
+    const payload = {
       tutor_id: user.id,
       tutor_name: user.fullName,
       kind: form.kind,
@@ -144,18 +176,20 @@ export default function AssignmentsPage() {
       target_levels: form.target_levels,
       target_branches: form.target_branches,
       target_group_id: form.target_group_id !== "__none__" ? form.target_group_id : null,
-    });
+    };
+    const { error } = editingId
+      ? await supabase.from("assignments").update(payload).eq("id", editingId)
+      : await supabase.from("assignments").insert(payload);
     setUploading(false);
-    if (error) { toast({ title: "فشل النشر", description: error.message, variant: "destructive" }); return; }
-    toast({ title: "✓ تم النشر", description: "تم إخطار التلاميذ المستهدفين." });
-    setForm({ kind: form.kind, title: "", description: "", subject: "", due_at: "", target_levels: [], target_branches: [], target_group_id: "__none__" });
-    setFile(null);
+    if (error) { toast({ title: editingId ? "فشل التعديل" : "فشل النشر", description: error.message, variant: "destructive" }); return; }
+    toast({ title: editingId ? "✓ تم التحديث" : "✓ تم النشر", description: "تم تحديث إشعارات التلاميذ والمجموعة." });
+    resetForm();
     setOpen(false);
     load();
   };
 
   const handleDelete = async (id: string) => {
-    if (!confirm("هل تريد الحذف؟")) return;
+    if (!confirm("هل تريد الحذف؟ سيتم إزالة الإشعارات المرتبطة.")) return;
     await supabase.from("assignments").delete().eq("id", id);
     load();
   };
@@ -170,14 +204,14 @@ export default function AssignmentsPage() {
           <p className="text-muted-foreground">واجبات وتحديات من أساتذتك مع آخر أجل وإشعارات فورية.</p>
         </div>
         {isApprovedTutor && (
-          <Dialog open={open} onOpenChange={setOpen}>
+          <Dialog open={open} onOpenChange={(v) => { setOpen(v); if (!v) resetForm(); }}>
             <DialogTrigger asChild>
-              <Button className="bg-primary text-primary-foreground font-bold">
+              <Button onClick={openCreate} className="bg-primary text-primary-foreground font-bold">
                 <Plus className="w-5 h-5 mr-2" /> نشر جديد
               </Button>
             </DialogTrigger>
             <DialogContent className="glass-panel sm:max-w-lg max-h-[90vh] overflow-y-auto">
-              <DialogHeader><DialogTitle className="font-display text-2xl text-primary">نشر واجب أو تحدي</DialogTitle></DialogHeader>
+              <DialogHeader><DialogTitle className="font-display text-2xl text-primary">{editingId ? "تعديل" : "نشر"} واجب أو تحدي</DialogTitle></DialogHeader>
               <form onSubmit={handleSubmit} className="space-y-4 pt-2">
                 <div className="grid grid-cols-2 gap-2">
                   <Button type="button" variant={form.kind === "homework" ? "default" : "outline"} onClick={() => setForm({ ...form, kind: "homework" })} className={form.kind === "homework" ? "bg-primary" : ""}>
@@ -229,13 +263,16 @@ export default function AssignmentsPage() {
                 )}
                 <div className="space-y-2">
                   <Label>إرفاق ملف أو صورة (اختياري — حتى 50MB)</Label>
-                  <input ref={fileRef} type="file" onChange={(e) => setFile(e.target.files?.[0] || null)} className="hidden" accept="image/*,video/*,audio/*,.pdf,.txt,.doc,.docx,.ppt,.pptx" />
+                  <input ref={fileRef} type="file" onChange={(e) => { setFile(e.target.files?.[0] || null); setKeepExistingFile(false); }} className="hidden" accept="image/*,video/*,audio/*,.pdf,.txt,.doc,.docx,.ppt,.pptx" />
                   <Button type="button" variant="outline" onClick={() => fileRef.current?.click()} className="w-full justify-start">
-                    <Upload className="w-4 h-4 mr-2" />{file ? file.name : "اختر ملفاً..."}
+                    <Upload className="w-4 h-4 mr-2" />{file ? file.name : (editingId && keepExistingFile ? "إبقاء الملف الحالي" : "اختر ملفاً...")}
                   </Button>
+                  {editingId && keepExistingFile && !file && (
+                    <Button type="button" variant="ghost" size="sm" onClick={() => setKeepExistingFile(false)} className="text-xs text-destructive">إزالة الملف الحالي</Button>
+                  )}
                 </div>
                 <Button type="submit" disabled={uploading} className="w-full bg-primary font-bold h-11">
-                  {uploading ? <Loader2 className="w-4 h-4 animate-spin" /> : "نشر"}
+                  {uploading ? <Loader2 className="w-4 h-4 animate-spin" /> : (editingId ? "حفظ التعديلات" : "نشر")}
                 </Button>
               </form>
             </DialogContent>
@@ -269,7 +306,12 @@ export default function AssignmentsPage() {
                     {isChallenge ? <Trophy className="w-5 h-5 text-amber-500 flex-shrink-0" /> : <ClipboardList className="w-5 h-5 text-primary flex-shrink-0" />}
                     <CardTitle className="text-lg font-display line-clamp-2">{a.title}</CardTitle>
                   </div>
-                  {isOwner && <Button size="icon" variant="ghost" onClick={() => handleDelete(a.id)} className="h-7 w-7 text-destructive"><Trash2 className="w-4 h-4" /></Button>}
+                  {isOwner && (
+                    <div className="flex gap-1">
+                      <Button size="icon" variant="ghost" onClick={() => openEdit(a)} className="h-7 w-7 text-primary"><Pencil className="w-4 h-4" /></Button>
+                      <Button size="icon" variant="ghost" onClick={() => handleDelete(a.id)} className="h-7 w-7 text-destructive"><Trash2 className="w-4 h-4" /></Button>
+                    </div>
+                  )}
                 </div>
                 <p className="text-xs text-muted-foreground">{a.tutor_name} • {new Date(a.created_at).toLocaleDateString("ar-DZ")}</p>
               </CardHeader>
