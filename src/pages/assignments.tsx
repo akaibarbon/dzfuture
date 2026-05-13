@@ -61,8 +61,10 @@ export default function AssignmentsPage() {
   const [tab, setTab] = useState<"homework" | "challenge">("homework");
   const [groups, setGroups] = useState<GroupItem[]>([]);
   const [open, setOpen] = useState(false);
+  const [editingId, setEditingId] = useState<string | null>(null);
   const [uploading, setUploading] = useState(false);
   const [file, setFile] = useState<File | null>(null);
+  const [keepExistingFile, setKeepExistingFile] = useState(true);
   const [form, setForm] = useState({
     kind: "homework" as "homework" | "challenge",
     title: "",
