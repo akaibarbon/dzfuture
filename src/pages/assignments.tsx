@@ -306,7 +306,12 @@ export default function AssignmentsPage() {
                     {isChallenge ? <Trophy className="w-5 h-5 text-amber-500 flex-shrink-0" /> : <ClipboardList className="w-5 h-5 text-primary flex-shrink-0" />}
                     <CardTitle className="text-lg font-display line-clamp-2">{a.title}</CardTitle>
                   </div>
-                  {isOwner && <Button size="icon" variant="ghost" onClick={() => handleDelete(a.id)} className="h-7 w-7 text-destructive"><Trash2 className="w-4 h-4" /></Button>}
+                  {isOwner && (
+                    <div className="flex gap-1">
+                      <Button size="icon" variant="ghost" onClick={() => openEdit(a)} className="h-7 w-7 text-primary"><Pencil className="w-4 h-4" /></Button>
+                      <Button size="icon" variant="ghost" onClick={() => handleDelete(a.id)} className="h-7 w-7 text-destructive"><Trash2 className="w-4 h-4" /></Button>
+                    </div>
+                  )}
                 </div>
                 <p className="text-xs text-muted-foreground">{a.tutor_name} • {new Date(a.created_at).toLocaleDateString("ar-DZ")}</p>
               </CardHeader>
