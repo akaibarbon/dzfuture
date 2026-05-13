@@ -30,6 +30,7 @@ export default function HubPage() {
     { href: "/groups", icon: Users, title: t("hub.groupup"), desc: t("hub.groupupDesc") },
     { href: "/messages", icon: MessageSquare, title: t("hub.messages"), desc: t("hub.messagesDesc") },
     { href: "/ai-chat", icon: BrainCircuit, title: t("hub.oracle"), desc: t("hub.oracleDesc") },
+    { href: "/assignments", icon: ClipboardList, title: "الواجبات والتحديات", desc: "واجبات وتحديات من أساتذتك مع آخر أجل وإشعارات." },
     { href: "/agenda", icon: CalendarDays, title: t("hub.agenda"), desc: t("hub.agendaDesc") },
     { href: "/daily-schedule", icon: CalendarClock, title: t("hub.schedule"), desc: t("hub.scheduleDesc") },
     { href: "/programme", icon: BookOpen, title: t("hub.programme"), desc: t("hub.programmeDesc") },
