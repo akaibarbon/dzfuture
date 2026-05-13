@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { useAuth } from "@/hooks/use-auth";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { motion } from "framer-motion";
-import { BrainCircuit, BookMarked, Users, Globe2, Sparkles, CalendarDays, BookOpen, MessageSquare, CalendarClock, Calculator, Target } from "lucide-react";
+import { BrainCircuit, BookMarked, Users, Globe2, Sparkles, CalendarDays, BookOpen, MessageSquare, CalendarClock, Calculator, Target, ClipboardList } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { Link } from "react-router-dom";
 import { useTranslation } from "react-i18next";
