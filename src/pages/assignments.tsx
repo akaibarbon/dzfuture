@@ -116,12 +116,42 @@ export default function AssignmentsPage() {
     }));
   };
 
+  const resetForm = () => {
+    setForm({ kind: tab, title: "", description: "", subject: "", due_at: "", target_levels: [], target_branches: [], target_group_id: "__none__" });
+    setFile(null);
+    setEditingId(null);
+    setKeepExistingFile(true);
+  };
+
+  const openCreate = () => {
+    resetForm();
+    setOpen(true);
+  };
+
+  const openEdit = (a: Assignment) => {
+    setEditingId(a.id);
+    setForm({
+      kind: (a.kind as "homework" | "challenge") || "homework",
+      title: a.title,
+      description: a.description || "",
+      subject: a.subject || "",
+      due_at: a.due_at ? new Date(a.due_at).toISOString().slice(0, 16) : "",
+      target_levels: a.target_levels || [],
+      target_branches: a.target_branches || [],
+      target_group_id: a.target_group_id || "__none__",
+    });
+    setFile(null);
+    setKeepExistingFile(!!a.file_url);
+    setOpen(true);
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!user?.id || !form.title.trim()) return;
     setUploading(true);
-    let fileUrl: string | null = null;
-    let fileType: string | null = null;
+    const existing = editingId ? items.find((i) => i.id === editingId) : null;
+    let fileUrl: string | null = existing && keepExistingFile ? existing.file_url : null;
+    let fileType: string | null = existing && keepExistingFile ? existing.file_type : null;
     if (file) {
       if (file.size > 50 * 1024 * 1024) {
         toast({ title: "الملف كبير جداً", description: "الحد 50MB", variant: "destructive" });
@@ -133,7 +163,7 @@ export default function AssignmentsPage() {
       fileUrl = supabase.storage.from("lessons").getPublicUrl(path).data.publicUrl;
       fileType = file.type;
     }
-    const { error } = await supabase.from("assignments").insert({
+    const payload = {
       tutor_id: user.id,
       tutor_name: user.fullName,
       kind: form.kind,
@@ -146,18 +176,20 @@ export default function AssignmentsPage() {
       target_levels: form.target_levels,
       target_branches: form.target_branches,
       target_group_id: form.target_group_id !== "__none__" ? form.target_group_id : null,
-    });
+    };
+    const { error } = editingId
+      ? await supabase.from("assignments").update(payload).eq("id", editingId)
+      : await supabase.from("assignments").insert(payload);
     setUploading(false);
-    if (error) { toast({ title: "فشل النشر", description: error.message, variant: "destructive" }); return; }
-    toast({ title: "✓ تم النشر", description: "تم إخطار التلاميذ المستهدفين." });
-    setForm({ kind: form.kind, title: "", description: "", subject: "", due_at: "", target_levels: [], target_branches: [], target_group_id: "__none__" });
-    setFile(null);
+    if (error) { toast({ title: editingId ? "فشل التعديل" : "فشل النشر", description: error.message, variant: "destructive" }); return; }
+    toast({ title: editingId ? "✓ تم التحديث" : "✓ تم النشر", description: "تم تحديث إشعارات التلاميذ والمجموعة." });
+    resetForm();
     setOpen(false);
     load();
   };
 
   const handleDelete = async (id: string) => {
-    if (!confirm("هل تريد الحذف؟")) return;
+    if (!confirm("هل تريد الحذف؟ سيتم إزالة الإشعارات المرتبطة.")) return;
     await supabase.from("assignments").delete().eq("id", id);
     load();
   };
