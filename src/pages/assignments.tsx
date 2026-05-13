@@ -204,14 +204,14 @@ export default function AssignmentsPage() {
           <p className="text-muted-foreground">واجبات وتحديات من أساتذتك مع آخر أجل وإشعارات فورية.</p>
         </div>
         {isApprovedTutor && (
-          <Dialog open={open} onOpenChange={setOpen}>
+          <Dialog open={open} onOpenChange={(v) => { setOpen(v); if (!v) resetForm(); }}>
             <DialogTrigger asChild>
-              <Button className="bg-primary text-primary-foreground font-bold">
+              <Button onClick={openCreate} className="bg-primary text-primary-foreground font-bold">
                 <Plus className="w-5 h-5 mr-2" /> نشر جديد
               </Button>
             </DialogTrigger>
             <DialogContent className="glass-panel sm:max-w-lg max-h-[90vh] overflow-y-auto">
-              <DialogHeader><DialogTitle className="font-display text-2xl text-primary">نشر واجب أو تحدي</DialogTitle></DialogHeader>
+              <DialogHeader><DialogTitle className="font-display text-2xl text-primary">{editingId ? "تعديل" : "نشر"} واجب أو تحدي</DialogTitle></DialogHeader>
               <form onSubmit={handleSubmit} className="space-y-4 pt-2">
                 <div className="grid grid-cols-2 gap-2">
                   <Button type="button" variant={form.kind === "homework" ? "default" : "outline"} onClick={() => setForm({ ...form, kind: "homework" })} className={form.kind === "homework" ? "bg-primary" : ""}>
