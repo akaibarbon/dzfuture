@@ -11,7 +11,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Checkbox } from "@/components/ui/checkbox";
 import { useToast } from "@/hooks/use-toast";
 import { LEVELS, levelLabel, getLevelMeta, SECONDARY_BRANCHES } from "@/lib/levels";
-import { ClipboardList, Plus, Trash2, FileText, Image as ImageIcon, Music, Video, File, Loader2, Upload, Trophy, Clock, Users } from "lucide-react";
+import { ClipboardList, Plus, Trash2, FileText, Image as ImageIcon, Music, Video, File, Loader2, Upload, Trophy, Clock, Users, Pencil } from "lucide-react";
 
 interface Assignment {
   id: string;
