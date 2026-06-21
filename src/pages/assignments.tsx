@@ -59,6 +59,7 @@ export default function AssignmentsPage() {
   const isApprovedTutor = user?.role === "tutor" && user?.approved !== false;
 
   const [items, setItems] = useState<Assignment[]>([]);
+  const [stats, setStats] = useState<Record<string, { total: number; graded: number }>>({});
   const [tab, setTab] = useState<"homework" | "challenge">("homework");
   const [groups, setGroups] = useState<GroupItem[]>([]);
   const [open, setOpen] = useState(false);
@@ -82,13 +83,30 @@ export default function AssignmentsPage() {
     if (data) setItems(data as Assignment[]);
   };
 
+  const loadStats = async () => {
+    if (!isApprovedTutor || !user?.id) return;
+    const { data } = await supabase
+      .from("assignment_submissions")
+      .select("assignment_id,grade,feedback,assignments!inner(tutor_id)")
+      .eq("assignments.tutor_id", user.id);
+    if (!data) return;
+    const map: Record<string, { total: number; graded: number }> = {};
+    for (const s of data as any[]) {
+      const k = s.assignment_id;
+      if (!map[k]) map[k] = { total: 0, graded: 0 };
+      map[k].total++;
+      if (s.grade != null || s.feedback) map[k].graded++;
+    }
+    setStats(map);
+  };
+
   const loadGroups = async () => {
     if (!user?.id) return;
     const { data } = await supabase.from("groups").select("id, name").eq("created_by", user.id);
     if (data) setGroups(data as GroupItem[]);
   };
 
-  useEffect(() => { load(); loadGroups(); }, [user?.id]);
+  useEffect(() => { load(); loadGroups(); loadStats(); }, [user?.id]);
 
   const filtered = useMemo(() => {
     let list = items.filter((a) => a.kind === tab);
