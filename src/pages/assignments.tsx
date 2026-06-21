@@ -12,6 +12,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { useToast } from "@/hooks/use-toast";
 import { LEVELS, levelLabel, getLevelMeta, SECONDARY_BRANCHES } from "@/lib/levels";
 import { ClipboardList, Plus, Trash2, FileText, Image as ImageIcon, Music, Video, File, Loader2, Upload, Trophy, Clock, Users, Pencil } from "lucide-react";
+import { StudentSubmission, TutorSubmissionsPanel } from "@/components/assignment-submission";
 
 interface Assignment {
   id: string;
@@ -335,13 +336,18 @@ export default function AssignmentsPage() {
                   </div>
                 )}
               </CardContent>
-              {a.file_url && (
-                <CardFooter>
+              <CardFooter className="flex flex-col gap-2">
+                {a.file_url && (
                   <a href={a.file_url} target="_blank" rel="noopener noreferrer" className="w-full">
                     <Button variant="outline" className="w-full gap-2">{fileIcon(a.file_type)} فتح المرفق</Button>
                   </a>
-                </CardFooter>
-              )}
+                )}
+                {isOwner ? (
+                  <TutorSubmissionsPanel assignmentId={a.id} />
+                ) : (
+                  <StudentSubmission assignmentId={a.id} dueAt={a.due_at} />
+                )}
+              </CardFooter>
             </Card>
           );
         })}
