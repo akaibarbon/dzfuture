@@ -59,6 +59,7 @@ export default function AssignmentsPage() {
   const isApprovedTutor = user?.role === "tutor" && user?.approved !== false;
 
   const [items, setItems] = useState<Assignment[]>([]);
+  const [stats, setStats] = useState<Record<string, { total: number; graded: number }>>({});
   const [tab, setTab] = useState<"homework" | "challenge">("homework");
   const [groups, setGroups] = useState<GroupItem[]>([]);
   const [open, setOpen] = useState(false);
@@ -82,13 +83,30 @@ export default function AssignmentsPage() {
     if (data) setItems(data as Assignment[]);
   };
 
+  const loadStats = async () => {
+    if (!isApprovedTutor || !user?.id) return;
+    const { data } = await supabase
+      .from("assignment_submissions")
+      .select("assignment_id,grade,feedback,assignments!inner(tutor_id)")
+      .eq("assignments.tutor_id", user.id);
+    if (!data) return;
+    const map: Record<string, { total: number; graded: number }> = {};
+    for (const s of data as any[]) {
+      const k = s.assignment_id;
+      if (!map[k]) map[k] = { total: 0, graded: 0 };
+      map[k].total++;
+      if (s.grade != null || s.feedback) map[k].graded++;
+    }
+    setStats(map);
+  };
+
   const loadGroups = async () => {
     if (!user?.id) return;
     const { data } = await supabase.from("groups").select("id, name").eq("created_by", user.id);
     if (data) setGroups(data as GroupItem[]);
   };
 
-  useEffect(() => { load(); loadGroups(); }, [user?.id]);
+  useEffect(() => { load(); loadGroups(); loadStats(); }, [user?.id]);
 
   const filtered = useMemo(() => {
     let list = items.filter((a) => a.kind === tab);
@@ -343,7 +361,21 @@ export default function AssignmentsPage() {
                   </a>
                 )}
                 {isOwner ? (
-                  <TutorSubmissionsPanel assignmentId={a.id} />
+                  <div className="w-full space-y-1">
+                    {stats[a.id] && (
+                      <div className="flex items-center gap-2 text-[11px] text-muted-foreground">
+                        <span className="px-2 py-0.5 rounded-full bg-emerald-500/15 text-emerald-500 border border-emerald-500/30 font-bold">
+                          {stats[a.id].total} تسليم
+                        </span>
+                        {stats[a.id].graded < stats[a.id].total && (
+                          <span className="px-2 py-0.5 rounded-full bg-amber-500/15 text-amber-500 border border-amber-500/30 font-bold">
+                            {stats[a.id].total - stats[a.id].graded} بانتظار التصحيح
+                          </span>
+                        )}
+                      </div>
+                    )}
+                    <TutorSubmissionsPanel assignmentId={a.id} />
+                  </div>
                 ) : (
                   <StudentSubmission assignmentId={a.id} dueAt={a.due_at} />
                 )}

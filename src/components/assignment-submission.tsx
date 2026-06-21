@@ -8,6 +8,7 @@ import { Label } from "@/components/ui/label";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { useToast } from "@/hooks/use-toast";
 import { Upload, Send, CheckCircle2, Clock, Loader2, FileText, Award, MessageCircle, Pencil } from "lucide-react";
+import { awardXP } from "@/lib/gamification";
 
 interface Submission {
   id: string;
@@ -82,12 +83,19 @@ export function StudentSubmission({ assignmentId, dueAt }: { assignmentId: strin
       file_type: fileType,
       status: overdue ? "late" : "submitted",
     };
+    const wasNew = !submission;
     const { error } = submission
       ? await supabase.from("assignment_submissions").update(payload).eq("id", submission.id)
       : await supabase.from("assignment_submissions").insert(payload);
     setLoading(false);
     if (error) { toast({ title: "فشل التسليم", description: error.message, variant: "destructive" }); return; }
-    toast({ title: submission ? "✓ تم تحديث التسليم" : "✓ تم التسليم" });
+    if (wasNew) {
+      const xp = overdue ? 10 : 25;
+      awardXP(user.id, xp, overdue ? "late_submission" : "on_time_submission").catch(() => {});
+      toast({ title: "✓ تم التسليم", description: `+${xp} XP` });
+    } else {
+      toast({ title: "✓ تم تحديث التسليم" });
+    }
     setFile(null);
     setOpen(false);
     load();
