@@ -361,7 +361,21 @@ export default function AssignmentsPage() {
                   </a>
                 )}
                 {isOwner ? (
-                  <TutorSubmissionsPanel assignmentId={a.id} />
+                  <div className="w-full space-y-1">
+                    {stats[a.id] && (
+                      <div className="flex items-center gap-2 text-[11px] text-muted-foreground">
+                        <span className="px-2 py-0.5 rounded-full bg-emerald-500/15 text-emerald-500 border border-emerald-500/30 font-bold">
+                          {stats[a.id].total} تسليم
+                        </span>
+                        {stats[a.id].graded < stats[a.id].total && (
+                          <span className="px-2 py-0.5 rounded-full bg-amber-500/15 text-amber-500 border border-amber-500/30 font-bold">
+                            {stats[a.id].total - stats[a.id].graded} بانتظار التصحيح
+                          </span>
+                        )}
+                      </div>
+                    )}
+                    <TutorSubmissionsPanel assignmentId={a.id} />
+                  </div>
                 ) : (
                   <StudentSubmission assignmentId={a.id} dueAt={a.due_at} />
                 )}
