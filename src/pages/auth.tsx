@@ -14,8 +14,7 @@ import { useTranslation } from "react-i18next";
 import { LevelPicker } from "@/components/level-picker";
 import { getLevelMeta } from "@/lib/levels";
 import { downloadSerialAsImage } from "@/lib/serial-image";
-import { setSerialPassword, healSerialLogin } from "@/lib/set-serial-password.functions";
-import { generateSerialNumber, normalizeSerial, serialPasswordCandidates } from "@/lib/serial-auth";
+import { generateSerialNumber, normalizeSerial } from "@/lib/serial-auth";
 import { ImageDown } from "lucide-react";
 import logoImg from "@/assets/logo.png";
 
@@ -163,31 +162,18 @@ export default function AuthPage() {
     if (!serial.trim()) return;
     setLoading(true);
     const cleanSerial = normalizeSerial(serial);
-    const { data: profile } = await supabase.from("profiles").select("*").eq("serial_number", cleanSerial).maybeSingle();
-    if (profile) {
-      let authData: any = null;
-      let authError: any = null;
-      for (const password of serialPasswordCandidates(cleanSerial)) {
-        const result = await supabase.auth.signInWithPassword({ email: profile.email, password });
-        authData = result.data;
-        authError = result.error;
-        if (!authError && authData?.user) break;
+    try {
+      const response = await fetch("/api/serial-login", {
+        method: "POST",
+        headers: { "Content-Type": "application/json", Accept: "application/json" },
+        body: JSON.stringify({ serial: cleanSerial }),
+      });
+      const result = await response.json();
+      if (!response.ok || !result.session || !result.profile) {
+        throw new Error(result.error || t("auth.notFoundDesc"));
       }
-      if (authError) {
-        // Self-heal: set the auth password = serial via admin, then retry both candidates.
-        try {
-          const healed = await healSerialLogin({ data: { serial: cleanSerial } });
-          const emailToUse = healed.email || profile.email;
-          for (const password of healed.passwords || serialPasswordCandidates(cleanSerial)) {
-            const retry = await supabase.auth.signInWithPassword({ email: emailToUse, password });
-            authData = retry.data; authError = retry.error;
-            if (!authError && authData?.user) break;
-          }
-        } catch (e: any) {
-          toast({ title: "تعذر تسجيل الدخول", description: e?.message || "حاول الدخول عبر Google بدلاً من ذلك", variant: "destructive" });
-          setLoading(false); return;
-        }
-      }
+      const profile = result.profile;
+      const { data: authData, error: authError } = await supabase.auth.setSession(result.session);
       if (authError || !authData?.user) {
         toast({ title: "تعذر تسجيل الدخول بالرقم التسلسلي", description: "إذا كان الحساب مرتبطاً بـ Google، استخدم زر «الدخول عبر Google» أدناه.", variant: "destructive" });
       } else {
@@ -197,8 +183,8 @@ export default function AuthPage() {
         setUser({ id: authData.user.id, fullName: profile.full_name, email: profile.email, role: profile.role, serialNumber: profile.serial_number, photoUrl: profile.photo_url || undefined, nickname: profile.nickname || undefined, level: profile.level, branch: profile.branch, approved: (profile as any).approved ?? true });
         navigate("/hub");
       }
-    } else {
-      toast({ title: t("auth.notFound"), description: t("auth.notFoundDesc"), variant: "destructive" });
+    } catch (e: any) {
+      toast({ title: t("auth.notFound"), description: e?.message || t("auth.notFoundDesc"), variant: "destructive" });
     }
     setLoading(false);
   };
@@ -284,8 +270,7 @@ export default function AuthPage() {
     } as any);
     setOauthBusy(false);
     if (error) { toast({ title: "تعذر إنشاء الحساب", description: error.message, variant: "destructive" }); return; }
-    // Set the auth password = serial so the user can also log in via the serial-number flow
-    try { await setSerialPassword({ data: { userId: oauthPending.id, serial: serialNum } }); } catch {}
+    // Serial login is healed on the next serial sign-in if needed.
     setUser({ id: oauthPending.id, fullName: oauthForm.fullName.trim(), email: oauthPending.email || "", role: oauthForm.role, serialNumber: serialNum, photoUrl, level: oauthForm.level, branch: meta?.branchRequired ? oauthForm.branch : null, approved: !isTutor });
     setNewSerial(serialNum);
     setOauthPending(null);

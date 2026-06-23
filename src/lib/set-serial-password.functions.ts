@@ -1,5 +1,4 @@
 import { createServerFn } from "@tanstack/react-start";
-import { supabaseAdmin } from "@/integrations/supabase/client.server";
 import { normalizeSerial, serialPasswordCandidates, serialToAuthPassword } from "@/lib/serial-auth";
 
 interface Input { userId: string; serial: string }
@@ -9,6 +8,7 @@ interface Input { userId: string; serial: string }
 export const setSerialPassword = createServerFn({ method: "POST" })
   .inputValidator((data: unknown) => data as Input)
   .handler(async ({ data }) => {
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     const { userId, serial } = data;
     if (!userId || !serial) throw new Error("بيانات ناقصة");
     const { error } = await supabaseAdmin.auth.admin.updateUserById(userId, {
@@ -24,11 +24,12 @@ export const setSerialPassword = createServerFn({ method: "POST" })
 export const healSerialLogin = createServerFn({ method: "POST" })
   .inputValidator((data: unknown) => data as { serial: string })
   .handler(async ({ data }) => {
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     const serial = normalizeSerial(data.serial || "");
     if (!serial) throw new Error("الرقم التسلسلي مطلوب");
     const { data: profile, error } = await supabaseAdmin
       .from("profiles")
-      .select("user_id, email")
+      .select("id, user_id, email, full_name, role, serial_number, photo_url, nickname, level, branch, approved")
       .eq("serial_number", serial)
       .maybeSingle();
     if (error) throw new Error(error.message);
@@ -46,5 +47,9 @@ export const healSerialLogin = createServerFn({ method: "POST" })
     if (authEmail && authEmail.toLowerCase() !== (profile.email || "").toLowerCase()) {
       await supabaseAdmin.from("profiles").update({ email: authEmail }).eq("user_id", profile.user_id);
     }
-    return { email: authEmail, passwords: serialPasswordCandidates(serial) };
+    return {
+      email: authEmail,
+      passwords: serialPasswordCandidates(serial),
+      profile: { ...profile, email: authEmail || profile.email },
+    };
   });
