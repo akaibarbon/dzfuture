@@ -142,7 +142,7 @@ export default function GroupControlPage() {
       p_type: "success",
       p_title: t("gc.approvedTitle") || "تم قبول طلبك",
       p_body: `${t("gc.approvedBody") || "تم قبولك في مجموعة"}: ${group?.name}`,
-      p_related_id: groupId ?? null,
+      p_related_id: groupId ?? undefined,
     });
     toast({ title: t("cp.requestApproved") });
     refreshRequests();
@@ -155,7 +155,7 @@ export default function GroupControlPage() {
       p_type: "warning",
       p_title: t("gc.rejectedTitle") || "تم رفض طلبك",
       p_body: `${t("gc.rejectedBody") || "تم رفض طلب الانضمام إلى"}: ${group?.name}`,
-      p_related_id: groupId ?? null,
+      p_related_id: groupId ?? undefined,
     });
     toast({ title: t("cp.requestRejected") });
     refreshRequests();
@@ -169,7 +169,7 @@ export default function GroupControlPage() {
       p_type: "warning",
       p_title: t("gc.kickedTitle") || "تم إخراجك",
       p_body: `${t("gc.kickedBody") || "تم إخراجك من مجموعة"}: ${group?.name}`,
-      p_related_id: groupId,
+      p_related_id: groupId ?? undefined,
     });
     toast({ title: `${t("gc.kicked") || "تم الإخراج"}: ${name}` });
     setMembers((m) => m.filter((x) => x.user_id !== userId));
@@ -191,7 +191,7 @@ export default function GroupControlPage() {
       // Update password via secure rpc
       await supabase.rpc("set_group_password", {
         _group_id: groupId,
-        _password: isPrivate && password ? password : null,
+        _password: isPrivate && password ? password : "",
       });
     }
     setSavingSettings(false);
