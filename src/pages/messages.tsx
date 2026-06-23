@@ -91,12 +91,12 @@ export default function MessagesPage() {
       receiver_id: selectedUser.user_id,
       content: `${label}\n${url}`,
     });
-    await supabase.from("notifications").insert({
-      user_id: selectedUser.user_id,
-      type: "new_message",
-      title: t("notif.newDM"),
-      body: `${user.fullName}: ${label}`,
-      related_id: user.id,
+    await supabase.rpc("send_notification", {
+      p_user_id: selectedUser.user_id,
+      p_type: "new_message",
+      p_title: t("notif.newDM"),
+      p_body: `${user.fullName}: ${label}`,
+      p_related_id: user.id,
     });
   };
 
@@ -111,12 +111,12 @@ export default function MessagesPage() {
       receiver_id: selectedUser.user_id,
       content: msg,
     });
-    await supabase.from("notifications").insert({
-      user_id: selectedUser.user_id,
-      type: "new_message",
-      title: t("notif.newDM"),
-      body: `${user.fullName}: ${msg.substring(0, 50)}`,
-      related_id: user.id,
+    await supabase.rpc("send_notification", {
+      p_user_id: selectedUser.user_id,
+      p_type: "new_message",
+      p_title: t("notif.newDM"),
+      p_body: `${user.fullName}: ${msg.substring(0, 50)}`,
+      p_related_id: user.id,
     });
   };
 

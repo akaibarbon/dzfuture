@@ -17,7 +17,6 @@ interface Group {
   id: string;
   name: string;
   is_private: boolean;
-  password?: string;
   created_by: string | null;
   is_verified: boolean;
   created_at: string;
@@ -99,17 +98,19 @@ export default function GroupsPage() {
   const handleCreate = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!newGroup.name.trim()) return;
-    const { error } = await supabase.from("groups").insert({
+    const { data: created, error } = await supabase.from("groups").insert({
       name: newGroup.name,
       is_private: newGroup.isPrivate,
-      password: newGroup.isPrivate ? newGroup.password : null,
       description: newGroup.description || null,
       level: newGroup.level || null,
       created_by: user?.id || null,
-    });
+    }).select("id").maybeSingle();
     if (error) {
       toast({ title: t("ai.error"), description: error.message, variant: "destructive" });
     } else {
+      if (newGroup.isPrivate && newGroup.password && created?.id) {
+        await supabase.rpc("set_group_password", { _group_id: created.id, _password: newGroup.password });
+      }
       setNewGroup({ name: "", isPrivate: false, password: "", description: "", level: "" });
       setOpen(false);
       toast({ title: t("grp.forged"), description: t("grp.forgedDesc") });
@@ -124,9 +125,13 @@ export default function GroupsPage() {
     setSelectedGroup(group);
   };
 
-  const submitJoinPassword = () => {
+  const submitJoinPassword = async () => {
     if (!selectedGroup) return;
-    if (joinPassword === selectedGroup.password) {
+    const { data: ok } = await supabase.rpc("verify_group_password", {
+      _group_id: selectedGroup.id,
+      _password: joinPassword,
+    });
+    if (ok) {
       cacheGroupAccess(selectedGroup.id);
       navigate(`/group/${selectedGroup.id}`);
       setSelectedGroup(null);

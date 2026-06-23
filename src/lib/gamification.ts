@@ -42,12 +42,13 @@ export function getLevelTitle(level: number): string {
 
 export async function awardXP(userId: string, amount: number, reason: string): Promise<number | null> {
   try {
-    const { data: profile } = await supabase.from("profiles").select("xp").eq("user_id", userId).maybeSingle();
-    if (!profile) return null;
-    const newXP = (profile.xp || 0) + amount;
-    await supabase.from("profiles").update({ xp: newXP }).eq("user_id", userId);
-    await supabase.from("xp_events").insert({ user_id: userId, amount, reason });
-    return newXP;
+    const { data, error } = await supabase.rpc("award_xp", {
+      p_user_id: userId,
+      p_amount: amount,
+      p_reason: reason,
+    });
+    if (error) return null;
+    return (data as number) ?? null;
   } catch (e) {
     console.error("awardXP error:", e);
     return null;
@@ -57,7 +58,7 @@ export async function awardXP(userId: string, amount: number, reason: string): P
 export async function awardBadge(userId: string, badgeKey: string): Promise<boolean> {
   const badge = BADGES[badgeKey];
   if (!badge) return false;
-  const { error } = await supabase.from("user_badges").insert({ user_id: userId, badge_key: badgeKey });
+  const { error } = await supabase.rpc("award_badge", { p_user_id: userId, p_badge_key: badgeKey });
   if (error) return false;
   await awardXP(userId, badge.xp, `badge:${badgeKey}`);
   return true;

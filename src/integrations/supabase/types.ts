@@ -378,6 +378,32 @@ export type Database = {
           },
         ]
       }
+      group_passwords: {
+        Row: {
+          group_id: string
+          password: string
+          updated_at: string
+        }
+        Insert: {
+          group_id: string
+          password: string
+          updated_at?: string
+        }
+        Update: {
+          group_id?: string
+          password?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "group_passwords_group_id_fkey"
+            columns: ["group_id"]
+            isOneToOne: true
+            referencedRelation: "groups"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       groups: {
         Row: {
           background_url: string | null
@@ -389,7 +415,6 @@ export type Database = {
           is_verified: boolean
           level: string | null
           name: string
-          password: string | null
           serial_number: string | null
           tutors_only: boolean
         }
@@ -403,7 +428,6 @@ export type Database = {
           is_verified?: boolean
           level?: string | null
           name: string
-          password?: string | null
           serial_number?: string | null
           tutors_only?: boolean
         }
@@ -417,7 +441,6 @@ export type Database = {
           is_verified?: boolean
           level?: string | null
           name?: string
-          password?: string | null
           serial_number?: string | null
           tutors_only?: boolean
         }
@@ -667,8 +690,38 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      award_badge: {
+        Args: { p_badge_key: string; p_user_id: string }
+        Returns: boolean
+      }
+      award_xp: {
+        Args: { p_amount: number; p_reason: string; p_user_id: string }
+        Returns: number
+      }
       is_group_owner: {
         Args: { _group_id: string; _user_id: string }
+        Returns: boolean
+      }
+      send_notification: {
+        Args: {
+          p_body?: string
+          p_related_id?: string
+          p_title: string
+          p_type: string
+          p_user_id: string
+        }
+        Returns: string
+      }
+      set_group_password: {
+        Args: { _group_id: string; _password: string }
+        Returns: undefined
+      }
+      user_has_role: {
+        Args: { _role: string; _user: string }
+        Returns: boolean
+      }
+      verify_group_password: {
+        Args: { _group_id: string; _password: string }
         Returns: boolean
       }
     }
