@@ -163,30 +163,17 @@ export default function AuthPage() {
     if (!serial.trim()) return;
     setLoading(true);
     const cleanSerial = normalizeSerial(serial);
-    const { data: profile } = await supabase.from("profiles").select("*").eq("serial_number", cleanSerial).maybeSingle();
-    if (profile) {
+    try {
+      const healed = await healSerialLogin({ data: { serial: cleanSerial } });
+      const profile = healed.profile;
       let authData: any = null;
       let authError: any = null;
-      for (const password of serialPasswordCandidates(cleanSerial)) {
-        const result = await supabase.auth.signInWithPassword({ email: profile.email, password });
+      const emailToUse = healed.email || profile.email;
+      for (const password of healed.passwords || serialPasswordCandidates(cleanSerial)) {
+        const result = await supabase.auth.signInWithPassword({ email: emailToUse, password });
         authData = result.data;
         authError = result.error;
         if (!authError && authData?.user) break;
-      }
-      if (authError) {
-        // Self-heal: set the auth password = serial via admin, then retry both candidates.
-        try {
-          const healed = await healSerialLogin({ data: { serial: cleanSerial } });
-          const emailToUse = healed.email || profile.email;
-          for (const password of healed.passwords || serialPasswordCandidates(cleanSerial)) {
-            const retry = await supabase.auth.signInWithPassword({ email: emailToUse, password });
-            authData = retry.data; authError = retry.error;
-            if (!authError && authData?.user) break;
-          }
-        } catch (e: any) {
-          toast({ title: "تعذر تسجيل الدخول", description: e?.message || "حاول الدخول عبر Google بدلاً من ذلك", variant: "destructive" });
-          setLoading(false); return;
-        }
       }
       if (authError || !authData?.user) {
         toast({ title: "تعذر تسجيل الدخول بالرقم التسلسلي", description: "إذا كان الحساب مرتبطاً بـ Google، استخدم زر «الدخول عبر Google» أدناه.", variant: "destructive" });
@@ -197,8 +184,8 @@ export default function AuthPage() {
         setUser({ id: authData.user.id, fullName: profile.full_name, email: profile.email, role: profile.role, serialNumber: profile.serial_number, photoUrl: profile.photo_url || undefined, nickname: profile.nickname || undefined, level: profile.level, branch: profile.branch, approved: (profile as any).approved ?? true });
         navigate("/hub");
       }
-    } else {
-      toast({ title: t("auth.notFound"), description: t("auth.notFoundDesc"), variant: "destructive" });
+    } catch (e: any) {
+      toast({ title: t("auth.notFound"), description: e?.message || t("auth.notFoundDesc"), variant: "destructive" });
     }
     setLoading(false);
   };
