@@ -167,17 +167,17 @@ export default function AuthPage() {
     setLoading(true);
     const cleanSerial = normalizeSerial(serial);
     try {
-      const healed = await healSerialLoginFn({ data: { serial: cleanSerial } });
-      const profile = healed.profile;
-      let authData: any = null;
-      let authError: any = null;
-      const emailToUse = healed.email || profile.email;
-      for (const password of healed.passwords || serialPasswordCandidates(cleanSerial)) {
-        const result = await supabase.auth.signInWithPassword({ email: emailToUse, password });
-        authData = result.data;
-        authError = result.error;
-        if (!authError && authData?.user) break;
+      const response = await fetch("/api/serial-login", {
+        method: "POST",
+        headers: { "Content-Type": "application/json", Accept: "application/json" },
+        body: JSON.stringify({ serial: cleanSerial }),
+      });
+      const result = await response.json();
+      if (!response.ok || !result.session || !result.profile) {
+        throw new Error(result.error || t("auth.notFoundDesc"));
       }
+      const profile = result.profile;
+      const { data: authData, error: authError } = await supabase.auth.setSession(result.session);
       if (authError || !authData?.user) {
         toast({ title: "تعذر تسجيل الدخول بالرقم التسلسلي", description: "إذا كان الحساب مرتبطاً بـ Google، استخدم زر «الدخول عبر Google» أدناه.", variant: "destructive" });
       } else {

@@ -11,6 +11,7 @@
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as SplatRouteImport } from './routes/$'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as ApiSerialLoginRouteImport } from './routes/api/serial-login'
 
 const SplatRoute = SplatRouteImport.update({
   id: '/$',
@@ -22,31 +23,40 @@ const IndexRoute = IndexRouteImport.update({
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiSerialLoginRoute = ApiSerialLoginRouteImport.update({
+  id: '/api/serial-login',
+  path: '/api/serial-login',
+  getParentRoute: () => rootRouteImport,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/$': typeof SplatRoute
+  '/api/serial-login': typeof ApiSerialLoginRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/$': typeof SplatRoute
+  '/api/serial-login': typeof ApiSerialLoginRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/$': typeof SplatRoute
+  '/api/serial-login': typeof ApiSerialLoginRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/$'
+  fullPaths: '/' | '/$' | '/api/serial-login'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/$'
-  id: '__root__' | '/' | '/$'
+  to: '/' | '/$' | '/api/serial-login'
+  id: '__root__' | '/' | '/$' | '/api/serial-login'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   SplatRoute: typeof SplatRoute
+  ApiSerialLoginRoute: typeof ApiSerialLoginRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -65,12 +75,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/serial-login': {
+      id: '/api/serial-login'
+      path: '/api/serial-login'
+      fullPath: '/api/serial-login'
+      preLoaderRoute: typeof ApiSerialLoginRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   SplatRoute: SplatRoute,
+  ApiSerialLoginRoute: ApiSerialLoginRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
