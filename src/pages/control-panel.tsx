@@ -120,13 +120,12 @@ export default function ControlPanelPage() {
 
   const handleApproveRequest = async (req: JoinRequest) => {
     await supabase.from("group_join_requests").update({ status: "approved" }).eq("id", req.id);
-    // Send notification to user
-    await supabase.from("notifications").insert({
-      user_id: req.user_id,
-      type: "join_approved",
-      title: t("cp.requestApproved"),
-      body: `${t("cp.forGroup")}: ${getGroupName(req.group_id)}`,
-      related_id: req.group_id,
+    await supabase.rpc("send_notification", {
+      p_user_id: req.user_id,
+      p_type: "join_approved",
+      p_title: t("cp.requestApproved"),
+      p_body: `${t("cp.forGroup")}: ${getGroupName(req.group_id)}`,
+      p_related_id: req.group_id,
     });
     toast({ title: t("cp.requestApproved") });
     fetchData();
@@ -134,13 +133,12 @@ export default function ControlPanelPage() {
 
   const handleRejectRequest = async (req: JoinRequest) => {
     await supabase.from("group_join_requests").update({ status: "rejected" }).eq("id", req.id);
-    // Send notification to user
-    await supabase.from("notifications").insert({
-      user_id: req.user_id,
-      type: "join_rejected",
-      title: t("cp.requestRejected"),
-      body: `${t("cp.forGroup")}: ${getGroupName(req.group_id)}`,
-      related_id: req.group_id,
+    await supabase.rpc("send_notification", {
+      p_user_id: req.user_id,
+      p_type: "join_rejected",
+      p_title: t("cp.requestRejected"),
+      p_body: `${t("cp.forGroup")}: ${getGroupName(req.group_id)}`,
+      p_related_id: req.group_id,
     });
     toast({ title: t("cp.requestRejected") });
     fetchData();
@@ -167,7 +165,12 @@ export default function ControlPanelPage() {
     const { error } = await supabase.from("profiles").update(payload).eq("id", p.id);
     if (error) { toast({ title: "فشل الحفظ", description: error.message, variant: "destructive" }); return; }
     if (patch.approved === true && p.user_id) {
-      await supabase.from("notifications").insert({ user_id: p.user_id, type: "tutor_approved", title: "✓ تمت الموافقة على حسابك كأستاذ", body: "يمكنك الآن نشر الدروس واستخدام المصحّح الآلي." });
+      await supabase.rpc("send_notification", {
+        p_user_id: p.user_id,
+        p_type: "tutor_approved",
+        p_title: "✓ تمت الموافقة على حسابك كأستاذ",
+        p_body: "يمكنك الآن نشر الدروس واستخدام المصحّح الآلي.",
+      });
     }
     toast({ title: "✓ تم التحديث" });
     fetchData();
@@ -201,15 +204,17 @@ export default function ControlPanelPage() {
     e.preventDefault();
     if (!grpForm.name.trim()) return;
     setGrpBusy(true);
-    const { error } = await supabase.from("groups").insert({
+    const { data: created, error } = await supabase.from("groups").insert({
       name: grpForm.name.trim(),
       description: grpForm.description || null,
       level: grpForm.level || null,
       is_private: grpForm.isPrivate,
-      password: grpForm.isPrivate ? grpForm.password : null,
       tutors_only: grpForm.tutorsOnly,
       created_by: user?.id || null,
-    } as any);
+    } as any).select("id").maybeSingle();
+    if (!error && created?.id && grpForm.isPrivate && grpForm.password) {
+      await supabase.rpc("set_group_password", { _group_id: created.id, _password: grpForm.password });
+    }
     setGrpBusy(false);
     if (error) { toast({ title: "فشل الإنشاء", description: error.message, variant: "destructive" }); return; }
     toast({ title: "✓ تم إنشاء المجموعة" });

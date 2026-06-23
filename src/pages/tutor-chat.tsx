@@ -110,12 +110,12 @@ export default function TutorChatPage() {
       receiver_id: selected.user_id,
       content: msg,
     });
-    await supabase.from("notifications").insert({
-      user_id: selected.user_id,
-      type: "tutor_chat",
-      title: isTutor ? "رسالة من الأستاذ" : "رسالة من تلميذ",
-      body: `${user.fullName}: ${msg.substring(0, 60)}`,
-      related_id: user.id,
+    await supabase.rpc("send_notification", {
+      p_user_id: selected.user_id,
+      p_type: "tutor_chat",
+      p_title: isTutor ? "رسالة من الأستاذ" : "رسالة من تلميذ",
+      p_body: `${user.fullName}: ${msg.substring(0, 60)}`,
+      p_related_id: user.id,
     });
   };
 

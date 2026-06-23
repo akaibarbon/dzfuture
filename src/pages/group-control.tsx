@@ -39,7 +39,6 @@ interface Group {
   name: string;
   description: string | null;
   is_private: boolean;
-  password: string | null;
   background_url: string | null;
   serial_number: string | null;
   created_by: string | null;
@@ -105,7 +104,7 @@ export default function GroupControlPage() {
       setGroup(grp as Group);
       setName(grp.name);
       setDescription(grp.description || "");
-      setPassword(grp.password || "");
+      setPassword("");
       setIsPrivate(grp.is_private);
       setBgUrl(grp.background_url || "");
       setLoading(false);
@@ -138,12 +137,12 @@ export default function GroupControlPage() {
 
   const handleApprove = async (id: string, userId: string) => {
     await supabase.from("group_join_requests").update({ status: "approved" }).eq("id", id);
-    await supabase.from("notifications").insert({
-      user_id: userId,
-      title: t("gc.approvedTitle") || "تم قبول طلبك",
-      body: `${t("gc.approvedBody") || "تم قبولك في مجموعة"}: ${group?.name}`,
-      type: "success",
-      related_id: groupId ?? null,
+    await supabase.rpc("send_notification", {
+      p_user_id: userId,
+      p_type: "success",
+      p_title: t("gc.approvedTitle") || "تم قبول طلبك",
+      p_body: `${t("gc.approvedBody") || "تم قبولك في مجموعة"}: ${group?.name}`,
+      p_related_id: groupId ?? null,
     });
     toast({ title: t("cp.requestApproved") });
     refreshRequests();
@@ -151,12 +150,12 @@ export default function GroupControlPage() {
 
   const handleReject = async (id: string, userId: string) => {
     await supabase.from("group_join_requests").update({ status: "rejected" }).eq("id", id);
-    await supabase.from("notifications").insert({
-      user_id: userId,
-      title: t("gc.rejectedTitle") || "تم رفض طلبك",
-      body: `${t("gc.rejectedBody") || "تم رفض طلب الانضمام إلى"}: ${group?.name}`,
-      type: "warning",
-      related_id: groupId ?? null,
+    await supabase.rpc("send_notification", {
+      p_user_id: userId,
+      p_type: "warning",
+      p_title: t("gc.rejectedTitle") || "تم رفض طلبك",
+      p_body: `${t("gc.rejectedBody") || "تم رفض طلب الانضمام إلى"}: ${group?.name}`,
+      p_related_id: groupId ?? null,
     });
     toast({ title: t("cp.requestRejected") });
     refreshRequests();
@@ -165,12 +164,12 @@ export default function GroupControlPage() {
   const handleKickMember = async (userId: string, name: string) => {
     if (!groupId) return;
     await supabase.from("group_join_requests").delete().eq("group_id", groupId).eq("user_id", userId);
-    await supabase.from("notifications").insert({
-      user_id: userId,
-      title: t("gc.kickedTitle") || "تم إخراجك",
-      body: `${t("gc.kickedBody") || "تم إخراجك من مجموعة"}: ${group?.name}`,
-      type: "warning",
-      related_id: groupId,
+    await supabase.rpc("send_notification", {
+      p_user_id: userId,
+      p_type: "warning",
+      p_title: t("gc.kickedTitle") || "تم إخراجك",
+      p_body: `${t("gc.kickedBody") || "تم إخراجك من مجموعة"}: ${group?.name}`,
+      p_related_id: groupId,
     });
     toast({ title: `${t("gc.kicked") || "تم الإخراج"}: ${name}` });
     setMembers((m) => m.filter((x) => x.user_id !== userId));
@@ -185,10 +184,16 @@ export default function GroupControlPage() {
         name,
         description: description || null,
         is_private: isPrivate,
-        password: isPrivate ? password : null,
         background_url: bgUrl || null,
       })
       .eq("id", groupId);
+    if (!error) {
+      // Update password via secure rpc
+      await supabase.rpc("set_group_password", {
+        _group_id: groupId,
+        _password: isPrivate && password ? password : null,
+      });
+    }
     setSavingSettings(false);
     if (error) {
       toast({ title: "Error", description: error.message, variant: "destructive" });
