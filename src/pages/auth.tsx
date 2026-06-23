@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
+import { useServerFn } from "@tanstack/react-start";
 import { motion, AnimatePresence } from "framer-motion";
 import { useAuth } from "@/hooks/use-auth";
 import { Button } from "@/components/ui/button";
@@ -107,6 +108,8 @@ export default function AuthPage() {
   const [checkingSession, setCheckingSession] = useState(true);
   const [copied, setCopied] = useState(false);
   const [savedConfirmed, setSavedConfirmed] = useState(false);
+  const healSerialLoginFn = useServerFn(healSerialLogin);
+  const setSerialPasswordFn = useServerFn(setSerialPassword);
 
   const handleCopySerial = async () => {
     try {
@@ -164,7 +167,7 @@ export default function AuthPage() {
     setLoading(true);
     const cleanSerial = normalizeSerial(serial);
     try {
-      const healed = await healSerialLogin({ data: { serial: cleanSerial } });
+      const healed = await healSerialLoginFn({ data: { serial: cleanSerial } });
       const profile = healed.profile;
       let authData: any = null;
       let authError: any = null;
@@ -272,7 +275,7 @@ export default function AuthPage() {
     setOauthBusy(false);
     if (error) { toast({ title: "تعذر إنشاء الحساب", description: error.message, variant: "destructive" }); return; }
     // Set the auth password = serial so the user can also log in via the serial-number flow
-    try { await setSerialPassword({ data: { userId: oauthPending.id, serial: serialNum } }); } catch {}
+    try { await setSerialPasswordFn({ data: { userId: oauthPending.id, serial: serialNum } }); } catch {}
     setUser({ id: oauthPending.id, fullName: oauthForm.fullName.trim(), email: oauthPending.email || "", role: oauthForm.role, serialNumber: serialNum, photoUrl, level: oauthForm.level, branch: meta?.branchRequired ? oauthForm.branch : null, approved: !isTutor });
     setNewSerial(serialNum);
     setOauthPending(null);
