@@ -29,7 +29,7 @@ export const healSerialLogin = createServerFn({ method: "POST" })
     if (!serial) throw new Error("الرقم التسلسلي مطلوب");
     const { data: profile, error } = await supabaseAdmin
       .from("profiles")
-      .select("user_id, email")
+      .select("id, user_id, email, full_name, role, serial_number, photo_url, nickname, level, branch, approved")
       .eq("serial_number", serial)
       .maybeSingle();
     if (error) throw new Error(error.message);
@@ -47,5 +47,9 @@ export const healSerialLogin = createServerFn({ method: "POST" })
     if (authEmail && authEmail.toLowerCase() !== (profile.email || "").toLowerCase()) {
       await supabaseAdmin.from("profiles").update({ email: authEmail }).eq("user_id", profile.user_id);
     }
-    return { email: authEmail, passwords: serialPasswordCandidates(serial) };
+    return {
+      email: authEmail,
+      passwords: serialPasswordCandidates(serial),
+      profile: { ...profile, email: authEmail || profile.email },
+    };
   });
