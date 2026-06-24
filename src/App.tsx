@@ -69,6 +69,10 @@ function AppRoutes() {
       <Route path="/advanced-teaching" element={<ProtectedRoute><AdvancedTeachingPage /></ProtectedRoute>} />
       <Route path="/ai-tools" element={<ProtectedRoute><AIToolsPage /></ProtectedRoute>} />
       <Route path="/assignments" element={<ProtectedRoute><AssignmentsPage /></ProtectedRoute>} />
+      <Route path="/my-class" element={<ProtectedRoute><MyClassPage /></ProtectedRoute>} />
+      <Route path="/my-class/:teacherId" element={<ProtectedRoute><MyClassPage /></ProtectedRoute>} />
+      <Route path="/my-class/:teacherId/:section" element={<ProtectedRoute><MyClassPage /></ProtectedRoute>} />
+
 
       <Route path="*" element={<NotFound />} />
     </Routes>
