@@ -49,8 +49,8 @@ export default function TutorChatPage() {
 
   useEffect(() => {
     (async () => {
-      const { data } = await supabase
-        .from("profiles")
+      const { data } = await (supabase as any)
+        .from("public_profiles")
         .select("id,user_id,full_name,nickname,photo_url,role,approved")
         .eq("role", targetRole)
         .order("full_name");
