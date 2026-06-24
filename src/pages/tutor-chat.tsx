@@ -49,17 +49,15 @@ export default function TutorChatPage() {
 
   useEffect(() => {
     (async () => {
-      const { data } = await (supabase as any)
-        .from("public_profiles")
-        .select("id,user_id,full_name,nickname,photo_url,role,approved")
-        .eq("role", targetRole)
-        .order("full_name");
+      const { data } = await (supabase as any).rpc("list_public_profiles");
       if (data) {
-        const list = (data as Profile[]).filter((p) => p.user_id && p.user_id !== user?.id);
-        // Students should only see approved tutors
+        const list = ((data as Profile[]) || [])
+          .filter((p) => p.role === targetRole && p.user_id && p.user_id !== user?.id)
+          .sort((a, b) => (a.full_name || "").localeCompare(b.full_name || ""));
         setProfiles(isTutor ? list : list.filter((p) => p.approved !== false));
       }
     })();
+
   }, [user?.id, targetRole, isTutor]);
 
   useEffect(() => {
