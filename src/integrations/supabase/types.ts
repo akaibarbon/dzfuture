@@ -746,6 +746,23 @@ export type Database = {
         Args: { _group_id: string; _user_id: string }
         Returns: boolean
       }
+      list_public_profiles: {
+        Args: never
+        Returns: {
+          approved: boolean
+          branch: string
+          created_at: string
+          full_name: string
+          id: string
+          level: string
+          nickname: string
+          photo_url: string
+          role: string
+          streak_days: number
+          user_id: string
+          xp: number
+        }[]
+      }
       send_notification: {
         Args: {
           p_body?: string
