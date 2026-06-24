@@ -117,7 +117,7 @@ function TeacherPicker() {
           <div className="text-5xl">🎓</div>
           <div className="flex-1 min-w-[200px]">
             <SectionTag>اختر أستاذك</SectionTag>
-            <h1 className="text-3xl md:text-4xl font-black mt-2">قسم أستاذي</h1>
+            <h1 className="font-display text-5xl md:text-6xl mt-2"><em>قسم أستاذي</em></h1>
             <p className="text-sm font-bold mt-1 opacity-80">
               لكل أستاذ صفحاته الخاصة بمادته — اختر الأستاذ الذي تريد الدخول إلى قسمه.
             </p>
