@@ -29,6 +29,7 @@ import TutorChatPage from "./pages/tutor-chat";
 import AdvancedTeachingPage from "./pages/advanced-teaching";
 import AIToolsPage from "./pages/ai-tools";
 import AssignmentsPage from "./pages/assignments";
+import MyClassPage from "./pages/my-class";
 import NotFound from "./pages/not-found";
 
 const queryClient = new QueryClient();
