@@ -147,9 +147,7 @@ function TeacherCard({ teacher }: { teacher: Teacher }) {
             <div className="text-[11px] font-bold uppercase tracking-widest opacity-70">
               {teacher.subject}
             </div>
-            <div className="text-lg font-black leading-tight mt-0.5">
-              {teacher.name}
-            </div>
+            <div className="font-display text-2xl leading-tight mt-0.5"><em>{teacher.name}</em></div>
           </div>
         </div>
         <div className="mt-4 flex flex-wrap gap-2">
