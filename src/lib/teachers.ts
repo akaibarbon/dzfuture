@@ -33,48 +33,24 @@ export interface Teacher {
 
 // All sections we know how to render. Specific teachers opt-in via `sections`.
 export const ALL_SECTIONS: Record<TeacherSectionKey, TeacherSection> = {
-  lab: {
-    key: "lab",
-    label: "المختبر الافتراضي",
-    description: "تجارب تفاعلية وحياكاة",
-    emoji: "🧪",
-    accent: "bg-[#E6FF00]",
-  },
-  resources: {
-    key: "resources",
-    label: "المصادر والملفّات",
-    description: "دروس، ملخصات، روابط",
-    emoji: "📚",
-    accent: "bg-[#FFD600]",
-  },
-  models3d: {
-    key: "models3d",
-    label: "نماذج 3D",
-    description: "مجسمات ثلاثية الأبعاد",
-    emoji: "🧊",
-    accent: "bg-[#2D4EF5] text-white",
-  },
-  exercises: {
-    key: "exercises",
-    label: "تمارين وحلول",
-    description: "بنك تمارين مع التصحيح",
-    emoji: "✍️",
-    accent: "bg-[#FF3B00] text-white",
-  },
+  lab:       { key: "lab",       label: "المختبر الافتراضي", description: "تجارب تفاعلية ومحاكاة",  emoji: "🧪", accent: "bg-[#d9c9a8]" },
+  resources: { key: "resources", label: "المصادر والملفّات",  description: "دروس، ملخصات، روابط",     emoji: "📚", accent: "bg-[#e8dcc0]" },
+  models3d:  { key: "models3d",  label: "نماذج 3D",          description: "مجسمات ثلاثية الأبعاد",   emoji: "🧊", accent: "bg-[#c9b89a]" },
+  exercises: { key: "exercises", label: "تمارين وحلول",       description: "بنك تمارين مع التصحيح",  emoji: "✍️", accent: "bg-[#b89878]" },
 };
 
 export const TEACHERS: Teacher[] = [
-  { id: "mahmoudi-labiba",   name: "الأستاذة محمودي لبيبة",        subject: "العلوم الطبيعية",   subjectKey: "science",  accent: "bg-[#7CFFCB]", initials: "م.ل" },
-  { id: "bahloul",           name: "الأستاذة بهلول",                subject: "العلوم الفيزيائية", subjectKey: "physics",  accent: "bg-[#E6FF00]", initials: "ب" },
-  { id: "boulagroun-wahiba", name: "الأستاذة بولقرون وهيبة",        subject: "الإنجليزية",        subjectKey: "english",  accent: "bg-[#FF8FB2]", initials: "ب.و" },
-  { id: "tnibar",            name: "الأستاذة طنيبر",                subject: "الفرنسية",          subjectKey: "french",   accent: "bg-[#2D4EF5] text-white", initials: "ط" },
-  { id: "benghanem",         name: "الأستاذة بن غانم",              subject: "الاجتماعيات",       subjectKey: "social",   accent: "bg-[#FFD600]", initials: "ب.غ" },
-  { id: "boutata",           name: "الأستاذة بوطاطا",               subject: "الرياضيات",         subjectKey: "math",     accent: "bg-[#FF3B00] text-white", initials: "ب" },
-  { id: "cherfia-hicham",    name: "الأستاذ شرفية أحمد هشام",       subject: "الرياضيات",         subjectKey: "math",     accent: "bg-[#FF3B00] text-white", initials: "ش.ه" },
-  { id: "meziane",           name: "الأستاذة مزيان",                subject: "اللغة العربية",     subjectKey: "arabic",   accent: "bg-[#A78BFA]", initials: "م" },
-  { id: "derouiche",         name: "الأستاذة درويش",                subject: "اللغة العربية",     subjectKey: "arabic",   accent: "bg-[#A78BFA]", initials: "د" },
-  { id: "lemouness",         name: "الأستاذة لمونس",                subject: "اللغة العربية",     subjectKey: "arabic",   accent: "bg-[#A78BFA]", initials: "ل" },
-  { id: "zaatri",            name: "الأستاذة زعتري",                subject: "الفرنسية",          subjectKey: "french",   accent: "bg-[#2D4EF5] text-white", initials: "ز" },
+  { id: "mahmoudi-labiba",   name: "الأستاذة محمودي لبيبة",        subject: "العلوم الطبيعية",   subjectKey: "science",  accent: "bg-[#e8dcc0]", initials: "م.ل" },
+  { id: "bahloul",           name: "الأستاذة بهلول",                subject: "العلوم الفيزيائية", subjectKey: "physics",  accent: "bg-[#d9c9a8]", initials: "ب" },
+  { id: "boulagroun-wahiba", name: "الأستاذة بولقرون وهيبة",        subject: "الإنجليزية",        subjectKey: "english",  accent: "bg-[#e8dcc0]", initials: "ب.و" },
+  { id: "tnibar",            name: "الأستاذة طنيبر",                subject: "الفرنسية",          subjectKey: "french",   accent: "bg-[#c9b89a]", initials: "ط" },
+  { id: "benghanem",         name: "الأستاذة بن غانم",              subject: "الاجتماعيات",       subjectKey: "social",   accent: "bg-[#d9c9a8]", initials: "ب.غ" },
+  { id: "boutata",           name: "الأستاذة بوطاطا",               subject: "الرياضيات",         subjectKey: "math",     accent: "bg-[#b89878]", initials: "ب" },
+  { id: "cherfia-hicham",    name: "الأستاذ شرفية أحمد هشام",       subject: "الرياضيات",         subjectKey: "math",     accent: "bg-[#b89878]", initials: "ش.ه" },
+  { id: "meziane",           name: "الأستاذة مزيان",                subject: "اللغة العربية",     subjectKey: "arabic",   accent: "bg-[#e8dcc0]", initials: "م" },
+  { id: "derouiche",         name: "الأستاذة درويش",                subject: "اللغة العربية",     subjectKey: "arabic",   accent: "bg-[#e8dcc0]", initials: "د" },
+  { id: "lemouness",         name: "الأستاذة لمونس",                subject: "اللغة العربية",     subjectKey: "arabic",   accent: "bg-[#e8dcc0]", initials: "ل" },
+  { id: "zaatri",            name: "الأستاذة زعتري",                subject: "الفرنسية",          subjectKey: "french",   accent: "bg-[#c9b89a]", initials: "ز" },
 ];
 
 // Default section ordering per subject. For language/social teachers we drop
