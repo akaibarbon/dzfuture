@@ -687,7 +687,51 @@ export type Database = {
       }
     }
     Views: {
-      [_ in never]: never
+      public_profiles: {
+        Row: {
+          approved: boolean | null
+          branch: string | null
+          created_at: string | null
+          full_name: string | null
+          id: string | null
+          level: string | null
+          nickname: string | null
+          photo_url: string | null
+          role: string | null
+          streak_days: number | null
+          user_id: string | null
+          xp: number | null
+        }
+        Insert: {
+          approved?: boolean | null
+          branch?: string | null
+          created_at?: string | null
+          full_name?: string | null
+          id?: string | null
+          level?: string | null
+          nickname?: string | null
+          photo_url?: string | null
+          role?: string | null
+          streak_days?: number | null
+          user_id?: string | null
+          xp?: number | null
+        }
+        Update: {
+          approved?: boolean | null
+          branch?: string | null
+          created_at?: string | null
+          full_name?: string | null
+          id?: string | null
+          level?: string | null
+          nickname?: string | null
+          photo_url?: string | null
+          role?: string | null
+          streak_days?: number | null
+          user_id?: string | null
+          xp?: number | null
+        }
+        Relationships: []
+      }
     }
     Functions: {
       award_badge: {
