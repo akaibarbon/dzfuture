@@ -39,7 +39,7 @@ export default function MessagesPage() {
 
   useEffect(() => {
     const fetchProfiles = async () => {
-      const { data } = await (supabase as any).from("public_profiles").select("id,user_id,full_name,nickname,photo_url,role").order("full_name");
+      const { data } = await (supabase as any).rpc("list_public_profiles");
       if (data) setProfiles((data as Profile[]).filter(p => p.user_id !== user?.id));
     };
     fetchProfiles();

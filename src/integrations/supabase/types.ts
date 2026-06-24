@@ -687,51 +687,7 @@ export type Database = {
       }
     }
     Views: {
-      public_profiles: {
-        Row: {
-          approved: boolean | null
-          branch: string | null
-          created_at: string | null
-          full_name: string | null
-          id: string | null
-          level: string | null
-          nickname: string | null
-          photo_url: string | null
-          role: string | null
-          streak_days: number | null
-          user_id: string | null
-          xp: number | null
-        }
-        Insert: {
-          approved?: boolean | null
-          branch?: string | null
-          created_at?: string | null
-          full_name?: string | null
-          id?: string | null
-          level?: string | null
-          nickname?: string | null
-          photo_url?: string | null
-          role?: string | null
-          streak_days?: number | null
-          user_id?: string | null
-          xp?: number | null
-        }
-        Update: {
-          approved?: boolean | null
-          branch?: string | null
-          created_at?: string | null
-          full_name?: string | null
-          id?: string | null
-          level?: string | null
-          nickname?: string | null
-          photo_url?: string | null
-          role?: string | null
-          streak_days?: number | null
-          user_id?: string | null
-          xp?: number | null
-        }
-        Relationships: []
-      }
+      [_ in never]: never
     }
     Functions: {
       award_badge: {
@@ -745,6 +701,23 @@ export type Database = {
       is_group_owner: {
         Args: { _group_id: string; _user_id: string }
         Returns: boolean
+      }
+      list_public_profiles: {
+        Args: never
+        Returns: {
+          approved: boolean
+          branch: string
+          created_at: string
+          full_name: string
+          id: string
+          level: string
+          nickname: string
+          photo_url: string
+          role: string
+          streak_days: number
+          user_id: string
+          xp: number
+        }[]
       }
       send_notification: {
         Args: {
