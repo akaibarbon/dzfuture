@@ -70,7 +70,7 @@ export default function LessonsPage() {
   };
 
   const loadTutors = async () => {
-    const { data } = await supabase.from("profiles").select("user_id, full_name, photo_url").eq("role", "tutor");
+    const { data } = await (supabase as any).from("public_profiles").select("user_id, full_name, photo_url").eq("role", "tutor");
     if (data) setTutors(data.filter((t: any) => t.user_id) as Tutor[]);
   };
 
