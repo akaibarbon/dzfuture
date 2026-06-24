@@ -70,9 +70,10 @@ export default function LessonsPage() {
   };
 
   const loadTutors = async () => {
-    const { data } = await (supabase as any).from("public_profiles").select("user_id, full_name, photo_url").eq("role", "tutor");
-    if (data) setTutors(data.filter((t: any) => t.user_id) as Tutor[]);
+    const { data } = await (supabase as any).rpc("list_public_profiles");
+    if (data) setTutors((data as any[]).filter((t) => t.user_id && t.role === "tutor").map((t) => ({ user_id: t.user_id, full_name: t.full_name, photo_url: t.photo_url })) as Tutor[]);
   };
+
 
   useEffect(() => { load(); loadFavorites(); loadTutors(); }, [user?.id]);
 
