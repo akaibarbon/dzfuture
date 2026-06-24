@@ -76,7 +76,7 @@ export default function MyClassPage() {
             <div className="text-xs font-bold uppercase tracking-widest opacity-70">
               {teacher.subject}
             </div>
-            <h1 className="text-3xl md:text-4xl font-black mt-1">{teacher.name}</h1>
+            <h1 className="font-display text-4xl md:text-5xl mt-1"><em>{teacher.name}</em></h1>
           </div>
           <GraduationCap className="w-10 h-10 opacity-80" />
         </div>
@@ -117,7 +117,7 @@ function TeacherPicker() {
           <div className="text-5xl">🎓</div>
           <div className="flex-1 min-w-[200px]">
             <SectionTag>اختر أستاذك</SectionTag>
-            <h1 className="text-3xl md:text-4xl font-black mt-2">قسم أستاذي</h1>
+            <h1 className="font-display text-5xl md:text-6xl mt-2"><em>قسم أستاذي</em></h1>
             <p className="text-sm font-bold mt-1 opacity-80">
               لكل أستاذ صفحاته الخاصة بمادته — اختر الأستاذ الذي تريد الدخول إلى قسمه.
             </p>
@@ -147,9 +147,7 @@ function TeacherCard({ teacher }: { teacher: Teacher }) {
             <div className="text-[11px] font-bold uppercase tracking-widest opacity-70">
               {teacher.subject}
             </div>
-            <div className="text-lg font-black leading-tight mt-0.5">
-              {teacher.name}
-            </div>
+            <div className="font-display text-2xl leading-tight mt-0.5"><em>{teacher.name}</em></div>
           </div>
         </div>
         <div className="mt-4 flex flex-wrap gap-2">
@@ -190,7 +188,7 @@ function SectionContent({
           {section.emoji}
         </div>
         <div>
-          <h2 className="text-2xl font-black">{section.label}</h2>
+          <h2 className="font-display text-3xl"><em>{section.label}</em></h2>
           <p className="text-sm font-bold opacity-70">{section.description}</p>
         </div>
       </div>
