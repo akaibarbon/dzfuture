@@ -88,6 +88,7 @@ export function Layout({ children }: { children: ReactNode }) {
 
   const navItems = [
     { href: "/hub", label: t("Hub"), icon: Home },
+    { href: "/my-class", label: "قسم أستاذي", icon: GraduationCap },
     { href: "/announcements", label: t("Announcements"), icon: Bell },
     { href: "/agenda", label: t("Agenda"), icon: CalendarDays },
     { href: "/daily-schedule", label: t("DailySchedule"), icon: CalendarClock },
