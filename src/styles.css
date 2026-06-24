@@ -146,9 +146,13 @@
   box-shadow: 6px 6px 0 hsl(var(--foreground));
 }
 @utility font-display {
-  font-family: 'Space Grotesk', 'Archivo Black', system-ui, sans-serif;
-  font-weight: 900;
-  text-transform: uppercase;
+  font-family: 'Instrument Serif', 'DM Serif Display', Georgia, serif;
+  font-weight: 400;
+}
+@utility font-display-italic {
+  font-family: 'Instrument Serif', Georgia, serif;
+  font-style: italic;
+  font-weight: 400;
 }
 @utility brutal {
   border: 4px solid hsl(var(--foreground));
