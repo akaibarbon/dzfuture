@@ -188,7 +188,7 @@ function SectionContent({
           {section.emoji}
         </div>
         <div>
-          <h2 className="text-2xl font-black">{section.label}</h2>
+          <h2 className="font-display text-3xl"><em>{section.label}</em></h2>
           <p className="text-sm font-bold opacity-70">{section.description}</p>
         </div>
       </div>
