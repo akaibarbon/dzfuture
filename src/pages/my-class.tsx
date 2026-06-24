@@ -76,7 +76,7 @@ export default function MyClassPage() {
             <div className="text-xs font-bold uppercase tracking-widest opacity-70">
               {teacher.subject}
             </div>
-            <h1 className="text-3xl md:text-4xl font-black mt-1">{teacher.name}</h1>
+            <h1 className="font-display text-4xl md:text-5xl mt-1"><em>{teacher.name}</em></h1>
           </div>
           <GraduationCap className="w-10 h-10 opacity-80" />
         </div>
