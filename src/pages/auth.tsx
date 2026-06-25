@@ -70,11 +70,17 @@ async function ensureProfile(
     return;
   }
 
-  // 3) Brand new
-  if (isOAuth && setOAuthPending) {
-    // Defer profile creation until user completes onboarding form
-    setOAuthPending(user);
-    setMode("oauth-onboarding");
+  // 3) Brand new auth user with NO matching profile
+  if (isOAuth) {
+    // Google sign-in is allowed ONLY for accounts that already exist in the platform.
+    // Reject creation and sign the user out.
+    await supabase.auth.signOut();
+    try {
+      // Best-effort toast (window guard)
+      const ev = new CustomEvent("cemgm:google-no-account");
+      window.dispatchEvent(ev);
+    } catch {}
+    navigate("/auth");
     return;
   }
 
