@@ -7,7 +7,7 @@
 
 @theme inline {
   --font-sans: 'DM Sans', sans-serif;
-  --font-display: 'Instrument Serif', 'DM Serif Display', serif;
+  --font-display: 'Cormorant Garamond', 'Space Grotesk', serif;
 
   --radius-sm: calc(var(--radius) - 4px);
   --radius-md: calc(var(--radius) - 2px);
@@ -56,35 +56,35 @@
 }
 
 :root {
-  /* Warm cream / espresso brutalist palette (Joe's Coffee-inspired) */
-  --background: 36 35% 90%;
-  --foreground: 24 30% 12%;
-  --card: 36 40% 94%;
-  --card-foreground: 24 30% 12%;
-  --popover: 36 40% 94%;
-  --popover-foreground: 24 30% 12%;
-  --primary: 22 60% 32%;
-  --primary-foreground: 36 40% 94%;
-  --secondary: 36 25% 85%;
-  --secondary-foreground: 24 30% 12%;
-  --muted: 36 25% 85%;
-  --muted-foreground: 24 15% 35%;
-  --accent: 22 60% 32%;
-  --accent-foreground: 36 40% 94%;
-  --destructive: 8 70% 40%;
-  --destructive-foreground: 36 40% 94%;
-  --border: 24 30% 12%;
-  --input: 24 30% 12%;
-  --ring: 24 30% 12%;
-  --radius: 0rem;
-  --sidebar-background: 36 35% 90%;
-  --sidebar-foreground: 24 30% 12%;
-  --sidebar-primary: 22 60% 32%;
-  --sidebar-primary-foreground: 36 40% 94%;
-  --sidebar-accent: 36 40% 94%;
-  --sidebar-accent-foreground: 24 30% 12%;
-  --sidebar-border: 24 30% 12%;
-  --sidebar-ring: 24 30% 12%;
+  /* Elegant warm cream + espresso — refined, not brutalist */
+  --background: 36 30% 93%;
+  --foreground: 24 25% 16%;
+  --card: 36 40% 97%;
+  --card-foreground: 24 25% 16%;
+  --popover: 36 40% 97%;
+  --popover-foreground: 24 25% 16%;
+  --primary: 22 45% 28%;
+  --primary-foreground: 36 40% 97%;
+  --secondary: 34 22% 88%;
+  --secondary-foreground: 24 25% 16%;
+  --muted: 34 22% 88%;
+  --muted-foreground: 24 12% 40%;
+  --accent: 28 55% 45%;
+  --accent-foreground: 36 40% 97%;
+  --destructive: 8 60% 42%;
+  --destructive-foreground: 36 40% 97%;
+  --border: 30 18% 78%;
+  --input: 30 18% 78%;
+  --ring: 22 45% 28%;
+  --radius: 0.75rem;
+  --sidebar-background: 36 32% 91%;
+  --sidebar-foreground: 24 25% 16%;
+  --sidebar-primary: 22 45% 28%;
+  --sidebar-primary-foreground: 36 40% 97%;
+  --sidebar-accent: 36 40% 97%;
+  --sidebar-accent-foreground: 24 25% 16%;
+  --sidebar-border: 30 18% 78%;
+  --sidebar-ring: 22 45% 28%;
 }
 
 .dark {
@@ -127,54 +127,55 @@
     -webkit-font-smoothing: antialiased;
   }
   h1, h2, h3, h4, h5, h6 {
-    font-family: 'Instrument Serif', 'DM Serif Display', Georgia, serif;
-    font-weight: 400;
-    letter-spacing: -0.01em;
-    line-height: 1.05;
+    font-family: 'Cormorant Garamond', 'Space Grotesk', Georgia, serif;
+    font-weight: 500;
+    letter-spacing: -0.015em;
+    line-height: 1.15;
   }
 }
 
 @utility text-glow {
-  text-shadow: 3px 3px 0 hsl(var(--foreground));
+  text-shadow: 0 1px 2px hsl(var(--foreground) / 0.15);
 }
 @utility box-glow {
-  box-shadow: 6px 6px 0 hsl(var(--foreground));
+  box-shadow: 0 8px 24px -8px hsl(var(--foreground) / 0.18);
 }
 @utility glass-panel {
   background-color: hsl(var(--card));
-  border: 3px solid hsl(var(--foreground));
-  box-shadow: 6px 6px 0 hsl(var(--foreground));
+  border: 1px solid hsl(var(--border));
+  box-shadow: 0 10px 30px -12px hsl(var(--foreground) / 0.15);
+  border-radius: var(--radius);
 }
 @utility font-display {
-  font-family: 'Instrument Serif', 'DM Serif Display', Georgia, serif;
-  font-weight: 400;
+  font-family: 'Cormorant Garamond', 'Space Grotesk', Georgia, serif;
+  font-weight: 500;
 }
 @utility font-display-italic {
-  font-family: 'Instrument Serif', Georgia, serif;
+  font-family: 'Cormorant Garamond', Georgia, serif;
   font-style: italic;
-  font-weight: 400;
+  font-weight: 500;
 }
 @utility brutal {
-  border: 4px solid hsl(var(--foreground));
-  box-shadow: 8px 8px 0 hsl(var(--foreground));
-  border-radius: 0 !important;
+  border: 1px solid hsl(var(--border));
+  box-shadow: 0 10px 30px -12px hsl(var(--foreground) / 0.15);
+  border-radius: var(--radius);
   background-color: hsl(var(--card));
 }
 @utility brutal-sm {
-  border: 3px solid hsl(var(--foreground));
-  box-shadow: 4px 4px 0 hsl(var(--foreground));
-  border-radius: 0 !important;
+  border: 1px solid hsl(var(--border));
+  box-shadow: 0 4px 14px -6px hsl(var(--foreground) / 0.12);
+  border-radius: calc(var(--radius) - 2px);
 }
 @utility brutal-hover {
-  transition: transform 120ms ease, box-shadow 120ms ease;
+  transition: transform 200ms ease, box-shadow 200ms ease;
 }
 .brutal-hover:hover {
-  transform: translate(-2px, -2px);
-  box-shadow: 10px 10px 0 hsl(var(--foreground));
+  transform: translateY(-2px);
+  box-shadow: 0 16px 36px -14px hsl(var(--foreground) / 0.22);
 }
 .brutal-hover:active {
-  transform: translate(4px, 4px);
-  box-shadow: 2px 2px 0 hsl(var(--foreground));
+  transform: translateY(0);
+  box-shadow: 0 4px 12px -4px hsl(var(--foreground) / 0.18);
 }
 
 ::-webkit-scrollbar { width: 8px; height: 8px; }
