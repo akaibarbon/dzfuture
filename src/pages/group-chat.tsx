@@ -69,7 +69,7 @@ export default function GroupChatPage() {
 
   // Join request state
   const [joinStatus, setJoinStatus] = useState<"loading" | "none" | "pending" | "approved" | "rejected">("loading");
-  const [joinForm, setJoinForm] = useState({ fullName: "", surname: "", dob: "", class: "" });
+  const [joinForm, setJoinForm] = useState({ fullName: "", surname: "", class: "" });
 
   // Check group + membership
   useEffect(() => {
@@ -241,7 +241,7 @@ export default function GroupChatPage() {
     const { error } = await supabase.from("group_join_requests").insert({
       group_id: groupId, user_id: user.id,
       full_name: joinForm.fullName, surname: joinForm.surname,
-      date_of_birth: joinForm.dob, class: joinForm.class,
+      class: joinForm.class,
     });
     if (!error) setJoinStatus("pending");
   };
@@ -282,7 +282,7 @@ export default function GroupChatPage() {
               <form onSubmit={handleJoinRequest} className="space-y-4">
                 <div className="space-y-2"><Label>{t("chat.firstName")}</Label><Input required value={joinForm.fullName} onChange={(e) => setJoinForm({ ...joinForm, fullName: e.target.value })} className="bg-background/40" /></div>
                 <div className="space-y-2"><Label>{t("chat.surname")}</Label><Input required value={joinForm.surname} onChange={(e) => setJoinForm({ ...joinForm, surname: e.target.value })} className="bg-background/40" /></div>
-                <div className="space-y-2"><Label>{t("chat.dob")}</Label><Input required type="date" value={joinForm.dob} onChange={(e) => setJoinForm({ ...joinForm, dob: e.target.value })} className="bg-background/40" /></div>
+                
                 <div className="space-y-2"><Label>{t("chat.class")}</Label><Input required value={joinForm.class} onChange={(e) => setJoinForm({ ...joinForm, class: e.target.value })} placeholder={t("chat.classPlaceholder")} className="bg-background/40" /></div>
                 <Button type="submit" className="w-full bg-primary font-bold">{t("chat.submitRequest")}</Button>
               </form>
