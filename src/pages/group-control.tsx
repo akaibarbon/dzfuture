@@ -50,7 +50,7 @@ interface JoinRequest {
   user_id: string;
   full_name: string;
   surname: string;
-  date_of_birth: string;
+  
   class: string;
   status: string;
   created_at: string;
@@ -391,7 +391,7 @@ export default function GroupControlPage() {
                 <CardContent className="p-4 flex items-center justify-between flex-wrap gap-3">
                   <div>
                     <p className="font-bold">{r.full_name} {r.surname}</p>
-                    <p className="text-xs text-muted-foreground">{r.class} • {r.date_of_birth}</p>
+                    <p className="text-xs text-muted-foreground">{r.class}</p>
                     <span className={`text-xs mt-1 inline-block px-2 py-0.5 rounded ${r.status === 'approved' ? 'bg-green-500/20 text-green-400' : r.status === 'rejected' ? 'bg-destructive/20 text-destructive' : 'bg-amber-500/20 text-amber-400'}`}>
                       {r.status === "pending" ? t("cp.statusPending") : r.status === "approved" ? t("cp.statusApproved") : t("cp.statusRejected")}
                     </span>

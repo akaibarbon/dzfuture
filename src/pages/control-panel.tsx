@@ -22,7 +22,7 @@ const ADMIN_PASSWORD = "younes2011,";
 interface Announcement { id: string; title: string; description: string; date: string; }
 interface Group { id: string; name: string; is_verified: boolean; created_by: string | null; }
 interface Profile { id: string; user_id: string | null; full_name: string; email: string; role: string; serial_number: string; photo_url: string | null; level: string | null; branch: string | null; approved?: boolean; }
-interface JoinRequest { id: string; group_id: string; user_id: string; full_name: string; surname: string; date_of_birth: string; class: string; status: string; created_at: string; }
+interface JoinRequest { id: string; group_id: string; user_id: string; full_name: string; surname: string; class: string; status: string; created_at: string; }
 
 export default function ControlPanelPage() {
   const { user } = useAuth();
@@ -468,7 +468,7 @@ export default function ControlPanelPage() {
                     <div className="flex items-start justify-between gap-3 flex-wrap">
                       <div className="space-y-0.5 flex-1 min-w-0">
                         <p className="font-bold text-foreground">{req.full_name} {req.surname}</p>
-                        <p className="text-xs text-muted-foreground">{t("chat.dob")}: {req.date_of_birth} • {t("chat.class")}: {req.class}</p>
+                        <p className="text-xs text-muted-foreground">{t("chat.class")}: {req.class}</p>
                         <p className="text-xs text-muted-foreground">{t("cp.forGroup")}: <span className="text-primary font-semibold">{getGroupName(req.group_id)}</span></p>
                         <p className={`text-xs font-bold ${req.status === "pending" ? "text-amber-400" : req.status === "approved" ? "text-green-400" : "text-destructive"}`}>
                           {req.status === "pending" ? t("cp.statusPending") : req.status === "approved" ? t("cp.statusApproved") : t("cp.statusRejected")}
