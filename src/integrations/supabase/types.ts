@@ -338,7 +338,6 @@ export type Database = {
         Row: {
           class: string
           created_at: string
-          date_of_birth: string
           full_name: string
           group_id: string
           id: string
@@ -349,7 +348,6 @@ export type Database = {
         Insert: {
           class: string
           created_at?: string
-          date_of_birth: string
           full_name: string
           group_id: string
           id?: string
@@ -360,7 +358,6 @@ export type Database = {
         Update: {
           class?: string
           created_at?: string
-          date_of_birth?: string
           full_name?: string
           group_id?: string
           id?: string
