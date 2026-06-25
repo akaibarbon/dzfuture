@@ -637,6 +637,48 @@ export type Database = {
         }
         Relationships: []
       }
+      teacher_content: {
+        Row: {
+          created_at: string
+          created_by: string | null
+          description: string | null
+          id: string
+          kind: string
+          section_key: string
+          sort_order: number
+          teacher_id: string
+          title: string
+          updated_at: string
+          url: string | null
+        }
+        Insert: {
+          created_at?: string
+          created_by?: string | null
+          description?: string | null
+          id?: string
+          kind: string
+          section_key: string
+          sort_order?: number
+          teacher_id: string
+          title: string
+          updated_at?: string
+          url?: string | null
+        }
+        Update: {
+          created_at?: string
+          created_by?: string | null
+          description?: string | null
+          id?: string
+          kind?: string
+          section_key?: string
+          sort_order?: number
+          teacher_id?: string
+          title?: string
+          updated_at?: string
+          url?: string | null
+        }
+        Relationships: []
+      }
       user_badges: {
         Row: {
           badge_key: string

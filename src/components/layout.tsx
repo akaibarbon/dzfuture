@@ -109,7 +109,10 @@ export function Layout({ children }: { children: ReactNode }) {
       { href: "/ai-tools", label: "أدوات AI", icon: Sparkles, tutorOnly: true },
     ] : []),
     { href: "/account", label: t("Account"), icon: Settings },
-    ...(isAdmin ? [{ href: "/control-panel", label: t("ControlPanel"), icon: Shield, tutorOnly: true }] : []),
+    ...(isAdmin ? [
+      { href: "/control-panel", label: t("ControlPanel"), icon: Shield, tutorOnly: true },
+      { href: "/my-classroom", label: "قسمي", icon: GraduationCap, tutorOnly: true },
+    ] : []),
   ];
 
   const handleLogout = async () => {

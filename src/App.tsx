@@ -30,6 +30,7 @@ import AdvancedTeachingPage from "./pages/advanced-teaching";
 import AIToolsPage from "./pages/ai-tools";
 import AssignmentsPage from "./pages/assignments";
 import MyClassPage from "./pages/my-class";
+import MyClassroomPage from "./pages/my-classroom";
 import NotFound from "./pages/not-found";
 
 const queryClient = new QueryClient();
@@ -72,6 +73,7 @@ function AppRoutes() {
       <Route path="/my-class" element={<ProtectedRoute><MyClassPage /></ProtectedRoute>} />
       <Route path="/my-class/:teacherId" element={<ProtectedRoute><MyClassPage /></ProtectedRoute>} />
       <Route path="/my-class/:teacherId/:section" element={<ProtectedRoute><MyClassPage /></ProtectedRoute>} />
+      <Route path="/my-classroom" element={<ProtectedRoute><MyClassroomPage /></ProtectedRoute>} />
 
 
       <Route path="*" element={<NotFound />} />
