@@ -15,9 +15,9 @@ import { LEVELS, SECONDARY_BRANCHES, getLevelMeta, levelLabel } from "@/lib/leve
 import { adminCreateAccount } from "@/lib/admin-users.functions";
 import { downloadSerialAsImage } from "@/lib/serial-image";
 
-const ADMIN_SERIAL = "EJ76";
-const ADMIN_EMAIL = "boukaachey@gmail.com";
-const ADMIN_PASSWORD = "younes2011,";
+// Admin gating is enforced server-side via the user's profile.role === 'admin'.
+// No hardcoded credentials are kept here; previous client-side password gate
+// was removable and has been replaced by a real role check.
 
 interface Announcement { id: string; title: string; description: string; date: string; }
 interface Group { id: string; name: string; is_verified: boolean; created_by: string | null; }
@@ -28,8 +28,6 @@ export default function ControlPanelPage() {
   const { user } = useAuth();
   const { toast } = useToast();
   const { t } = useTranslation();
-  const [authenticated, setAuthenticated] = useState(false);
-  const [password, setPassword] = useState("");
   const [newTitle, setNewTitle] = useState("");
   const [newDesc, setNewDesc] = useState("");
   const [announcements, setAnnouncements] = useState<Announcement[]>([]);
@@ -46,11 +44,10 @@ export default function ControlPanelPage() {
   const [grpForm, setGrpForm] = useState({ name: "", level: "", description: "", isPrivate: false, password: "", tutorsOnly: false });
   const [grpBusy, setGrpBusy] = useState(false);
 
-  const isSuperAdmin = user?.serialNumber?.toUpperCase() === ADMIN_SERIAL || user?.email?.toLowerCase() === ADMIN_EMAIL.toLowerCase();
+  const isSuperAdmin = user?.role === "admin";
   const isApprovedTutor = user?.role === "tutor" && user?.approved !== false;
   const isAuthorized = isSuperAdmin || isApprovedTutor;
-  // Approved tutors bypass the password gate
-  useEffect(() => { if (isApprovedTutor && !authenticated) setAuthenticated(true); }, [isApprovedTutor]);
+  const authenticated = isAuthorized;
 
   const fetchData = async () => {
     const [annRes, grpRes, profRes, reqRes] = await Promise.all([
@@ -80,24 +77,9 @@ export default function ControlPanelPage() {
   }
 
   if (!authenticated) {
-    return (
-      <div className="flex items-center justify-center h-[60vh]">
-        <motion.div initial={{ scale: 0.9, opacity: 0 }} animate={{ scale: 1, opacity: 1 }}>
-          <Card className="glass-panel max-w-md w-full p-8">
-            <div className="text-center mb-6">
-              <Lock className="w-12 h-12 mx-auto text-primary mb-3" />
-              <h2 className="text-2xl font-display font-bold text-glow">{t("cp.title")}</h2>
-              <p className="text-muted-foreground text-sm mt-1">{t("enterPassword")}</p>
-            </div>
-            <form onSubmit={(e) => { e.preventDefault(); if (password === ADMIN_PASSWORD) setAuthenticated(true); else toast({ title: t("cp.wrongPassword"), variant: "destructive" }); }} className="space-y-4">
-              <Input type="password" value={password} onChange={(e) => setPassword(e.target.value)} placeholder="••••••••" className="h-12 bg-background/40" />
-              <Button type="submit" className="w-full h-12 font-bold">{t("Unlock")}</Button>
-            </form>
-          </Card>
-        </motion.div>
-      </div>
-    );
+    return null;
   }
+
 
   const handleAddAnnouncement = async (e: React.FormEvent) => {
     e.preventDefault();
