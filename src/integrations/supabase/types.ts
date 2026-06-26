@@ -737,6 +737,7 @@ export type Database = {
         Args: { p_amount: number; p_reason: string; p_user_id: string }
         Returns: number
       }
+      is_admin: { Args: { _user: string }; Returns: boolean }
       is_group_owner: {
         Args: { _group_id: string; _user_id: string }
         Returns: boolean
