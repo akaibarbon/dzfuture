@@ -37,7 +37,7 @@ export default function MyClassroomPage() {
   const { user } = useAuth();
   const { toast } = useToast();
   const isApprovedTutor = user?.role === "tutor" && user?.approved !== false;
-  const isSuperAdmin = user?.serialNumber?.toUpperCase() === "EJ76" || user?.email?.toLowerCase() === "boukaachey@gmail.com";
+  const isSuperAdmin = user?.role === "admin";
 
   // Teacher selection: try to auto-detect by full name match
   const myTeacher = useMemo(() => {
