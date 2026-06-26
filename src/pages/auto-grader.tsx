@@ -79,8 +79,8 @@ export default function AutoGraderPage() {
     const path = `${user.id}/grading/${Date.now()}-${f.name.replace(/[^a-zA-Z0-9.]/g, "_")}`;
     const { error } = await supabase.storage.from("ai-files").upload(path, f, { upsert: true });
     if (error) return null;
-    const { data } = supabase.storage.from("ai-files").getPublicUrl(path);
-    return data.publicUrl;
+    const { data } = await supabase.storage.from("ai-files").createSignedUrl(path, 60 * 60 * 24 * 7);
+    return data?.signedUrl ?? null;
   };
 
   const gradeAll = async () => {

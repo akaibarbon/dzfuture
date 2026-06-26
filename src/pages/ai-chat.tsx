@@ -87,8 +87,8 @@ export default function AiChatPage() {
       const path = `${user.id}/${Date.now()}.${ext}`;
       const { error } = await supabase.storage.from("ai-files").upload(path, file, { contentType: file.type });
       if (error) throw error;
-      const { data } = supabase.storage.from("ai-files").getPublicUrl(path);
-      setPendingFile({ url: data.publicUrl, type: file.type, name: file.name });
+      const { data } = await supabase.storage.from("ai-files").createSignedUrl(path, 60 * 60 * 24 * 7);
+      setPendingFile({ url: data?.signedUrl ?? "", type: file.type, name: file.name });
     } catch (err: any) {
       toast({ title: "فشل رفع الملف", description: err.message, variant: "destructive" });
     } finally {
