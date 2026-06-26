@@ -1,7 +1,8 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { createClient } from "@supabase/supabase-js";
 import type { Database } from "@/integrations/supabase/types";
-import { normalizeSerial, serialPasswordCandidates, serialToAuthPassword } from "@/lib/serial-auth";
+import { normalizeSerial } from "@/lib/serial-auth";
+import { serialPasswordCandidates, serialToAuthPassword } from "@/lib/serial-auth.server";
 
 export const Route = createFileRoute("/api/serial-login")({
   server: {
