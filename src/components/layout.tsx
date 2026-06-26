@@ -170,7 +170,7 @@ export function Layout({ children }: { children: ReactNode }) {
       </aside>
 
       {/* Mobile Header */}
-      <div className="flex-1 flex flex-col h-screen overflow-hidden relative">
+      <div className="flex-1 flex flex-col h-screen max-h-screen [height:100dvh] [max-height:100dvh] overflow-hidden relative min-w-0">
         <header className="md:hidden h-14 border-b border-border/50 flex items-center justify-between px-3 bg-card/50 backdrop-blur-md z-20">
           <div className="flex items-center gap-2">
             <img src={logoImg} alt="CEM G.M" className="w-7 h-7" />
@@ -209,9 +209,10 @@ export function Layout({ children }: { children: ReactNode }) {
           )}
         </AnimatePresence>
 
-        <main className="flex-1 overflow-y-auto p-3 md:p-6 relative z-0">
-          <div className="max-w-6xl mx-auto">{children}</div>
+        <main className="flex-1 overflow-y-auto overflow-x-hidden overscroll-contain p-3 md:p-6 pb-28 md:pb-24 relative z-0">
+          <div className="max-w-6xl mx-auto w-full">{children}</div>
         </main>
+
       </div>
       {/* LevelGate removed */}
       <VoiceAssistant />
