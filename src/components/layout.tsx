@@ -209,9 +209,10 @@ export function Layout({ children }: { children: ReactNode }) {
           )}
         </AnimatePresence>
 
-        <main className="flex-1 overflow-y-auto p-3 md:p-6 relative z-0">
-          <div className="max-w-6xl mx-auto">{children}</div>
+        <main className="flex-1 overflow-y-auto overflow-x-hidden overscroll-contain p-3 md:p-6 pb-28 md:pb-24 relative z-0">
+          <div className="max-w-6xl mx-auto w-full">{children}</div>
         </main>
+
       </div>
       {/* LevelGate removed */}
       <VoiceAssistant />
