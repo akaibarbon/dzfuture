@@ -79,7 +79,7 @@ export function Layout({ children }: { children: ReactNode }) {
     document.documentElement.dir = next === "ar" ? "rtl" : "ltr";
   };
 
-  const isSuperAdmin = user?.serialNumber?.toUpperCase() === "EJ76" || user?.email?.toLowerCase() === "boukaachey@gmail.com";
+  const isSuperAdmin = user?.role === "admin";
   const isApprovedTutor = user?.role === "tutor" && user?.approved !== false;
   const isAdmin = isSuperAdmin || isApprovedTutor;
 

@@ -1,3 +1,5 @@
+// Public helpers only. The auth-password derivation lives in
+// `serial-auth.server.ts` and is never shipped to the browser.
 export function generateSerialNumber() {
   const letters = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
   return (
@@ -9,13 +11,4 @@ export function generateSerialNumber() {
 
 export function normalizeSerial(serial: string) {
   return serial.trim().toUpperCase();
-}
-
-export function serialToAuthPassword(serial: string) {
-  return `CEM-GM-${normalizeSerial(serial)}-2026!`;
-}
-
-export function serialPasswordCandidates(serial: string) {
-  const normalized = normalizeSerial(serial);
-  return Array.from(new Set([serialToAuthPassword(normalized), normalized]));
 }

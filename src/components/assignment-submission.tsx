@@ -71,7 +71,8 @@ export function StudentSubmission({ assignmentId, dueAt }: { assignmentId: strin
       const path = `submissions/${user.id}/${Date.now()}-${file.name}`;
       const { error: upErr } = await supabase.storage.from("lessons").upload(path, file);
       if (upErr) { toast({ title: "فشل الرفع", description: upErr.message, variant: "destructive" }); setLoading(false); return; }
-      fileUrl = supabase.storage.from("lessons").getPublicUrl(path).data.publicUrl;
+      const { data: signed } = await supabase.storage.from("lessons").createSignedUrl(path, 60 * 60 * 24 * 365);
+      fileUrl = signed?.signedUrl ?? null;
       fileType = file.type;
     }
     const payload = {

@@ -1,7 +1,8 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { createClient } from "@supabase/supabase-js";
 import type { Database } from "@/integrations/supabase/types";
-import { normalizeSerial, serialPasswordCandidates, serialToAuthPassword } from "@/lib/serial-auth";
+import { normalizeSerial } from "@/lib/serial-auth";
+
 
 export const Route = createFileRoute("/api/serial-login")({
   server: {
@@ -13,6 +14,7 @@ export const Route = createFileRoute("/api/serial-login")({
           if (!cleanSerial) return Response.json({ error: "الرقم التسلسلي مطلوب" }, { status: 400 });
 
           const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+          const { serialPasswordCandidates, serialToAuthPassword } = await import("@/lib/serial-auth.server");
           const { data: profile, error } = await supabaseAdmin
             .from("profiles")
             .select("id, user_id, email, full_name, role, serial_number, photo_url, nickname, level, branch, approved")

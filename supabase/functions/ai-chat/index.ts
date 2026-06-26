@@ -73,6 +73,16 @@ function promptForType(type: string, p: any): string {
 Deno.serve(async (req: Request) => {
   if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
 
+  // Require a Supabase JWT. verify_jwt=true in config.toml enforces this at the
+  // edge runtime; we also defensively reject any request without the header.
+  const authHeader = req.headers.get("authorization") || req.headers.get("Authorization");
+  if (!authHeader || !/^Bearer\s+\S+/i.test(authHeader)) {
+    return new Response(JSON.stringify({ error: "Unauthorized" }), {
+      status: 401,
+      headers: { ...corsHeaders, "Content-Type": "application/json" },
+    });
+  }
+
   try {
     const { messages, type, payload } = await req.json();
     const apiKey = Deno.env.get("LOVABLE_API_KEY");

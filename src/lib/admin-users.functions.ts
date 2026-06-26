@@ -1,6 +1,6 @@
 import { createServerFn } from "@tanstack/react-start";
-import { supabaseAdmin } from "@/integrations/supabase/client.server";
-import { generateSerialNumber, serialToAuthPassword } from "@/lib/serial-auth";
+import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
+import { generateSerialNumber } from "@/lib/serial-auth";
 
 interface CreateAccountInput {
   fullName: string;
@@ -12,8 +12,22 @@ interface CreateAccountInput {
 }
 
 export const adminCreateAccount = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
   .inputValidator((data: unknown) => data as CreateAccountInput)
-  .handler(async ({ data }) => {
+  .handler(async ({ data, context }) => {
+    // Authorize: caller must be an admin or an approved tutor
+    const { data: callerProfile } = await context.supabase
+      .from("profiles")
+      .select("role, approved")
+      .eq("user_id", context.userId)
+      .maybeSingle();
+    const callerRole = (callerProfile as any)?.role;
+    const isApproved = (callerProfile as any)?.approved !== false;
+    if (callerRole !== "admin" && !(callerRole === "tutor" && isApproved)) {
+      throw new Error("غير مخوّل");
+    }
+    const { serialToAuthPassword } = await import("@/lib/serial-auth.server");
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     const { fullName, role, level, branch, levels, email } = data;
     if (!fullName?.trim()) throw new Error("الاسم مطلوب");
 

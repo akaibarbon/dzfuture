@@ -108,8 +108,8 @@ export default function LessonsPage() {
       const path = `${user.id}/${Date.now()}-${file.name}`;
       const { error: upErr } = await supabase.storage.from("lessons").upload(path, file);
       if (upErr) { toast({ title: "فشل الرفع", description: upErr.message, variant: "destructive" }); setUploading(false); return; }
-      const { data } = supabase.storage.from("lessons").getPublicUrl(path);
-      fileUrl = data.publicUrl;
+      const { data } = await supabase.storage.from("lessons").createSignedUrl(path, 60 * 60 * 24 * 365);
+      fileUrl = data?.signedUrl ?? null;
       fileType = file.type;
     }
     const { error } = await supabase.from("lessons").insert({

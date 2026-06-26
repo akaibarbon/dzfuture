@@ -37,7 +37,7 @@ export default function MyClassroomPage() {
   const { user } = useAuth();
   const { toast } = useToast();
   const isApprovedTutor = user?.role === "tutor" && user?.approved !== false;
-  const isSuperAdmin = user?.serialNumber?.toUpperCase() === "EJ76" || user?.email?.toLowerCase() === "boukaachey@gmail.com";
+  const isSuperAdmin = user?.role === "admin";
 
   // Teacher selection: try to auto-detect by full name match
   const myTeacher = useMemo(() => {
@@ -80,8 +80,8 @@ export default function MyClassroomPage() {
       const path = `${user.id}/${Date.now()}.${ext}`;
       const { error: upErr } = await supabase.storage.from("lessons").upload(path, file, { upsert: false });
       if (upErr) throw upErr;
-      const { data } = supabase.storage.from("lessons").getPublicUrl(path);
-      setForm((f) => ({ ...f, url: data.publicUrl, title: f.title || file.name }));
+      const { data } = await supabase.storage.from("lessons").createSignedUrl(path, 60 * 60 * 24 * 365);
+      setForm((f) => ({ ...f, url: data?.signedUrl ?? "", title: f.title || file.name }));
       toast({ title: "تم رفع الملف", description: "اضغط إضافة لحفظ المحتوى." });
     } catch (e: any) {
       toast({ title: "فشل الرفع", description: e?.message || "", variant: "destructive" });
