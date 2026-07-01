@@ -39,15 +39,39 @@ export default function MyClassroomPage() {
   const isApprovedTutor = user?.role === "tutor" && user?.approved !== false;
   const isSuperAdmin = user?.role === "admin";
 
-  // Teacher selection: try to auto-detect by full name match
+  // Match the logged-in tutor to a specific teacher entry by name tokens.
+  // Each tutor can ONLY edit their own section — no dropdown.
+  // Admins keep full access to every teacher via the selector.
   const myTeacher = useMemo(() => {
     if (!user?.fullName) return null;
-    return TEACHERS.find((t) => user.fullName.includes(t.name.replace(/^(الأستاذ(ة)?\s+)/, "").trim().split(" ")[0])) || null;
+    const norm = (s: string) =>
+      s.replace(/[أإآا]/g, "ا").replace(/ة/g, "ه").replace(/ى/g, "ي").toLowerCase();
+    const userTokens = norm(user.fullName)
+      .replace(/^(الاستاذ(ه)?|الأستاذ(ة)?)\s+/g, "")
+      .split(/\s+/)
+      .filter((t) => t.length >= 2);
+    return (
+      TEACHERS.find((t) => {
+        const teacherTokens = norm(t.name)
+          .replace(/^(الاستاذ(ه)?|الأستاذ(ة)?)\s+/g, "")
+          .split(/\s+/)
+          .filter((x) => x.length >= 2);
+        return teacherTokens.some((tt) => userTokens.some((ut) => ut === tt));
+      }) || null
+    );
   }, [user?.fullName]);
 
-  const [teacherId, setTeacherId] = useState<string>(myTeacher?.id || TEACHERS[0].id);
-  const teacher = getTeacher(teacherId)!;
-  const sections = sectionsForTeacher(teacher);
+  const [teacherId, setTeacherId] = useState<string>(
+    myTeacher?.id || (isSuperAdmin ? TEACHERS[0].id : ""),
+  );
+  useEffect(() => {
+    if (myTeacher && teacherId !== myTeacher.id && !isSuperAdmin) {
+      setTeacherId(myTeacher.id);
+    }
+  }, [myTeacher?.id, isSuperAdmin]);
+
+  const teacher = getTeacher(teacherId);
+  const sections = teacher ? sectionsForTeacher(teacher) : [];
 
   const [sectionKey, setSectionKey] = useState<TeacherSectionKey>(sections[0].key);
   useEffect(() => { setSectionKey(sectionsForTeacher(teacher)[0].key); }, [teacherId]);
