@@ -107,6 +107,7 @@ export function Layout({ children }: { children: ReactNode }) {
       { href: "/auto-grader", label: "المصحّح الآلي", icon: ScanLine, tutorOnly: true },
       { href: "/advanced-teaching", label: "التعليم المتقدم", icon: GraduationCap, tutorOnly: true },
       { href: "/ai-tools", label: "أدوات AI", icon: Sparkles, tutorOnly: true },
+      { href: "/teach-technics", label: "Teach Technics", icon: Sparkles, tutorOnly: true },
     ] : []),
     { href: "/account", label: t("Account"), icon: Settings },
     ...(isAdmin ? [
