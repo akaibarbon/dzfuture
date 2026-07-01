@@ -152,6 +152,21 @@ export default function MyClassroomPage() {
     );
   }
 
+  // Approved tutor whose name doesn't match any teacher in the directory.
+  if (isApprovedTutor && !isSuperAdmin && !myTeacher) {
+    return (
+      <div className="flex items-center justify-center h-[60vh]">
+        <div className="rounded-2xl border border-border bg-card max-w-md w-full text-center p-8">
+          <ShieldAlert className="w-14 h-14 mx-auto text-destructive mb-3" />
+          <h2 className="text-2xl font-display mb-2">لم يتم ربط حسابك بأستاذ</h2>
+          <p className="text-muted-foreground text-sm">
+            اسم حسابك لا يطابق أياً من الأساتذة المعرّفين في المنصة. تواصل مع الإدارة لتصحيح اسمك.
+          </p>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="space-y-6 pb-10">
       <div className="rounded-2xl border border-border bg-[hsl(28_45%_88%)] p-6 md:p-8 shadow-[0_10px_30px_-12px_hsl(24_25%_16%/0.18)]">
