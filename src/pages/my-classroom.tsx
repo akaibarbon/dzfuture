@@ -183,15 +183,22 @@ export default function MyClassroomPage() {
       <div className="rounded-2xl border border-border bg-card p-5 grid md:grid-cols-2 gap-4">
         <div>
           <Label className="mb-2 block text-xs uppercase tracking-wider text-muted-foreground">الأستاذ</Label>
-          <Select value={teacherId} onValueChange={setTeacherId}>
-            <SelectTrigger className="bg-background"><SelectValue /></SelectTrigger>
-            <SelectContent>
-              {TEACHERS.map((t) => (
-                <SelectItem key={t.id} value={t.id}>{t.name} — {t.subject}</SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
+          {isSuperAdmin ? (
+            <Select value={teacherId} onValueChange={setTeacherId}>
+              <SelectTrigger className="bg-background"><SelectValue /></SelectTrigger>
+              <SelectContent>
+                {TEACHERS.map((t) => (
+                  <SelectItem key={t.id} value={t.id}>{t.name} — {t.subject}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          ) : (
+            <div className="rounded-md border border-border bg-secondary/50 px-3 py-2 text-sm">
+              {teacher ? `${teacher.name} — ${teacher.subject}` : "—"}
+            </div>
+          )}
         </div>
+
         <div>
           <Label className="mb-2 block text-xs uppercase tracking-wider text-muted-foreground">القسم</Label>
           <Select value={sectionKey} onValueChange={(v) => setSectionKey(v as TeacherSectionKey)}>
