@@ -39,18 +39,44 @@ export default function MyClassroomPage() {
   const isApprovedTutor = user?.role === "tutor" && user?.approved !== false;
   const isSuperAdmin = user?.role === "admin";
 
-  // Teacher selection: try to auto-detect by full name match
+  // Match the logged-in tutor to a specific teacher entry by name tokens.
+  // Each tutor can ONLY edit their own section — no dropdown.
+  // Admins keep full access to every teacher via the selector.
   const myTeacher = useMemo(() => {
     if (!user?.fullName) return null;
-    return TEACHERS.find((t) => user.fullName.includes(t.name.replace(/^(الأستاذ(ة)?\s+)/, "").trim().split(" ")[0])) || null;
+    const norm = (s: string) =>
+      s.replace(/[أإآا]/g, "ا").replace(/ة/g, "ه").replace(/ى/g, "ي").toLowerCase();
+    const userTokens = norm(user.fullName)
+      .replace(/^(الاستاذ(ه)?|الأستاذ(ة)?)\s+/g, "")
+      .split(/\s+/)
+      .filter((t) => t.length >= 2);
+    return (
+      TEACHERS.find((t) => {
+        const teacherTokens = norm(t.name)
+          .replace(/^(الاستاذ(ه)?|الأستاذ(ة)?)\s+/g, "")
+          .split(/\s+/)
+          .filter((x) => x.length >= 2);
+        return teacherTokens.some((tt) => userTokens.some((ut) => ut === tt));
+      }) || null
+    );
   }, [user?.fullName]);
 
-  const [teacherId, setTeacherId] = useState<string>(myTeacher?.id || TEACHERS[0].id);
-  const teacher = getTeacher(teacherId)!;
-  const sections = sectionsForTeacher(teacher);
+  const [teacherId, setTeacherId] = useState<string>(
+    myTeacher?.id || (isSuperAdmin ? TEACHERS[0].id : ""),
+  );
+  useEffect(() => {
+    if (myTeacher && teacherId !== myTeacher.id && !isSuperAdmin) {
+      setTeacherId(myTeacher.id);
+    }
+  }, [myTeacher?.id, isSuperAdmin]);
 
-  const [sectionKey, setSectionKey] = useState<TeacherSectionKey>(sections[0].key);
-  useEffect(() => { setSectionKey(sectionsForTeacher(teacher)[0].key); }, [teacherId]);
+  const teacher = getTeacher(teacherId);
+  const sections = teacher ? sectionsForTeacher(teacher) : [];
+
+  const [sectionKey, setSectionKey] = useState<TeacherSectionKey>(sections[0]?.key ?? "resources");
+  useEffect(() => {
+    if (teacher) setSectionKey(sectionsForTeacher(teacher)[0].key);
+  }, [teacherId]);
 
   const [items, setItems] = useState<ContentRow[]>([]);
   const [loading, setLoading] = useState(false);
@@ -126,6 +152,21 @@ export default function MyClassroomPage() {
     );
   }
 
+  // Approved tutor whose name doesn't match any teacher in the directory.
+  if (isApprovedTutor && !isSuperAdmin && !myTeacher) {
+    return (
+      <div className="flex items-center justify-center h-[60vh]">
+        <div className="rounded-2xl border border-border bg-card max-w-md w-full text-center p-8">
+          <ShieldAlert className="w-14 h-14 mx-auto text-destructive mb-3" />
+          <h2 className="text-2xl font-display mb-2">لم يتم ربط حسابك بأستاذ</h2>
+          <p className="text-muted-foreground text-sm">
+            اسم حسابك لا يطابق أياً من الأساتذة المعرّفين في المنصة. تواصل مع الإدارة لتصحيح اسمك.
+          </p>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="space-y-6 pb-10">
       <div className="rounded-2xl border border-border bg-[hsl(28_45%_88%)] p-6 md:p-8 shadow-[0_10px_30px_-12px_hsl(24_25%_16%/0.18)]">
@@ -142,15 +183,22 @@ export default function MyClassroomPage() {
       <div className="rounded-2xl border border-border bg-card p-5 grid md:grid-cols-2 gap-4">
         <div>
           <Label className="mb-2 block text-xs uppercase tracking-wider text-muted-foreground">الأستاذ</Label>
-          <Select value={teacherId} onValueChange={setTeacherId}>
-            <SelectTrigger className="bg-background"><SelectValue /></SelectTrigger>
-            <SelectContent>
-              {TEACHERS.map((t) => (
-                <SelectItem key={t.id} value={t.id}>{t.name} — {t.subject}</SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
+          {isSuperAdmin ? (
+            <Select value={teacherId} onValueChange={setTeacherId}>
+              <SelectTrigger className="bg-background"><SelectValue /></SelectTrigger>
+              <SelectContent>
+                {TEACHERS.map((t) => (
+                  <SelectItem key={t.id} value={t.id}>{t.name} — {t.subject}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          ) : (
+            <div className="rounded-md border border-border bg-secondary/50 px-3 py-2 text-sm">
+              {teacher ? `${teacher.name} — ${teacher.subject}` : "—"}
+            </div>
+          )}
         </div>
+
         <div>
           <Label className="mb-2 block text-xs uppercase tracking-wider text-muted-foreground">القسم</Label>
           <Select value={sectionKey} onValueChange={(v) => setSectionKey(v as TeacherSectionKey)}>
