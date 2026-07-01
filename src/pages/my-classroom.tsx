@@ -73,8 +73,10 @@ export default function MyClassroomPage() {
   const teacher = getTeacher(teacherId);
   const sections = teacher ? sectionsForTeacher(teacher) : [];
 
-  const [sectionKey, setSectionKey] = useState<TeacherSectionKey>(sections[0].key);
-  useEffect(() => { setSectionKey(sectionsForTeacher(teacher)[0].key); }, [teacherId]);
+  const [sectionKey, setSectionKey] = useState<TeacherSectionKey>(sections[0]?.key ?? "resources");
+  useEffect(() => {
+    if (teacher) setSectionKey(sectionsForTeacher(teacher)[0].key);
+  }, [teacherId]);
 
   const [items, setItems] = useState<ContentRow[]>([]);
   const [loading, setLoading] = useState(false);
