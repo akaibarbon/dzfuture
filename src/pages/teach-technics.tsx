@@ -37,7 +37,9 @@ interface AITool {
   free: boolean;
   features: string[];
   howTo: string[];
+  tags: string[];
 }
+
 
 const CATEGORY_META: Record<ToolCategory, { label: string; icon: any; color: string }> = {
   writing: { label: "كتابة", icon: PenTool, color: "text-sky-400" },
@@ -64,7 +66,9 @@ const AI_TOOLS: AITool[] = [
       "ألصق نص الدرس واطلب: «حوّله إلى خطة درس 45 دقيقة بأهداف بيداغوجية»",
       "ارفع صورة تمرين وأطلب حلولاً متدرّجة الصعوبة لتلاميذك",
     ],
+    tags: ["Google", "متعدد الوسائط", "سياق طويل", "Docs", "خطة درس"],
   },
+
   {
     name: "Gamma",
     logo: "https://cdn.gamma.app/favicon-32x32.png",
@@ -81,7 +85,9 @@ const AI_TOOLS: AITool[] = [
       "عدّل النبرة (رسمي / تفاعلي) وأضف صور تلقائية",
       "شارك الرابط مع القسم أو صدّره كملف عرض",
     ],
+    tags: ["عروض", "شرائح", "تصميم", "PPT", "قوالب"],
   },
+
   {
     name: "NotebookLM",
     logo: "https://notebooklm.google.com/_/static/branding/v3/notebooklm_logo_32.png",
@@ -98,7 +104,9 @@ const AI_TOOLS: AITool[] = [
       "اطلب: «ولّد 20 سؤال تقييم متدرّج مع الإجابات النموذجية»",
       "شغّل «Audio Overview» ليستمع التلاميذ للدرس في الطريق",
     ],
+    tags: ["Google", "PDF", "بحث", "بودكاست", "ملخصات", "تقييم"],
   },
+
   {
     name: "ChatGPT",
     logo: "https://cdn.oaistatic.com/assets/favicon-eex17e3i.svg",
@@ -115,7 +123,9 @@ const AI_TOOLS: AITool[] = [
       "استخدم Custom GPT لبناء مساعد متخصص لمادتك",
       "ولّد فرضًا محروسًا بمستوى صعوبة تحدّده أنت",
     ],
+    tags: ["OpenAI", "شرح", "تمارين", "Canvas", "Custom GPT"],
   },
+
   {
     name: "Claude",
     logo: "https://claude.ai/favicon.ico",
@@ -132,7 +142,9 @@ const AI_TOOLS: AITool[] = [
       "استخدمه لتصحيح الإنشاءات مع تعليقات بيداغوجية",
       "اطلب أداة تفاعلية (Artifact) لشرح مفهوم صعب",
     ],
+    tags: ["Anthropic", "تصحيح", "سياق طويل", "Artifacts", "تحليل نصوص"],
   },
+
   {
     name: "Perplexity",
     logo: "https://www.perplexity.ai/favicon.ico",
@@ -149,7 +161,9 @@ const AI_TOOLS: AITool[] = [
       "فعّل Academic mode لتحضير درس علمي دقيق",
       "احفظ Collections لكل مادة تدرّسها",
     ],
+    tags: ["بحث", "مصادر", "أكاديمي", "YouTube", "Collections"],
   },
+
   {
     name: "Suno AI",
     logo: "https://suno.com/favicon.ico",
@@ -166,7 +180,9 @@ const AI_TOOLS: AITool[] = [
       "شغّل الأغنية في بداية الحصة كمدخل مشوّق",
       "اطلب من التلاميذ كتابة أغنية عن الدرس كمشروع",
     ],
+    tags: ["موسيقى", "أغاني", "حفظ", "عربي", "إبداع"],
   },
+
   {
     name: "ElevenLabs",
     logo: "https://elevenlabs.io/favicon.ico",
@@ -183,7 +199,9 @@ const AI_TOOLS: AITool[] = [
       "أرسله للتلاميذ كنسخة صوتية للمراجعة أثناء التنقّل",
       "استعمله لمساعدة التلاميذ ذوي صعوبات القراءة",
     ],
+    tags: ["صوت", "TTS", "دبلجة", "استنساخ صوت", "MP3"],
   },
+
   {
     name: "Canva Magic Studio",
     logo: "https://static.canva.com/static/images/favicon.ico",
@@ -200,7 +218,9 @@ const AI_TOOLS: AITool[] = [
       "استعمل Magic Switch لتحويل نفس المحتوى إلى Story أو منشور",
       "شارك رابط تحرير مع التلاميذ لعمل جماعي",
     ],
+    tags: ["تصميم", "ملصقات", "قوالب", "Magic Write", "تعاون"],
   },
+
   {
     name: "Khanmigo",
     logo: "https://cdn.kastatic.org/images/favicon.ico",
@@ -217,7 +237,9 @@ const AI_TOOLS: AITool[] = [
       "استخدم أداة «Lesson Plan» لإنتاج خطة حصة بدقائق",
       "أعطِ التلاميذ حسابات ليحلّوا التمارين بمساعدة سقراطية",
     ],
+    tags: ["Khan Academy", "سقراطي", "خطة درس", "تقييم", "تلاميذ"],
   },
+
 ];
 
 const QUICK_TIPS = [
@@ -262,6 +284,9 @@ export default function TeachTechnicsPage() {
   const { user } = useAuth();
   const [query, setQuery] = useState("");
   const [cat, setCat] = useState<ToolCategory | "all" | "fav">("all");
+  const [priceFilter, setPriceFilter] = useState<"all" | "free" | "paid">("all");
+  const [sortBy, setSortBy] = useState<"relevance" | "name" | "level" | "favFirst">("relevance");
+  const [activeTags, setActiveTags] = useState<string[]>([]);
   const [favs, setFavs] = useState<string[]>([]);
 
   useEffect(() => {
@@ -274,20 +299,70 @@ export default function TeachTechnicsPage() {
       return next;
     });
   };
+  const toggleTag = (tag: string) => {
+    setActiveTags((prev) => (prev.includes(tag) ? prev.filter((t) => t !== tag) : [...prev, tag]));
+  };
+  const clearFilters = () => {
+    setQuery(""); setCat("all"); setPriceFilter("all"); setActiveTags([]); setSortBy("relevance");
+  };
 
-  const filtered = useMemo(() => {
+  const allTags = useMemo(() => {
+    const map = new Map<string, number>();
+    AI_TOOLS.forEach((t) => t.tags.forEach((tg) => map.set(tg, (map.get(tg) || 0) + 1)));
+    return Array.from(map.entries()).sort((a, b) => b[1] - a[1]).map(([tag, count]) => ({ tag, count }));
+  }, []);
+
+  const levelRank: Record<AITool["level"], number> = { "مبتدئ": 0, "متوسط": 1, "متقدم": 2 };
+
+  const scored = useMemo(() => {
     const q = query.trim().toLowerCase();
-    return AI_TOOLS.filter((t) => {
-      if (cat === "fav" && !favs.includes(t.name)) return false;
-      if (cat !== "all" && cat !== "fav" && t.category !== cat) return false;
-      if (!q) return true;
-      return (
-        t.name.toLowerCase().includes(q) ||
-        t.tagline.toLowerCase().includes(q) ||
-        t.features.some((f) => f.toLowerCase().includes(q))
-      );
-    });
-  }, [query, cat, favs]);
+    const terms = q ? q.split(/\s+/).filter(Boolean) : [];
+    return AI_TOOLS
+      .map((t) => {
+        if (cat === "fav" && !favs.includes(t.name)) return null;
+        if (cat !== "all" && cat !== "fav" && t.category !== cat) return null;
+        if (priceFilter === "free" && !t.free) return null;
+        if (priceFilter === "paid" && t.free) return null;
+        if (activeTags.length && !activeTags.every((tag) => t.tags.includes(tag))) return null;
+
+        let score = 0;
+        if (terms.length) {
+          const name = t.name.toLowerCase();
+          const tagline = t.tagline.toLowerCase();
+          const tagsL = t.tags.map((x) => x.toLowerCase());
+          const featL = t.features.map((f) => f.toLowerCase());
+          for (const term of terms) {
+            let hit = 0;
+            if (name.includes(term)) hit += 10;
+            if (tagsL.some((x) => x === term)) hit += 8;
+            if (tagsL.some((x) => x.includes(term))) hit += 5;
+            if (tagline.includes(term)) hit += 4;
+            if (featL.some((f) => f.includes(term))) hit += 2;
+            if (hit === 0) return null;
+            score += hit;
+          }
+        }
+        if (favs.includes(t.name)) score += 1;
+        return { tool: t, score };
+      })
+      .filter((x): x is { tool: AITool; score: number } => x !== null)
+      .sort((a, b) => {
+        if (sortBy === "name") return a.tool.name.localeCompare(b.tool.name);
+        if (sortBy === "level") return levelRank[a.tool.level] - levelRank[b.tool.level];
+        if (sortBy === "favFirst") {
+          const af = favs.includes(a.tool.name) ? 1 : 0;
+          const bf = favs.includes(b.tool.name) ? 1 : 0;
+          if (af !== bf) return bf - af;
+          return b.score - a.score;
+        }
+        // relevance
+        if (terms.length) return b.score - a.score;
+        return a.tool.name.localeCompare(b.tool.name);
+      });
+  }, [query, cat, priceFilter, activeTags, sortBy, favs]);
+
+  const filtered = scored.map((s) => s.tool);
+  const activeFilterCount = (cat !== "all" ? 1 : 0) + (priceFilter !== "all" ? 1 : 0) + activeTags.length + (query ? 1 : 0);
 
   if (!user) return <Navigate to="/auth" replace />;
   if (user.role !== "tutor") {
@@ -301,6 +376,7 @@ export default function TeachTechnicsPage() {
   }
 
   const categoryKeys: (ToolCategory | "all" | "fav")[] = ["all", "writing", "visual", "audio", "research", "classroom", "fav"];
+
 
   return (
     <div className="space-y-10 max-w-6xl mx-auto pb-28" dir="rtl">
@@ -349,19 +425,37 @@ export default function TeachTechnicsPage() {
           <Badge variant="outline" className="ms-auto">{filtered.length} من {AI_TOOLS.length}</Badge>
         </div>
 
-        <div className="grid gap-3 md:grid-cols-[1fr_auto] items-center">
+        <div className="grid gap-3 md:grid-cols-[1fr_auto_auto] items-center">
           <div className="relative">
             <Search className="w-4 h-4 absolute top-1/2 -translate-y-1/2 start-3 text-muted-foreground pointer-events-none" />
             <Input
               value={query}
               onChange={(e) => setQuery(e.target.value)}
-              placeholder="ابحث عن أداة أو ميزة..."
+              placeholder="ابحث بالاسم، الميزة أو الوسم..."
               className="ps-9"
             />
           </div>
-          <div className="flex items-center gap-1 text-xs text-muted-foreground">
-            <Filter className="w-3.5 h-3.5" /> تصنيف
-          </div>
+          <select
+            value={priceFilter}
+            onChange={(e) => setPriceFilter(e.target.value as any)}
+            className="h-9 rounded-md border border-border bg-background px-2 text-xs"
+            aria-label="التصفية حسب السعر"
+          >
+            <option value="all">كل الأسعار</option>
+            <option value="free">مجاني فقط</option>
+            <option value="paid">مدفوع فقط</option>
+          </select>
+          <select
+            value={sortBy}
+            onChange={(e) => setSortBy(e.target.value as any)}
+            className="h-9 rounded-md border border-border bg-background px-2 text-xs"
+            aria-label="ترتيب النتائج"
+          >
+            <option value="relevance">الأنسب</option>
+            <option value="name">الاسم (أ-ي)</option>
+            <option value="level">الأسهل أولاً</option>
+            <option value="favFirst">المفضّلات أولاً</option>
+          </select>
         </div>
 
         <div className="flex flex-wrap gap-2">
@@ -388,6 +482,37 @@ export default function TeachTechnicsPage() {
             );
           })}
         </div>
+
+        {/* Tag cloud */}
+        <div className="flex flex-wrap gap-1.5 items-center">
+          <Filter className="w-3.5 h-3.5 text-muted-foreground" />
+          <span className="text-[11px] text-muted-foreground me-1">وسوم:</span>
+          {allTags.map(({ tag, count }) => {
+            const active = activeTags.includes(tag);
+            return (
+              <button
+                key={tag}
+                onClick={() => toggleTag(tag)}
+                className={`text-[11px] px-2 py-0.5 rounded-full border transition ${
+                  active
+                    ? "bg-primary/20 text-primary border-primary/40"
+                    : "border-border text-muted-foreground hover:border-primary/40 hover:text-foreground"
+                }`}
+              >
+                #{tag} <span className="opacity-60">{count}</span>
+              </button>
+            );
+          })}
+          {activeFilterCount > 0 && (
+            <button
+              onClick={clearFilters}
+              className="text-[11px] px-2 py-0.5 rounded-full border border-destructive/30 text-destructive hover:bg-destructive/10 transition ms-auto"
+            >
+              مسح الكل ({activeFilterCount})
+            </button>
+          )}
+        </div>
+
 
         {filtered.length === 0 ? (
           <Card className="glass-panel">
@@ -438,8 +563,11 @@ export default function TeachTechnicsPage() {
                         <meta.icon className="w-3 h-3" /> {meta.label}
                       </Badge>
                       <Badge variant="outline" className="text-[10px]">{tool.level}</Badge>
-                      {tool.free && <Badge variant="outline" className="text-[10px] text-emerald-400 border-emerald-400/30">مجاني</Badge>}
+                      {tool.free
+                        ? <Badge variant="outline" className="text-[10px] text-emerald-400 border-emerald-400/30">مجاني</Badge>
+                        : <Badge variant="outline" className="text-[10px] text-amber-400 border-amber-400/30">مدفوع</Badge>}
                     </div>
+
                   </CardHeader>
                   <CardContent className="flex-1 flex flex-col justify-between gap-3">
                     <div className="space-y-2.5">
@@ -455,7 +583,27 @@ export default function TeachTechnicsPage() {
                           {tool.howTo.map((h, i) => <li key={i} className="leading-snug">{h}</li>)}
                         </ol>
                       </div>
+                      <div className="flex flex-wrap gap-1">
+
+                        {tool.tags.map((tg) => {
+                          const on = activeTags.includes(tg);
+                          return (
+                            <button
+                              key={tg}
+                              onClick={() => toggleTag(tg)}
+                              className={`text-[10px] px-1.5 py-0.5 rounded border transition ${
+                                on
+                                  ? "bg-primary/20 text-primary border-primary/40"
+                                  : "border-border/60 text-muted-foreground hover:border-primary/40 hover:text-foreground"
+                              }`}
+                            >
+                              #{tg}
+                            </button>
+                          );
+                        })}
+                      </div>
                     </div>
+
                     <Button asChild size="sm" variant="outline" className="w-full gap-2">
                       <a href={tool.url} target="_blank" rel="noreferrer">
                         افتح {tool.name} <ExternalLink className="w-3.5 h-3.5" />
