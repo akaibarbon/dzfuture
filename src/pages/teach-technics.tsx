@@ -37,7 +37,9 @@ interface AITool {
   free: boolean;
   features: string[];
   howTo: string[];
+  tags: string[];
 }
+
 
 const CATEGORY_META: Record<ToolCategory, { label: string; icon: any; color: string }> = {
   writing: { label: "كتابة", icon: PenTool, color: "text-sky-400" },
