@@ -563,8 +563,11 @@ export default function TeachTechnicsPage() {
                         <meta.icon className="w-3 h-3" /> {meta.label}
                       </Badge>
                       <Badge variant="outline" className="text-[10px]">{tool.level}</Badge>
-                      {tool.free && <Badge variant="outline" className="text-[10px] text-emerald-400 border-emerald-400/30">مجاني</Badge>}
+                      {tool.free
+                        ? <Badge variant="outline" className="text-[10px] text-emerald-400 border-emerald-400/30">مجاني</Badge>
+                        : <Badge variant="outline" className="text-[10px] text-amber-400 border-amber-400/30">مدفوع</Badge>}
                     </div>
+
                   </CardHeader>
                   <CardContent className="flex-1 flex flex-col justify-between gap-3">
                     <div className="space-y-2.5">
