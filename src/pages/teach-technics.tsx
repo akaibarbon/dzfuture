@@ -425,19 +425,37 @@ export default function TeachTechnicsPage() {
           <Badge variant="outline" className="ms-auto">{filtered.length} من {AI_TOOLS.length}</Badge>
         </div>
 
-        <div className="grid gap-3 md:grid-cols-[1fr_auto] items-center">
+        <div className="grid gap-3 md:grid-cols-[1fr_auto_auto] items-center">
           <div className="relative">
             <Search className="w-4 h-4 absolute top-1/2 -translate-y-1/2 start-3 text-muted-foreground pointer-events-none" />
             <Input
               value={query}
               onChange={(e) => setQuery(e.target.value)}
-              placeholder="ابحث عن أداة أو ميزة..."
+              placeholder="ابحث بالاسم، الميزة أو الوسم..."
               className="ps-9"
             />
           </div>
-          <div className="flex items-center gap-1 text-xs text-muted-foreground">
-            <Filter className="w-3.5 h-3.5" /> تصنيف
-          </div>
+          <select
+            value={priceFilter}
+            onChange={(e) => setPriceFilter(e.target.value as any)}
+            className="h-9 rounded-md border border-border bg-background px-2 text-xs"
+            aria-label="التصفية حسب السعر"
+          >
+            <option value="all">كل الأسعار</option>
+            <option value="free">مجاني فقط</option>
+            <option value="paid">مدفوع فقط</option>
+          </select>
+          <select
+            value={sortBy}
+            onChange={(e) => setSortBy(e.target.value as any)}
+            className="h-9 rounded-md border border-border bg-background px-2 text-xs"
+            aria-label="ترتيب النتائج"
+          >
+            <option value="relevance">الأنسب</option>
+            <option value="name">الاسم (أ-ي)</option>
+            <option value="level">الأسهل أولاً</option>
+            <option value="favFirst">المفضّلات أولاً</option>
+          </select>
         </div>
 
         <div className="flex flex-wrap gap-2">
@@ -464,6 +482,37 @@ export default function TeachTechnicsPage() {
             );
           })}
         </div>
+
+        {/* Tag cloud */}
+        <div className="flex flex-wrap gap-1.5 items-center">
+          <Filter className="w-3.5 h-3.5 text-muted-foreground" />
+          <span className="text-[11px] text-muted-foreground me-1">وسوم:</span>
+          {allTags.map(({ tag, count }) => {
+            const active = activeTags.includes(tag);
+            return (
+              <button
+                key={tag}
+                onClick={() => toggleTag(tag)}
+                className={`text-[11px] px-2 py-0.5 rounded-full border transition ${
+                  active
+                    ? "bg-primary/20 text-primary border-primary/40"
+                    : "border-border text-muted-foreground hover:border-primary/40 hover:text-foreground"
+                }`}
+              >
+                #{tag} <span className="opacity-60">{count}</span>
+              </button>
+            );
+          })}
+          {activeFilterCount > 0 && (
+            <button
+              onClick={clearFilters}
+              className="text-[11px] px-2 py-0.5 rounded-full border border-destructive/30 text-destructive hover:bg-destructive/10 transition ms-auto"
+            >
+              مسح الكل ({activeFilterCount})
+            </button>
+          )}
+        </div>
+
 
         {filtered.length === 0 ? (
           <Card className="glass-panel">
