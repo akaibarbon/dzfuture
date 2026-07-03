@@ -582,7 +582,9 @@ export default function TeachTechnicsPage() {
                         <ol className="text-sm text-foreground/80 space-y-1 list-decimal pe-4">
                           {tool.howTo.map((h, i) => <li key={i} className="leading-snug">{h}</li>)}
                         </ol>
+                      </div>
                       <div className="flex flex-wrap gap-1">
+
                         {tool.tags.map((tg) => {
                           const on = activeTags.includes(tg);
                           return (
