@@ -226,3 +226,104 @@ html.dyslexia-font, html.dyslexia-font * {
   outline: 3px solid hsl(var(--primary)) !important;
   outline-offset: 2px;
 }
+
+/* ===== Hand-drawn overlay utilities =====
+   Stylish, casual, single-stroke white pen aesthetic.
+   Usage:
+     <div class="hand-drawn">                — thin uneven white outline around an image/card
+       <img ... />
+       <span class="hand-note top-left">so cozy ✿</span>
+       <span class="hand-arrow">↗</span>
+     </div>
+   Modifiers: .hand-drawn.sparkle, .hand-drawn.heart, .hand-drawn.steam
+*/
+@utility hand-font {
+  font-family: 'Caveat', 'Kalam', 'Comic Sans MS', cursive;
+  font-weight: 500;
+  letter-spacing: 0.01em;
+}
+
+.hand-drawn {
+  position: relative;
+  display: inline-block;
+  isolation: isolate;
+}
+/* Rough single-stroke outline traced around the outer edge */
+.hand-drawn::before {
+  content: "";
+  position: absolute;
+  inset: -6px;
+  pointer-events: none;
+  border-radius: inherit;
+  background:
+    url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 200 200' preserveAspectRatio='none'><path d='M8 14 C 40 6, 90 10, 150 8 S 192 20, 194 60 S 188 140, 192 186 S 140 194, 90 192 S 20 196, 8 180 S 4 100, 6 60 Z' fill='none' stroke='white' stroke-width='1.4' stroke-linecap='round' stroke-linejoin='round' stroke-dasharray='0' opacity='0.9'/></svg>") no-repeat center/100% 100%;
+  filter: drop-shadow(0 0 1px rgba(0,0,0,0.25));
+  z-index: 2;
+}
+/* Optional dotted guide arrow */
+.hand-drawn::after {
+  content: "";
+  position: absolute;
+  pointer-events: none;
+  z-index: 2;
+}
+.hand-drawn.arrow::after {
+  right: -28px;
+  top: 30%;
+  width: 60px;
+  height: 40px;
+  background: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 60 40'><path d='M4 30 Q 25 4, 50 18' fill='none' stroke='white' stroke-width='1.5' stroke-linecap='round' stroke-dasharray='2 5'/><path d='M44 12 L 52 18 L 44 24' fill='none' stroke='white' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'/></svg>") no-repeat center/contain;
+}
+.hand-drawn.sparkle::after {
+  right: -14px; top: -14px; width: 34px; height: 34px;
+  background: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 40 40'><g fill='none' stroke='white' stroke-width='1.4' stroke-linecap='round'><path d='M20 4 L20 16 M20 24 L20 36 M4 20 L16 20 M24 20 L36 20'/><path d='M10 10 L14 14 M26 26 L30 30 M10 30 L14 26 M26 14 L30 10' opacity='0.7'/></g></svg>") no-repeat center/contain;
+}
+.hand-drawn.heart::after {
+  right: -12px; bottom: -12px; width: 32px; height: 32px;
+  background: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><path d='M16 27 C 6 20, 3 12, 9 8 C 13 6, 15 9, 16 11 C 17 9, 19 6, 23 8 C 29 12, 26 20, 16 27 Z' fill='none' stroke='white' stroke-width='1.5' stroke-linejoin='round'/></svg>") no-repeat center/contain;
+}
+.hand-drawn.steam::after {
+  left: 8px; top: -30px; width: 40px; height: 34px;
+  background: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 40 34'><g fill='none' stroke='white' stroke-width='1.4' stroke-linecap='round'><path d='M10 30 C 6 22, 14 18, 10 10 C 8 6, 12 4, 12 2'/><path d='M22 30 C 18 22, 26 18, 22 10 C 20 6, 24 4, 24 2' opacity='0.85'/><path d='M32 28 C 30 22, 36 18, 32 12' opacity='0.7'/></g></svg>") no-repeat center/contain;
+}
+
+/* Handwritten diary notes — position with .top-left / .top-right / .bottom-left / .bottom-right */
+.hand-note {
+  position: absolute;
+  z-index: 3;
+  font-family: 'Caveat', 'Kalam', 'Comic Sans MS', cursive;
+  font-weight: 500;
+  font-size: 1.15rem;
+  line-height: 1.05;
+  color: #ffffff;
+  text-shadow: 0 1px 2px rgba(0,0,0,0.35);
+  transform: rotate(-4deg);
+  padding: 0 2px;
+  pointer-events: none;
+  max-width: 60%;
+}
+.hand-note.top-left    { top: -10px;   left: 8px;   transform: rotate(-6deg); }
+.hand-note.top-right   { top: -10px;   right: 8px;  transform: rotate(4deg); }
+.hand-note.bottom-left { bottom: -14px; left: 10px; transform: rotate(-3deg); }
+.hand-note.bottom-right{ bottom: -14px; right: 10px; transform: rotate(5deg); }
+
+/* Inline hand-drawn arrow you can drop anywhere in a card */
+.hand-arrow {
+  display: inline-block;
+  font-family: 'Caveat', cursive;
+  color: #fff;
+  text-shadow: 0 1px 2px rgba(0,0,0,0.4);
+  transform: rotate(-8deg);
+  font-size: 1.4rem;
+  line-height: 1;
+}
+
+/* Global helper: apply .hand-drawn-dark when background is light, keeps strokes visible */
+.hand-drawn-dark::before,
+.hand-drawn-dark.arrow::after,
+.hand-drawn-dark.sparkle::after,
+.hand-drawn-dark.heart::after,
+.hand-drawn-dark.steam::after {
+  filter: drop-shadow(0 0 1px rgba(0,0,0,0.5)) invert(1);
+}
+
