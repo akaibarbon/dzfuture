@@ -284,6 +284,9 @@ export default function TeachTechnicsPage() {
   const { user } = useAuth();
   const [query, setQuery] = useState("");
   const [cat, setCat] = useState<ToolCategory | "all" | "fav">("all");
+  const [priceFilter, setPriceFilter] = useState<"all" | "free" | "paid">("all");
+  const [sortBy, setSortBy] = useState<"relevance" | "name" | "level" | "favFirst">("relevance");
+  const [activeTags, setActiveTags] = useState<string[]>([]);
   const [favs, setFavs] = useState<string[]>([]);
 
   useEffect(() => {
@@ -296,20 +299,70 @@ export default function TeachTechnicsPage() {
       return next;
     });
   };
+  const toggleTag = (tag: string) => {
+    setActiveTags((prev) => (prev.includes(tag) ? prev.filter((t) => t !== tag) : [...prev, tag]));
+  };
+  const clearFilters = () => {
+    setQuery(""); setCat("all"); setPriceFilter("all"); setActiveTags([]); setSortBy("relevance");
+  };
 
-  const filtered = useMemo(() => {
+  const allTags = useMemo(() => {
+    const map = new Map<string, number>();
+    AI_TOOLS.forEach((t) => t.tags.forEach((tg) => map.set(tg, (map.get(tg) || 0) + 1)));
+    return Array.from(map.entries()).sort((a, b) => b[1] - a[1]).map(([tag, count]) => ({ tag, count }));
+  }, []);
+
+  const levelRank: Record<AITool["level"], number> = { "مبتدئ": 0, "متوسط": 1, "متقدم": 2 };
+
+  const scored = useMemo(() => {
     const q = query.trim().toLowerCase();
-    return AI_TOOLS.filter((t) => {
-      if (cat === "fav" && !favs.includes(t.name)) return false;
-      if (cat !== "all" && cat !== "fav" && t.category !== cat) return false;
-      if (!q) return true;
-      return (
-        t.name.toLowerCase().includes(q) ||
-        t.tagline.toLowerCase().includes(q) ||
-        t.features.some((f) => f.toLowerCase().includes(q))
-      );
-    });
-  }, [query, cat, favs]);
+    const terms = q ? q.split(/\s+/).filter(Boolean) : [];
+    return AI_TOOLS
+      .map((t) => {
+        if (cat === "fav" && !favs.includes(t.name)) return null;
+        if (cat !== "all" && cat !== "fav" && t.category !== cat) return null;
+        if (priceFilter === "free" && !t.free) return null;
+        if (priceFilter === "paid" && t.free) return null;
+        if (activeTags.length && !activeTags.every((tag) => t.tags.includes(tag))) return null;
+
+        let score = 0;
+        if (terms.length) {
+          const name = t.name.toLowerCase();
+          const tagline = t.tagline.toLowerCase();
+          const tagsL = t.tags.map((x) => x.toLowerCase());
+          const featL = t.features.map((f) => f.toLowerCase());
+          for (const term of terms) {
+            let hit = 0;
+            if (name.includes(term)) hit += 10;
+            if (tagsL.some((x) => x === term)) hit += 8;
+            if (tagsL.some((x) => x.includes(term))) hit += 5;
+            if (tagline.includes(term)) hit += 4;
+            if (featL.some((f) => f.includes(term))) hit += 2;
+            if (hit === 0) return null;
+            score += hit;
+          }
+        }
+        if (favs.includes(t.name)) score += 1;
+        return { tool: t, score };
+      })
+      .filter((x): x is { tool: AITool; score: number } => x !== null)
+      .sort((a, b) => {
+        if (sortBy === "name") return a.tool.name.localeCompare(b.tool.name);
+        if (sortBy === "level") return levelRank[a.tool.level] - levelRank[b.tool.level];
+        if (sortBy === "favFirst") {
+          const af = favs.includes(a.tool.name) ? 1 : 0;
+          const bf = favs.includes(b.tool.name) ? 1 : 0;
+          if (af !== bf) return bf - af;
+          return b.score - a.score;
+        }
+        // relevance
+        if (terms.length) return b.score - a.score;
+        return a.tool.name.localeCompare(b.tool.name);
+      });
+  }, [query, cat, priceFilter, activeTags, sortBy, favs]);
+
+  const filtered = scored.map((s) => s.tool);
+  const activeFilterCount = (cat !== "all" ? 1 : 0) + (priceFilter !== "all" ? 1 : 0) + activeTags.length + (query ? 1 : 0);
 
   if (!user) return <Navigate to="/auth" replace />;
   if (user.role !== "tutor") {
@@ -323,6 +376,7 @@ export default function TeachTechnicsPage() {
   }
 
   const categoryKeys: (ToolCategory | "all" | "fav")[] = ["all", "writing", "visual", "audio", "research", "classroom", "fav"];
+
 
   return (
     <div className="space-y-10 max-w-6xl mx-auto pb-28" dir="rtl">
