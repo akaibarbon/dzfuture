@@ -66,7 +66,9 @@ const AI_TOOLS: AITool[] = [
       "ألصق نص الدرس واطلب: «حوّله إلى خطة درس 45 دقيقة بأهداف بيداغوجية»",
       "ارفع صورة تمرين وأطلب حلولاً متدرّجة الصعوبة لتلاميذك",
     ],
+    tags: ["Google", "متعدد الوسائط", "سياق طويل", "Docs", "خطة درس"],
   },
+
   {
     name: "Gamma",
     logo: "https://cdn.gamma.app/favicon-32x32.png",
@@ -83,7 +85,9 @@ const AI_TOOLS: AITool[] = [
       "عدّل النبرة (رسمي / تفاعلي) وأضف صور تلقائية",
       "شارك الرابط مع القسم أو صدّره كملف عرض",
     ],
+    tags: ["عروض", "شرائح", "تصميم", "PPT", "قوالب"],
   },
+
   {
     name: "NotebookLM",
     logo: "https://notebooklm.google.com/_/static/branding/v3/notebooklm_logo_32.png",
@@ -100,7 +104,9 @@ const AI_TOOLS: AITool[] = [
       "اطلب: «ولّد 20 سؤال تقييم متدرّج مع الإجابات النموذجية»",
       "شغّل «Audio Overview» ليستمع التلاميذ للدرس في الطريق",
     ],
+    tags: ["Google", "PDF", "بحث", "بودكاست", "ملخصات", "تقييم"],
   },
+
   {
     name: "ChatGPT",
     logo: "https://cdn.oaistatic.com/assets/favicon-eex17e3i.svg",
@@ -117,7 +123,9 @@ const AI_TOOLS: AITool[] = [
       "استخدم Custom GPT لبناء مساعد متخصص لمادتك",
       "ولّد فرضًا محروسًا بمستوى صعوبة تحدّده أنت",
     ],
+    tags: ["OpenAI", "شرح", "تمارين", "Canvas", "Custom GPT"],
   },
+
   {
     name: "Claude",
     logo: "https://claude.ai/favicon.ico",
@@ -134,7 +142,9 @@ const AI_TOOLS: AITool[] = [
       "استخدمه لتصحيح الإنشاءات مع تعليقات بيداغوجية",
       "اطلب أداة تفاعلية (Artifact) لشرح مفهوم صعب",
     ],
+    tags: ["Anthropic", "تصحيح", "سياق طويل", "Artifacts", "تحليل نصوص"],
   },
+
   {
     name: "Perplexity",
     logo: "https://www.perplexity.ai/favicon.ico",
@@ -151,7 +161,9 @@ const AI_TOOLS: AITool[] = [
       "فعّل Academic mode لتحضير درس علمي دقيق",
       "احفظ Collections لكل مادة تدرّسها",
     ],
+    tags: ["بحث", "مصادر", "أكاديمي", "YouTube", "Collections"],
   },
+
   {
     name: "Suno AI",
     logo: "https://suno.com/favicon.ico",
@@ -168,7 +180,9 @@ const AI_TOOLS: AITool[] = [
       "شغّل الأغنية في بداية الحصة كمدخل مشوّق",
       "اطلب من التلاميذ كتابة أغنية عن الدرس كمشروع",
     ],
+    tags: ["موسيقى", "أغاني", "حفظ", "عربي", "إبداع"],
   },
+
   {
     name: "ElevenLabs",
     logo: "https://elevenlabs.io/favicon.ico",
@@ -185,7 +199,9 @@ const AI_TOOLS: AITool[] = [
       "أرسله للتلاميذ كنسخة صوتية للمراجعة أثناء التنقّل",
       "استعمله لمساعدة التلاميذ ذوي صعوبات القراءة",
     ],
+    tags: ["صوت", "TTS", "دبلجة", "استنساخ صوت", "MP3"],
   },
+
   {
     name: "Canva Magic Studio",
     logo: "https://static.canva.com/static/images/favicon.ico",
@@ -202,7 +218,9 @@ const AI_TOOLS: AITool[] = [
       "استعمل Magic Switch لتحويل نفس المحتوى إلى Story أو منشور",
       "شارك رابط تحرير مع التلاميذ لعمل جماعي",
     ],
+    tags: ["تصميم", "ملصقات", "قوالب", "Magic Write", "تعاون"],
   },
+
   {
     name: "Khanmigo",
     logo: "https://cdn.kastatic.org/images/favicon.ico",
@@ -219,7 +237,9 @@ const AI_TOOLS: AITool[] = [
       "استخدم أداة «Lesson Plan» لإنتاج خطة حصة بدقائق",
       "أعطِ التلاميذ حسابات ليحلّوا التمارين بمساعدة سقراطية",
     ],
+    tags: ["Khan Academy", "سقراطي", "خطة درس", "تقييم", "تلاميذ"],
   },
+
 ];
 
 const QUICK_TIPS = [
