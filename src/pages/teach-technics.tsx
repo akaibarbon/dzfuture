@@ -582,8 +582,26 @@ export default function TeachTechnicsPage() {
                         <ol className="text-sm text-foreground/80 space-y-1 list-decimal pe-4">
                           {tool.howTo.map((h, i) => <li key={i} className="leading-snug">{h}</li>)}
                         </ol>
+                      <div className="flex flex-wrap gap-1">
+                        {tool.tags.map((tg) => {
+                          const on = activeTags.includes(tg);
+                          return (
+                            <button
+                              key={tg}
+                              onClick={() => toggleTag(tg)}
+                              className={`text-[10px] px-1.5 py-0.5 rounded border transition ${
+                                on
+                                  ? "bg-primary/20 text-primary border-primary/40"
+                                  : "border-border/60 text-muted-foreground hover:border-primary/40 hover:text-foreground"
+                              }`}
+                            >
+                              #{tg}
+                            </button>
+                          );
+                        })}
                       </div>
                     </div>
+
                     <Button asChild size="sm" variant="outline" className="w-full gap-2">
                       <a href={tool.url} target="_blank" rel="noreferrer">
                         افتح {tool.name} <ExternalLink className="w-3.5 h-3.5" />
