@@ -637,6 +637,27 @@ export type Database = {
         }
         Relationships: []
       }
+      teach_technics_favorites: {
+        Row: {
+          created_at: string
+          id: string
+          tool_name: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          tool_name: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          tool_name?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       teach_technics_items: {
         Row: {
           body: string | null
