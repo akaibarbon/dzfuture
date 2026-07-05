@@ -194,39 +194,6 @@ export default function TeachTechnicsPage() {
       })
       .filter((x): x is { tool: AITool; score: number } => x !== null)
       .sort((a, b) => {
-
-    const q = query.trim().toLowerCase();
-    const terms = q ? q.split(/\s+/).filter(Boolean) : [];
-    return AI_TOOLS
-      .map((t) => {
-        if (cat === "fav" && !favs.includes(t.name)) return null;
-        if (cat !== "all" && cat !== "fav" && t.category !== cat) return null;
-        if (priceFilter === "free" && !t.free) return null;
-        if (priceFilter === "paid" && t.free) return null;
-        if (activeTags.length && !activeTags.every((tag) => t.tags.includes(tag))) return null;
-
-        let score = 0;
-        if (terms.length) {
-          const name = t.name.toLowerCase();
-          const tagline = t.tagline.toLowerCase();
-          const tagsL = t.tags.map((x) => x.toLowerCase());
-          const featL = t.features.map((f) => f.toLowerCase());
-          for (const term of terms) {
-            let hit = 0;
-            if (name.includes(term)) hit += 10;
-            if (tagsL.some((x) => x === term)) hit += 8;
-            if (tagsL.some((x) => x.includes(term))) hit += 5;
-            if (tagline.includes(term)) hit += 4;
-            if (featL.some((f) => f.includes(term))) hit += 2;
-            if (hit === 0) return null;
-            score += hit;
-          }
-        }
-        if (favs.includes(t.name)) score += 1;
-        return { tool: t, score };
-      })
-      .filter((x): x is { tool: AITool; score: number } => x !== null)
-      .sort((a, b) => {
         if (sortBy === "name") return a.tool.name.localeCompare(b.tool.name);
         if (sortBy === "level") return levelRank[a.tool.level] - levelRank[b.tool.level];
         if (sortBy === "favFirst") {
