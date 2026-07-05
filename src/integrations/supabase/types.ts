@@ -637,6 +637,69 @@ export type Database = {
         }
         Relationships: []
       }
+      teach_technics_items: {
+        Row: {
+          body: string | null
+          category: string | null
+          created_at: string
+          created_by: string | null
+          features: string[]
+          how_to: string[]
+          id: string
+          is_free: boolean | null
+          kind: string
+          level: string | null
+          logo_url: string | null
+          sort_order: number
+          status: string
+          subtitle: string | null
+          tags: string[]
+          title: string
+          updated_at: string
+          url: string | null
+        }
+        Insert: {
+          body?: string | null
+          category?: string | null
+          created_at?: string
+          created_by?: string | null
+          features?: string[]
+          how_to?: string[]
+          id?: string
+          is_free?: boolean | null
+          kind: string
+          level?: string | null
+          logo_url?: string | null
+          sort_order?: number
+          status?: string
+          subtitle?: string | null
+          tags?: string[]
+          title: string
+          updated_at?: string
+          url?: string | null
+        }
+        Update: {
+          body?: string | null
+          category?: string | null
+          created_at?: string
+          created_by?: string | null
+          features?: string[]
+          how_to?: string[]
+          id?: string
+          is_free?: boolean | null
+          kind?: string
+          level?: string | null
+          logo_url?: string | null
+          sort_order?: number
+          status?: string
+          subtitle?: string | null
+          tags?: string[]
+          title?: string
+          updated_at?: string
+          url?: string | null
+        }
+        Relationships: []
+      }
       teacher_content: {
         Row: {
           created_at: string
