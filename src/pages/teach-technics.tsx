@@ -212,7 +212,8 @@ export default function TeachTechnicsPage() {
   const activeFilterCount = (cat !== "all" ? 1 : 0) + (priceFilter !== "all" ? 1 : 0) + activeTags.length + (query ? 1 : 0);
 
   if (!user) return <Navigate to="/auth" replace />;
-  if (user.role !== "tutor") {
+  const canManage = user.role === "admin" || user.role === "tutor";
+  if (user.role !== "tutor" && user.role !== "admin") {
     return (
       <div className="flex flex-col items-center justify-center py-20 text-center" dir="rtl">
         <GraduationCap className="w-16 h-16 text-muted-foreground mb-4" />
@@ -235,21 +236,31 @@ export default function TeachTechnicsPage() {
           <div className="w-14 h-14 md:w-16 md:h-16 rounded-2xl bg-gradient-to-br from-primary to-primary/60 flex items-center justify-center shadow-lg flex-shrink-0">
             <Sparkles className="w-8 h-8 text-primary-foreground" />
           </div>
-          <div className="min-w-0">
+          <div className="min-w-0 flex-1">
             <Badge variant="outline" className="mb-2 gap-1"><Rocket className="w-3 h-3" /> نسخة 2026</Badge>
             <h1 className="text-2xl md:text-4xl font-bold font-display text-glow leading-tight">Teach Technics</h1>
             <p className="text-muted-foreground text-sm md:text-base mt-2 leading-relaxed max-w-2xl">
               دليل الأستاذ العصري: طرق التدريس الحديثة، أبحاث محكّمة، فيديوهات ملهمة،
               وأقوى أدوات الذكاء الاصطناعي التي تضاعف تأثيرك في الفصل.
             </p>
-            <div className="flex flex-wrap gap-2 mt-4 text-xs">
+            <div className="flex flex-wrap gap-2 mt-4 text-xs items-center">
               <Badge className="bg-primary/20 text-primary border-primary/30">{AI_TOOLS.length} أداة AI</Badge>
               <Badge variant="outline">{METHODS.length} طريقة عالمية</Badge>
               <Badge variant="outline">{RESEARCH.length} بحث أكاديمي</Badge>
+              {canManage && (
+                <Button asChild size="sm" variant="outline" className="gap-1 ms-auto">
+                  <Link to="/teach-technics/admin">
+                    <Settings2 className="w-3.5 h-3.5" />
+                    {user.role === "admin" ? "لوحة الإدارة" : "اقتراح / إدارة"}
+                  </Link>
+                </Button>
+              )}
+              {isLoading && <span className="text-muted-foreground text-[11px]">جاري التحميل...</span>}
             </div>
           </div>
         </div>
       </header>
+
 
       {/* Quick tips */}
       <section className="grid grid-cols-2 lg:grid-cols-4 gap-3">
