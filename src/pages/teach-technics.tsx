@@ -138,15 +138,59 @@ export default function TeachTechnicsPage() {
     [items],
   );
 
+  // Load favorites: from DB when signed in (sync across devices), else localStorage
   useEffect(() => {
-    try { const s = localStorage.getItem(FAV_KEY); if (s) setFavs(JSON.parse(s)); } catch {}
-  }, []);
-  const toggleFav = (name: string) => {
-    setFavs((prev) => {
-      const next = prev.includes(name) ? prev.filter((n) => n !== name) : [...prev, name];
+    let cancelled = false;
+    (async () => {
+      if (user?.id) {
+        const { data, error } = await supabase
+          .from("teach_technics_favorites")
+          .select("tool_name")
+          .eq("user_id", user.id);
+        if (!cancelled && !error && data) {
+          const dbFavs = data.map((r: any) => r.tool_name);
+          // Migrate any local favs to DB once
+          try {
+            const s = localStorage.getItem(FAV_KEY);
+            if (s) {
+              const local: string[] = JSON.parse(s);
+              const missing = local.filter((n) => !dbFavs.includes(n));
+              if (missing.length) {
+                await supabase.from("teach_technics_favorites").upsert(
+                  missing.map((tool_name) => ({ user_id: user.id, tool_name })),
+                  { onConflict: "user_id,tool_name" },
+                );
+                dbFavs.push(...missing);
+              }
+              localStorage.removeItem(FAV_KEY);
+            }
+          } catch {}
+          setFavs(dbFavs);
+        }
+      } else {
+        try { const s = localStorage.getItem(FAV_KEY); if (s) setFavs(JSON.parse(s)); } catch {}
+      }
+    })();
+    return () => { cancelled = true; };
+  }, [user?.id]);
+
+  const toggleFav = async (name: string) => {
+    const isFav = favs.includes(name);
+    const next = isFav ? favs.filter((n) => n !== name) : [...favs, name];
+    setFavs(next);
+    if (user?.id) {
+      const { error } = isFav
+        ? await supabase.from("teach_technics_favorites").delete()
+            .eq("user_id", user.id).eq("tool_name", name)
+        : await supabase.from("teach_technics_favorites")
+            .insert({ user_id: user.id, tool_name: name });
+      if (error) {
+        setFavs(favs);
+        toast.error("تعذّرت مزامنة المفضلات");
+      }
+    } else {
       try { localStorage.setItem(FAV_KEY, JSON.stringify(next)); } catch {}
-      return next;
-    });
+    }
   };
   const toggleTag = (tag: string) => {
     setActiveTags((prev) => (prev.includes(tag) ? prev.filter((t) => t !== tag) : [...prev, tag]));
