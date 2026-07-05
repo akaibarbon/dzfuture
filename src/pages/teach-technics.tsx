@@ -22,12 +22,16 @@ import {
   Image as ImageIcon,
   Brain,
   Filter,
+  Settings2,
 } from "lucide-react";
-import { Navigate } from "react-router-dom";
+import { Link, Navigate } from "react-router-dom";
+import { useQuery } from "@tanstack/react-query";
+import { fetchPublicItems, TTItem } from "@/lib/teach-technics";
 
 type ToolCategory = "writing" | "visual" | "audio" | "research" | "classroom";
 
 interface AITool {
+  id: string;
   name: string;
   logo: string;
   url: string;
@@ -40,7 +44,6 @@ interface AITool {
   tags: string[];
 }
 
-
 const CATEGORY_META: Record<ToolCategory, { label: string; icon: any; color: string }> = {
   writing: { label: "كتابة", icon: PenTool, color: "text-sky-400" },
   visual: { label: "بصري", icon: ImageIcon, color: "text-fuchsia-400" },
@@ -49,236 +52,32 @@ const CATEGORY_META: Record<ToolCategory, { label: string; icon: any; color: str
   classroom: { label: "قسم", icon: Presentation, color: "text-primary" },
 };
 
-const AI_TOOLS: AITool[] = [
-  {
-    name: "Google Gemini",
-    logo: "https://www.gstatic.com/lamda/images/gemini_sparkle_v002_d4735304ff6292a690345.svg",
-    url: "https://gemini.google.com",
-    tagline: "مساعد ذكي متعدد الوسائط من Google",
-    category: "writing", level: "مبتدئ", free: true,
-    features: [
-      "يفهم النص والصور والصوت في نفس المحادثة",
-      "سياق طويل جدًا (حتى مليون رمز) لتحليل ملفات ودروس كاملة",
-      "تكامل مباشر مع Docs و Gmail و Drive للأساتذة",
-    ],
-    howTo: [
-      "افتح gemini.google.com وسجّل بحسابك المهني",
-      "ألصق نص الدرس واطلب: «حوّله إلى خطة درس 45 دقيقة بأهداف بيداغوجية»",
-      "ارفع صورة تمرين وأطلب حلولاً متدرّجة الصعوبة لتلاميذك",
-    ],
-    tags: ["Google", "متعدد الوسائط", "سياق طويل", "Docs", "خطة درس"],
-  },
-
-  {
-    name: "Gamma",
-    logo: "https://cdn.gamma.app/favicon-32x32.png",
-    url: "https://gamma.app",
-    tagline: "توليد عروض تقديمية احترافية بضغطة زر",
-    category: "visual", level: "مبتدئ", free: true,
-    features: [
-      "يحوّل موضوعًا نصّيًا إلى عرض كامل بالتصميم والصور",
-      "قوالب تعليمية جاهزة (درس، مراجعة، محاضرة)",
-      "تصدير PDF / PPT / موقع ويب مباشر",
-    ],
-    howTo: [
-      "اكتب: «عرض عن التحولات الكيميائية للسنة الرابعة متوسط، 10 شرائح»",
-      "عدّل النبرة (رسمي / تفاعلي) وأضف صور تلقائية",
-      "شارك الرابط مع القسم أو صدّره كملف عرض",
-    ],
-    tags: ["عروض", "شرائح", "تصميم", "PPT", "قوالب"],
-  },
-
-  {
-    name: "NotebookLM",
-    logo: "https://notebooklm.google.com/_/static/branding/v3/notebooklm_logo_32.png",
-    url: "https://notebooklm.google.com",
-    tagline: "مختبر بحثي شخصي مبني على مصادرك أنت",
-    category: "research", level: "متوسط", free: true,
-    features: [
-      "ارفع 50 مصدر PDF/رابط/نص واسأل عنها كأنها كتاب واحد",
-      "يولّد ملخصات، أسئلة، خرائط ذهنية من مصادرك",
-      "ميزة Audio Overview: يحوّل الدرس إلى بودكاست حواري",
-    ],
-    howTo: [
-      "أنشئ Notebook جديد وارفع دروس الفصل PDF",
-      "اطلب: «ولّد 20 سؤال تقييم متدرّج مع الإجابات النموذجية»",
-      "شغّل «Audio Overview» ليستمع التلاميذ للدرس في الطريق",
-    ],
-    tags: ["Google", "PDF", "بحث", "بودكاست", "ملخصات", "تقييم"],
-  },
-
-  {
-    name: "ChatGPT",
-    logo: "https://cdn.oaistatic.com/assets/favicon-eex17e3i.svg",
-    url: "https://chat.openai.com",
-    tagline: "أشهر مساعد كتابي عام الاستخدام",
-    category: "writing", level: "مبتدئ", free: true,
-    features: [
-      "يشرح المفاهيم بمستويات مختلفة (طفل / مراهق / متخصص)",
-      "توليد تمارين، رومان تعليمية، سيناريوهات محاكاة",
-      "وضع Canvas لتحرير الوثائق تعاونيًا",
-    ],
-    howTo: [
-      "اطلب: «اشرح نظرية طاليس بثلاث طرق مختلفة لتلميذ ضعيف»",
-      "استخدم Custom GPT لبناء مساعد متخصص لمادتك",
-      "ولّد فرضًا محروسًا بمستوى صعوبة تحدّده أنت",
-    ],
-    tags: ["OpenAI", "شرح", "تمارين", "Canvas", "Custom GPT"],
-  },
-
-  {
-    name: "Claude",
-    logo: "https://claude.ai/favicon.ico",
-    url: "https://claude.ai",
-    tagline: "الأفضل في تحليل النصوص الطويلة والتصحيح",
-    category: "writing", level: "متقدم", free: true,
-    features: [
-      "نافذة سياق ضخمة (200K رمز) — يقرأ كتاب كامل",
-      "دقّة عالية في تصحيح الفروض المكتوبة يدويًا (بعد OCR)",
-      "Artifacts: يولّد صفحات HTML تفاعلية للدروس",
-    ],
-    howTo: [
-      "الصق 30 صفحة من محتوى وحدة واطلب مراجعة شاملة",
-      "استخدمه لتصحيح الإنشاءات مع تعليقات بيداغوجية",
-      "اطلب أداة تفاعلية (Artifact) لشرح مفهوم صعب",
-    ],
-    tags: ["Anthropic", "تصحيح", "سياق طويل", "Artifacts", "تحليل نصوص"],
-  },
-
-  {
-    name: "Perplexity",
-    logo: "https://www.perplexity.ai/favicon.ico",
-    url: "https://perplexity.ai",
-    tagline: "محرك بحث AI بمصادر موثّقة",
-    category: "research", level: "مبتدئ", free: true,
-    features: [
-      "كل إجابة تأتي مع روابط المصادر الأصلية",
-      "وضع Academic للأبحاث العلمية المحكّمة",
-      "Focus mode للبحث في YouTube أو Reddit أو أوراق أكاديمية",
-    ],
-    howTo: [
-      "اسأل: «آخر الطرق البيداغوجية في تعليم الرياضيات 2025»",
-      "فعّل Academic mode لتحضير درس علمي دقيق",
-      "احفظ Collections لكل مادة تدرّسها",
-    ],
-    tags: ["بحث", "مصادر", "أكاديمي", "YouTube", "Collections"],
-  },
-
-  {
-    name: "Suno AI",
-    logo: "https://suno.com/favicon.ico",
-    url: "https://suno.com",
-    tagline: "توليد أغاني تعليمية جذّابة",
-    category: "audio", level: "مبتدئ", free: true,
-    features: [
-      "يحوّل قاعدة نحوية أو تاريخًا إلى أغنية يحفظها التلميذ بسهولة",
-      "يدعم العربية والفرنسية والإنجليزية",
-      "تحكّم في الأسلوب (راب / بوب / كلاسيكي)",
-    ],
-    howTo: [
-      "اكتب كلمات تلخّص القاعدة، اختر النمط، اضغط Create",
-      "شغّل الأغنية في بداية الحصة كمدخل مشوّق",
-      "اطلب من التلاميذ كتابة أغنية عن الدرس كمشروع",
-    ],
-    tags: ["موسيقى", "أغاني", "حفظ", "عربي", "إبداع"],
-  },
-
-  {
-    name: "ElevenLabs",
-    logo: "https://elevenlabs.io/favicon.ico",
-    url: "https://elevenlabs.io",
-    tagline: "أصوات بشرية طبيعية بلغات متعددة",
-    category: "audio", level: "متوسط", free: false,
-    features: [
-      "أصوات عربية فصيحة وواقعية جدًا",
-      "استنساخ صوت (Voice Clone) لتسجيل دروسك بصوتك دون جهد",
-      "دبلجة تلقائية للفيديوهات",
-    ],
-    howTo: [
-      "ألصق الدرس، اختر صوتًا عربيًا، حمّل ملف MP3",
-      "أرسله للتلاميذ كنسخة صوتية للمراجعة أثناء التنقّل",
-      "استعمله لمساعدة التلاميذ ذوي صعوبات القراءة",
-    ],
-    tags: ["صوت", "TTS", "دبلجة", "استنساخ صوت", "MP3"],
-  },
-
-  {
-    name: "Canva Magic Studio",
-    logo: "https://static.canva.com/static/images/favicon.ico",
-    url: "https://canva.com",
-    tagline: "تصميم بصري بمساعدة الذكاء الاصطناعي",
-    category: "visual", level: "مبتدئ", free: true,
-    features: [
-      "Magic Design: يولّد ملصقات ومخططات من وصف نصّي",
-      "Magic Write لكتابة محتوى تعليمي داخل التصميم",
-      "قوالب تعليمية مجانية لأولياء الأمور والتلاميذ",
-    ],
-    howTo: [
-      "اكتب: «ملصق عن دورة الماء بألوان مبهجة»",
-      "استعمل Magic Switch لتحويل نفس المحتوى إلى Story أو منشور",
-      "شارك رابط تحرير مع التلاميذ لعمل جماعي",
-    ],
-    tags: ["تصميم", "ملصقات", "قوالب", "Magic Write", "تعاون"],
-  },
-
-  {
-    name: "Khanmigo",
-    logo: "https://cdn.kastatic.org/images/favicon.ico",
-    url: "https://khanacademy.org/khan-labs",
-    tagline: "مساعد Khan Academy للأساتذة والتلاميذ",
-    category: "classroom", level: "متوسط", free: true,
-    features: [
-      "لا يعطي الإجابة مباشرة بل يوجّه التلميذ سقراطيًا",
-      "أدوات جاهزة: بناء اختبار، خطة درس، تقرير تلميذ",
-      "مجاني للأساتذة عبر برنامج Khan Academy Districts",
-    ],
-    howTo: [
-      "سجّل كأستاذ عبر khanmigo.ai",
-      "استخدم أداة «Lesson Plan» لإنتاج خطة حصة بدقائق",
-      "أعطِ التلاميذ حسابات ليحلّوا التمارين بمساعدة سقراطية",
-    ],
-    tags: ["Khan Academy", "سقراطي", "خطة درس", "تقييم", "تلاميذ"],
-  },
-
-];
-
-const QUICK_TIPS = [
-  { icon: Rocket, title: "ابدأ صغيرًا", body: "اختر أداة واحدة فقط هذا الأسبوع (مثلاً Gamma) وطبّقها في حصّة واحدة." },
-  { icon: Sparkles, title: "برومبت واضح", body: "اذكر المستوى + المادة + الهدف + عدد الدقائق. النتيجة تتضاعف جودتها." },
-  { icon: GraduationCap, title: "راجع دائمًا", body: "AI يخطئ. راجع كل مخرج قبل تقديمه للتلاميذ، خاصة الأرقام والمراجع." },
-  { icon: Brain, title: "علّم النقد", body: "شارك التلاميذ كيف تستخدمها لتنمّي عندهم التفكير النقدي لا الاعتماد الأعمى." },
-];
-
-const METHODS = [
-  { country: "🇫🇮 فنلندا", title: "Phenomenon-Based Learning", body: "بدل تدريس المواد منفصلة، ادرس ظاهرة كاملة (مثل تغيّر المناخ) من زوايا العلوم والرياضيات واللغة معًا. يحقّق تعلّمًا عميقًا ومترابطًا." },
-  { country: "🇸🇬 سنغافورة", title: "نموذج CPA (Concrete–Pictorial–Abstract)", body: "ابدأ بأشياء ملموسة، ثم صور ورسومات، وأخيرًا رموز مجرّدة. الأداة المثالية: اطلب من Gemini توليد أنشطة CPA لأي مفهوم رياضي." },
-  { country: "🇰🇷 كوريا الجنوبية", title: "Spaced Repetition + AI", body: "التكرار المتباعد يزيد التذكّر 200٪. استخدم Quizlet AI أو NotebookLM لتوليد بطاقات مراجعة تلقائيًا من دروسك." },
-  { country: "🇨🇦 كندا", title: "Flipped Classroom", body: "الشرح في البيت عبر فيديو قصير (Loom + AI subtitles)، والحصّة للتطبيق والنقاش. AI يوفّر عليك ساعات في تحضير الفيديوهات." },
-  { country: "🇯🇵 اليابان", title: "Kaizen التربوي", body: "تحسين مستمرّ بخطوات صغيرة. بعد كل حصّة اطلب من ChatGPT تحليل ملاحظات التلاميذ واقتراح تعديل واحد لتجربته الحصّة القادمة." },
-  { country: "🇺🇸 الولايات المتحدة", title: "Universal Design for Learning (UDL)", body: "قدّم المحتوى بأشكال متعددة (نص + صوت + فيديو + تفاعل). ElevenLabs وSuno يجعلانك تنتج نسخًا مختلفة من نفس الدرس في دقائق." },
-];
-
-const RESEARCH = [
-  { title: "UNESCO — AI and Education Guidance for Policymakers", org: "اليونسكو، 2023", url: "https://unesdoc.unesco.org/ark:/48223/pf0000376709" },
-  { title: "OECD — Opportunities, Guidelines and Guardrails for Effective AI in Education", org: "OECD، 2024", url: "https://www.oecd.org/en/publications/opportunities-guidelines-and-guardrails-for-effective-and-equitable-use-of-ai-in-education_a8ff2f80-en.html" },
-  { title: "MIT — Generative AI in the Classroom", org: "MIT Teaching Systems Lab", url: "https://tsl.mit.edu" },
-  { title: "Harvard — Teaching with AI: A Guide for Educators", org: "Harvard Graduate School of Education", url: "https://www.gse.harvard.edu/ideas/usable-knowledge/23/07/embracing-artificial-intelligence-classroom" },
-];
-
-const VIDEOS = [
-  { title: "How AI Could Save (Not Destroy) Education — Sal Khan", channel: "TED", url: "https://www.youtube.com/watch?v=hJP5GqnTrNo" },
-  { title: "Teachers Using AI: Real Classroom Examples", channel: "Common Sense Education", url: "https://www.youtube.com/watch?v=SsC3XiWMlDA" },
-  { title: "The Future of Learning with Gemini", channel: "Google for Education", url: "https://www.youtube.com/@GoogleForEducation" },
-];
-
-const SITES = [
-  { name: "AI for Education", url: "https://www.aiforeducation.io", desc: "دورات مجانية للأساتذة حول توظيف AI في الفصل." },
-  { name: "Edutopia", url: "https://www.edutopia.org", desc: "مقالات وأبحاث في أساليب التدريس المبتكرة." },
-  { name: "Common Sense — AI Ratings", url: "https://www.commonsense.org/education/ai", desc: "تقييم مستقل لأدوات AI التعليمية." },
-  { name: "TeachAI", url: "https://www.teachai.org", desc: "مبادرة عالمية تجمع سياسات ومناهج AI للمدارس." },
-];
+const TIP_ICONS = [Rocket, Sparkles, GraduationCap, Brain];
 
 const FAV_KEY = "teach-technics-favs-v1";
+
+function normalizeTool(i: TTItem): AITool {
+  const cat = (["writing", "visual", "audio", "research", "classroom"].includes(i.category ?? "")
+    ? i.category
+    : "writing") as ToolCategory;
+  const lvl = (["مبتدئ", "متوسط", "متقدم"].includes(i.level ?? "")
+    ? i.level
+    : "مبتدئ") as AITool["level"];
+  const host = i.url ? (() => { try { return new URL(i.url!).hostname.replace(/^www\./, ""); } catch { return ""; } })() : "";
+  return {
+    id: i.id,
+    name: i.title,
+    logo: i.logo_url || (host ? `https://logo.clearbit.com/${host}` : ""),
+    url: i.url ?? "#",
+    tagline: i.subtitle ?? "",
+    category: cat,
+    level: lvl,
+    free: i.is_free ?? true,
+    features: i.features,
+    howTo: i.how_to,
+    tags: i.tags,
+  };
+}
 
 export default function TeachTechnicsPage() {
   const { user } = useAuth();
@@ -288,6 +87,54 @@ export default function TeachTechnicsPage() {
   const [sortBy, setSortBy] = useState<"relevance" | "name" | "level" | "favFirst">("relevance");
   const [activeTags, setActiveTags] = useState<string[]>([]);
   const [favs, setFavs] = useState<string[]>([]);
+
+  const { data: items = [], isLoading } = useQuery({
+    queryKey: ["teach-technics-public"],
+    queryFn: fetchPublicItems,
+  });
+
+  const AI_TOOLS = useMemo(
+    () =>
+      items
+        .filter((i) => i.kind === "tool")
+        .map(normalizeTool),
+    [items],
+  );
+  const QUICK_TIPS = useMemo(
+    () =>
+      items
+        .filter((i) => i.kind === "tip")
+        .map((i, idx) => ({ icon: TIP_ICONS[idx % TIP_ICONS.length], title: i.title, body: i.body ?? "" })),
+    [items],
+  );
+  const METHODS = useMemo(
+    () =>
+      items
+        .filter((i) => i.kind === "method")
+        .map((i) => ({ country: i.subtitle ?? "", title: i.title, body: i.body ?? "" })),
+    [items],
+  );
+  const RESEARCH = useMemo(
+    () =>
+      items
+        .filter((i) => i.kind === "research")
+        .map((i) => ({ title: i.title, org: i.subtitle ?? "", url: i.url ?? "#" })),
+    [items],
+  );
+  const VIDEOS = useMemo(
+    () =>
+      items
+        .filter((i) => i.kind === "video")
+        .map((i) => ({ title: i.title, channel: i.subtitle ?? "", url: i.url ?? "#" })),
+    [items],
+  );
+  const SITES = useMemo(
+    () =>
+      items
+        .filter((i) => i.kind === "site")
+        .map((i) => ({ name: i.title, url: i.url ?? "#", desc: i.body ?? "" })),
+    [items],
+  );
 
   useEffect(() => {
     try { const s = localStorage.getItem(FAV_KEY); if (s) setFavs(JSON.parse(s)); } catch {}
@@ -310,11 +157,44 @@ export default function TeachTechnicsPage() {
     const map = new Map<string, number>();
     AI_TOOLS.forEach((t) => t.tags.forEach((tg) => map.set(tg, (map.get(tg) || 0) + 1)));
     return Array.from(map.entries()).sort((a, b) => b[1] - a[1]).map(([tag, count]) => ({ tag, count }));
-  }, []);
+  }, [AI_TOOLS]);
 
   const levelRank: Record<AITool["level"], number> = { "مبتدئ": 0, "متوسط": 1, "متقدم": 2 };
 
   const scored = useMemo(() => {
+    const q = query.trim().toLowerCase();
+    const terms = q ? q.split(/\s+/).filter(Boolean) : [];
+    return AI_TOOLS
+      .map((t) => {
+        if (cat === "fav" && !favs.includes(t.name)) return null;
+        if (cat !== "all" && cat !== "fav" && t.category !== cat) return null;
+        if (priceFilter === "free" && !t.free) return null;
+        if (priceFilter === "paid" && t.free) return null;
+        if (activeTags.length && !activeTags.every((tag) => t.tags.includes(tag))) return null;
+
+        let score = 0;
+        if (terms.length) {
+          const name = t.name.toLowerCase();
+          const tagline = t.tagline.toLowerCase();
+          const tagsL = t.tags.map((x) => x.toLowerCase());
+          const featL = t.features.map((f) => f.toLowerCase());
+          for (const term of terms) {
+            let hit = 0;
+            if (name.includes(term)) hit += 10;
+            if (tagsL.some((x) => x === term)) hit += 8;
+            if (tagsL.some((x) => x.includes(term))) hit += 5;
+            if (tagline.includes(term)) hit += 4;
+            if (featL.some((f) => f.includes(term))) hit += 2;
+            if (hit === 0) return null;
+            score += hit;
+          }
+        }
+        if (favs.includes(t.name)) score += 1;
+        return { tool: t, score };
+      })
+      .filter((x): x is { tool: AITool; score: number } => x !== null)
+      .sort((a, b) => {
+
     const q = query.trim().toLowerCase();
     const terms = q ? q.split(/\s+/).filter(Boolean) : [];
     return AI_TOOLS
