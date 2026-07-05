@@ -27,6 +27,8 @@ import {
 import { Link, Navigate } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import { fetchPublicItems, TTItem } from "@/lib/teach-technics";
+import { supabase } from "@/integrations/supabase/client";
+import { toast } from "sonner";
 
 type ToolCategory = "writing" | "visual" | "audio" | "research" | "classroom";
 
