@@ -25,7 +25,7 @@ import {
   Settings2,
 } from "lucide-react";
 import { Link, Navigate } from "react-router-dom";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { fetchPublicItems, TTItem } from "@/lib/teach-technics";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
