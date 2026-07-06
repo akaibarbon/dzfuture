@@ -25,7 +25,7 @@ import {
   Settings2,
 } from "lucide-react";
 import { Link, Navigate } from "react-router-dom";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { fetchPublicItems, TTItem } from "@/lib/teach-technics";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
@@ -83,12 +83,13 @@ function normalizeTool(i: TTItem): AITool {
 
 export default function TeachTechnicsPage() {
   const { user } = useAuth();
+  const qc = useQueryClient();
   const [query, setQuery] = useState("");
   const [cat, setCat] = useState<ToolCategory | "all" | "fav">("all");
   const [priceFilter, setPriceFilter] = useState<"all" | "free" | "paid">("all");
   const [sortBy, setSortBy] = useState<"relevance" | "name" | "level" | "favFirst">("relevance");
   const [activeTags, setActiveTags] = useState<string[]>([]);
-  const [favs, setFavs] = useState<string[]>([]);
+  const [localFavs, setLocalFavs] = useState<string[]>([]);
 
   const { data: items = [], isLoading } = useQuery({
     queryKey: ["teach-technics-public"],
@@ -138,57 +139,83 @@ export default function TeachTechnicsPage() {
     [items],
   );
 
-  // Load favorites: from DB when signed in (sync across devices), else localStorage
-  useEffect(() => {
-    let cancelled = false;
-    (async () => {
-      if (user?.id) {
-        const { data, error } = await supabase
-          .from("teach_technics_favorites")
-          .select("tool_name")
-          .eq("user_id", user.id);
-        if (!cancelled && !error && data) {
-          const dbFavs = data.map((r: any) => r.tool_name);
-          // Migrate any local favs to DB once
-          try {
-            const s = localStorage.getItem(FAV_KEY);
-            if (s) {
-              const local: string[] = JSON.parse(s);
-              const missing = local.filter((n) => !dbFavs.includes(n));
-              if (missing.length) {
-                await supabase.from("teach_technics_favorites").upsert(
-                  missing.map((tool_name) => ({ user_id: user.id, tool_name })),
-                  { onConflict: "user_id,tool_name" },
-                );
-                dbFavs.push(...missing);
-              }
-              localStorage.removeItem(FAV_KEY);
-            }
-          } catch {}
-          setFavs(dbFavs);
+  // Signed-in: favorites live in DB (source of truth, syncs across devices, realtime)
+  const favsQueryKey = ["teach-technics-favs", user?.id ?? "guest"] as const;
+  const { data: dbFavs } = useQuery({
+    queryKey: favsQueryKey,
+    enabled: !!user?.id,
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("teach_technics_favorites")
+        .select("tool_name")
+        .eq("user_id", user!.id);
+      if (error) throw error;
+      const names = (data ?? []).map((r: any) => r.tool_name as string);
+      // One-time migration of any leftover local favs into DB
+      try {
+        const s = localStorage.getItem(FAV_KEY);
+        if (s) {
+          const local: string[] = JSON.parse(s);
+          const missing = local.filter((n) => !names.includes(n));
+          if (missing.length) {
+            await supabase.from("teach_technics_favorites").upsert(
+              missing.map((tool_name) => ({ user_id: user!.id, tool_name })),
+              { onConflict: "user_id,tool_name" },
+            );
+            names.push(...missing);
+          }
+          localStorage.removeItem(FAV_KEY);
         }
-      } else {
-        try { const s = localStorage.getItem(FAV_KEY); if (s) setFavs(JSON.parse(s)); } catch {}
-      }
-    })();
-    return () => { cancelled = true; };
+      } catch {}
+      return names;
+    },
+    staleTime: 30_000,
+  });
+
+  // Guests: keep localStorage-backed favorites
+  useEffect(() => {
+    if (user?.id) return;
+    try { const s = localStorage.getItem(FAV_KEY); if (s) setLocalFavs(JSON.parse(s)); } catch {}
   }, [user?.id]);
+
+  // Realtime sync so a change on another device is reflected instantly
+  useEffect(() => {
+    if (!user?.id) return;
+    const channel = supabase
+      .channel(`tt-favs-${user.id}`)
+      .on(
+        "postgres_changes",
+        { event: "*", schema: "public", table: "teach_technics_favorites", filter: `user_id=eq.${user.id}` },
+        () => { qc.invalidateQueries({ queryKey: favsQueryKey }); },
+      )
+      .subscribe();
+    return () => { supabase.removeChannel(channel); };
+  }, [user?.id, qc]);
+
+  const favs = user?.id ? (dbFavs ?? []) : localFavs;
 
   const toggleFav = async (name: string) => {
     const isFav = favs.includes(name);
-    const next = isFav ? favs.filter((n) => n !== name) : [...favs, name];
-    setFavs(next);
     if (user?.id) {
+      // Optimistic update against DB cache
+      const prev = dbFavs ?? [];
+      const next = isFav ? prev.filter((n) => n !== name) : [...prev, name];
+      qc.setQueryData(favsQueryKey, next);
       const { error } = isFav
         ? await supabase.from("teach_technics_favorites").delete()
             .eq("user_id", user.id).eq("tool_name", name)
         : await supabase.from("teach_technics_favorites")
             .insert({ user_id: user.id, tool_name: name });
       if (error) {
-        setFavs(favs);
+        qc.setQueryData(favsQueryKey, prev);
         toast.error("تعذّرت مزامنة المفضلات");
+      } else {
+        // Ensure we converge with the DB (covers other-tab writes)
+        qc.invalidateQueries({ queryKey: favsQueryKey });
       }
     } else {
+      const next = isFav ? localFavs.filter((n) => n !== name) : [...localFavs, name];
+      setLocalFavs(next);
       try { localStorage.setItem(FAV_KEY, JSON.stringify(next)); } catch {}
     }
   };
