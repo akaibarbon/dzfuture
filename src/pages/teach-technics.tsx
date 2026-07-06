@@ -458,7 +458,9 @@ export default function TeachTechnicsPage() {
                         }}
                       />
                       <div className="min-w-0 flex-1">
-                        <CardTitle className="text-lg leading-tight truncate">{tool.name}</CardTitle>
+                        <Link to={`/teach-technics/tool/${tool.id}`} className="hover:text-primary transition">
+                          <CardTitle className="text-lg leading-tight truncate">{tool.name}</CardTitle>
+                        </Link>
                         <p className="text-xs text-primary/80 mt-0.5 line-clamp-2">{tool.tagline}</p>
                       </div>
                     </div>
@@ -508,11 +510,18 @@ export default function TeachTechnicsPage() {
                       </div>
                     </div>
 
-                    <Button asChild size="sm" variant="outline" className="w-full gap-2">
-                      <a href={tool.url} target="_blank" rel="noreferrer">
-                        افتح {tool.name} <ExternalLink className="w-3.5 h-3.5" />
-                      </a>
-                    </Button>
+                    <div className="flex gap-2">
+                      <Button asChild size="sm" variant="outline" className="flex-1 gap-2">
+                        <Link to={`/teach-technics/tool/${tool.id}`}>
+                          التفاصيل
+                        </Link>
+                      </Button>
+                      <Button asChild size="sm" className="flex-1 gap-2">
+                        <a href={tool.url} target="_blank" rel="noreferrer">
+                          افتح <ExternalLink className="w-3.5 h-3.5" />
+                        </a>
+                      </Button>
+                    </div>
                   </CardContent>
                 </Card>
               );

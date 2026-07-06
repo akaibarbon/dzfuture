@@ -29,6 +29,7 @@ import TutorChatPage from "./pages/tutor-chat";
 import AdvancedTeachingPage from "./pages/advanced-teaching";
 import AIToolsPage from "./pages/ai-tools";
 import TeachTechnicsPage from "./pages/teach-technics";
+import TeachTechnicsToolPage from "./pages/teach-technics-tool";
 import AdminTeachTechnicsPage from "./pages/admin-teach-technics";
 import AssignmentsPage from "./pages/assignments";
 import MyClassPage from "./pages/my-class";
@@ -72,6 +73,7 @@ function AppRoutes() {
       <Route path="/advanced-teaching" element={<ProtectedRoute><AdvancedTeachingPage /></ProtectedRoute>} />
       <Route path="/ai-tools" element={<ProtectedRoute><AIToolsPage /></ProtectedRoute>} />
       <Route path="/teach-technics" element={<ProtectedRoute><TeachTechnicsPage /></ProtectedRoute>} />
+      <Route path="/teach-technics/tool/:id" element={<ProtectedRoute><TeachTechnicsToolPage /></ProtectedRoute>} />
       <Route path="/teach-technics/admin" element={<ProtectedRoute><AdminTeachTechnicsPage /></ProtectedRoute>} />
       <Route path="/assignments" element={<ProtectedRoute><AssignmentsPage /></ProtectedRoute>} />
       <Route path="/my-class" element={<ProtectedRoute><MyClassPage /></ProtectedRoute>} />
