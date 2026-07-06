@@ -458,7 +458,9 @@ export default function TeachTechnicsPage() {
                         }}
                       />
                       <div className="min-w-0 flex-1">
-                        <CardTitle className="text-lg leading-tight truncate">{tool.name}</CardTitle>
+                        <Link to={`/teach-technics/tool/${tool.id}`} className="hover:text-primary transition">
+                          <CardTitle className="text-lg leading-tight truncate">{tool.name}</CardTitle>
+                        </Link>
                         <p className="text-xs text-primary/80 mt-0.5 line-clamp-2">{tool.tagline}</p>
                       </div>
                     </div>
