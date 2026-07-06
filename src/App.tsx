@@ -29,6 +29,7 @@ import TutorChatPage from "./pages/tutor-chat";
 import AdvancedTeachingPage from "./pages/advanced-teaching";
 import AIToolsPage from "./pages/ai-tools";
 import TeachTechnicsPage from "./pages/teach-technics";
+import TeachTechnicsToolPage from "./pages/teach-technics-tool";
 import AdminTeachTechnicsPage from "./pages/admin-teach-technics";
 import AssignmentsPage from "./pages/assignments";
 import MyClassPage from "./pages/my-class";
