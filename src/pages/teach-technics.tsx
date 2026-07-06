@@ -83,12 +83,13 @@ function normalizeTool(i: TTItem): AITool {
 
 export default function TeachTechnicsPage() {
   const { user } = useAuth();
+  const qc = useQueryClient();
   const [query, setQuery] = useState("");
   const [cat, setCat] = useState<ToolCategory | "all" | "fav">("all");
   const [priceFilter, setPriceFilter] = useState<"all" | "free" | "paid">("all");
   const [sortBy, setSortBy] = useState<"relevance" | "name" | "level" | "favFirst">("relevance");
   const [activeTags, setActiveTags] = useState<string[]>([]);
-  const [favs, setFavs] = useState<string[]>([]);
+  const [localFavs, setLocalFavs] = useState<string[]>([]);
 
   const { data: items = [], isLoading } = useQuery({
     queryKey: ["teach-technics-public"],
