@@ -62,6 +62,15 @@ export default function TeachTechnicsToolPage() {
       .map((x) => x.item);
   }, [items, tool]);
 
+  const toolHost = tool?.url ? hostOf(tool.url) : "";
+  const shareImage = tool?.logo_url || (toolHost ? `https://logo.clearbit.com/${toolHost}` : undefined);
+  useDocumentMeta({
+    title: tool ? `${tool.title} — Teach Technics` : "Teach Technics",
+    description: tool?.subtitle || tool?.body?.slice(0, 160) || "دليل أدوات وطرق التدريس الحديثة.",
+    image: shareImage,
+    type: "article",
+  });
+
   if (!user) return <Navigate to="/auth" replace />;
   if (user.role !== "tutor" && user.role !== "admin") {
     return (
