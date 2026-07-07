@@ -337,6 +337,8 @@ export default function TeachTechnicsToolPage() {
           )}
         </aside>
       </div>
+      <BackToTop />
     </div>
+
   );
 }
