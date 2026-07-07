@@ -23,6 +23,7 @@ import {
   Copy,
 } from "lucide-react";
 import { toast } from "sonner";
+import { BackToTop } from "@/components/back-to-top";
 
 const CATEGORY_META: Record<string, { label: string; icon: any; color: string }> = {
   writing: { label: "كتابة", icon: PenTool, color: "text-sky-400" },
