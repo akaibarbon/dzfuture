@@ -24,6 +24,7 @@ import {
 } from "lucide-react";
 import { toast } from "sonner";
 import { BackToTop } from "@/components/back-to-top";
+import { useDocumentMeta } from "@/hooks/use-document-meta";
 
 const CATEGORY_META: Record<string, { label: string; icon: any; color: string }> = {
   writing: { label: "كتابة", icon: PenTool, color: "text-sky-400" },
@@ -61,6 +62,15 @@ export default function TeachTechnicsToolPage() {
       .slice(0, 4)
       .map((x) => x.item);
   }, [items, tool]);
+
+  const toolHost = tool?.url ? hostOf(tool.url) : "";
+  const shareImage = tool?.logo_url || (toolHost ? `https://logo.clearbit.com/${toolHost}` : undefined);
+  useDocumentMeta({
+    title: tool ? `${tool.title} — Teach Technics` : "Teach Technics",
+    description: tool?.subtitle || tool?.body?.slice(0, 160) || "دليل أدوات وطرق التدريس الحديثة.",
+    image: shareImage,
+    type: "article",
+  });
 
   if (!user) return <Navigate to="/auth" replace />;
   if (user.role !== "tutor" && user.role !== "admin") {
