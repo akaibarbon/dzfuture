@@ -7,7 +7,8 @@ import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
-import { ShieldAlert, Megaphone, Users, Trash2, Plus, Lock, BadgeCheck, CheckCircle, XCircle, UserCheck, GraduationCap, UserPlus, Copy, Loader2, Download, ImageDown } from "lucide-react";
+import { ShieldAlert, Megaphone, Users, Trash2, Plus, Lock, BadgeCheck, CheckCircle, XCircle, UserCheck, GraduationCap, UserPlus, Copy, Loader2, Download, ImageDown, Sparkles, ArrowLeft } from "lucide-react";
+import { Link } from "react-router-dom";
 import { motion } from "framer-motion";
 import { useTranslation } from "react-i18next";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -237,6 +238,23 @@ export default function ControlPanelPage() {
           <p className="text-[11px] text-muted-foreground">قيد الانتظار</p>
         </Card>
       </div>
+
+      {/* Teach Technics management shortcut */}
+      <Card className="glass-panel border-primary/30 bg-gradient-to-br from-primary/10 via-background to-background">
+        <CardContent className="p-4 flex items-center gap-4">
+          <div className="w-12 h-12 rounded-2xl bg-primary/20 flex items-center justify-center flex-shrink-0">
+            <Sparkles className="w-6 h-6 text-primary" />
+          </div>
+          <div className="flex-1 min-w-0">
+            <p className="font-bold">إدارة Teach Technics</p>
+            <p className="text-xs text-muted-foreground">أضف، عدّل، راجع النصائح والطرق والأدوات والأبحاث والفيديوهات والمواقع.</p>
+          </div>
+          <Button asChild size="sm" className="gap-1 flex-shrink-0">
+            <Link to="/teach-technics/admin">فتح <ArrowLeft className="w-3.5 h-3.5" /></Link>
+          </Button>
+        </CardContent>
+      </Card>
+
 
       {/* Quick navigation */}
       <nav className="sticky top-0 z-10 -mx-3 px-3 py-2 bg-background/80 backdrop-blur-md border-y border-border/40 overflow-x-auto">
