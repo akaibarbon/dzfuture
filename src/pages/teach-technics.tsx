@@ -29,6 +29,7 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { fetchPublicItems, TTItem } from "@/lib/teach-technics";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
+import { BackToTop } from "@/components/back-to-top";
 
 type ToolCategory = "writing" | "visual" | "audio" | "research" | "classroom";
 
@@ -652,6 +653,8 @@ export default function TeachTechnicsPage() {
           ))}
         </div>
       </section>
+      <BackToTop />
     </div>
   );
 }
+
