@@ -652,6 +652,8 @@ export default function TeachTechnicsPage() {
           ))}
         </div>
       </section>
+      <BackToTop />
     </div>
   );
 }
+
